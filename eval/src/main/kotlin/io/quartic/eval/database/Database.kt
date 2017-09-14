@@ -1,15 +1,16 @@
-package io.quartic.eval
+package io.quartic.eval.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.Database.*
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.Companion.VERSION
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
+import io.quartic.eval.database.Database.*
+import io.quartic.eval.database.model.BuildEvent
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.TriggerReceived
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
@@ -43,8 +44,6 @@ interface Database {
         val id: UUID,
         @ColumnName("build_id")
         val buildId: UUID,
-        @ColumnName("phase_id")
-        val phaseId: UUID?,
         val time: Instant,
         val payload: BuildEvent
     )
@@ -58,19 +57,19 @@ interface Database {
         val customerId: CustomerId,
         val status: String,
         val time: Instant,
-        val trigger: BuildEvent.TriggerReceived
+        val trigger: TriggerReceived
     )
 
-    class TriggerReceivedColumnMapper : ColumnMapper<BuildEvent.TriggerReceived> {
-        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent.TriggerReceived =
+    class TriggerReceivedColumnMapper : ColumnMapper<TriggerReceived> {
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerReceived =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
     class BuildResultSuccessColumnMapper : ColumnMapper<EvaluationOutput> {
         override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): EvaluationOutput {
-            val payload = OBJECT_MAPPER.readValue<BuildEvent.PhaseCompleted>(r.getString(columnNumber))
+            val payload = OBJECT_MAPPER.readValue<PhaseCompleted>(r.getString(columnNumber))
 
-            return (payload.result as Result.Success).artifact as EvaluationOutput
+            return (payload.result as Success).artifact as EvaluationOutput
         }
     }
 
@@ -99,7 +98,7 @@ interface Database {
     @SqlQuery("""
         SELECT build_number FROM build
             LEFT JOIN event on build.id = event.build_id
-            WHERE event.payload @> '{"type": "build_succeeded_${VERSION}"}'
+            WHERE event.payload @> '{"type": "build_succeeded"}'
             ORDER BY event.time DESC
             LIMIT 1
         """)
@@ -120,13 +119,12 @@ interface Database {
         @Bind("branch") branch: String
     )
 
-    @SqlUpdate("insert into event(id, build_id, phase_id, time, payload) values(:id, :build_id, :phase_id, :time, :payload)")
+    @SqlUpdate("insert into event(id, build_id, time, payload) values(:id, :build_id, :time, :payload)")
     fun insertEvent(
         @Bind("id") id: UUID,
         @BindJson("payload") payload: BuildEvent,
         @Bind("time") time: Instant,
-        @Bind("build_id") buildId: UUID,
-        @Bind("phase_id") phaseId: UUID? = null
+        @Bind("build_id") buildId: UUID
     )
 
     @SqlQuery("""
@@ -135,8 +133,8 @@ interface Database {
             COALESCE(
                 (
                     CASE eterm.payload->>'type'
-                        WHEN 'build_succeeded_${BuildEvent.VERSION}' THEN 'success'
-                        WHEN 'build_failed_${BuildEvent.VERSION}' THEN 'failure'
+                        WHEN 'build_succeeded' THEN 'success'
+                        WHEN 'build_failed' THEN 'failure'
                     END
                 ),
                 'running') AS status,
@@ -146,13 +144,13 @@ interface Database {
         LEFT JOIN event eterm ON (
             eterm.build_id = build.id AND
             (
-                eterm.payload @> '{"type": "build_succeeded_${BuildEvent.VERSION}"}' OR
-                eterm.payload @> '{"type": "build_failed_${BuildEvent.VERSION}"}'
+                eterm.payload @> '{"type": "build_succeeded"}' OR
+                eterm.payload @> '{"type": "build_failed"}'
             )
         )
         LEFT JOIN event etrigger ON etrigger.build_id = build.id
         WHERE
-            etrigger.payload @> '{"type": "trigger_received_${BuildEvent.VERSION}"}' AND
+            etrigger.payload @> '{"type": "trigger_received"}' AND
             build.customer_id = :customer_id AND
             (:build_number is null OR build.build_number = :build_number)
         ORDER BY etrigger.time DESC

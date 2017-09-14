@@ -1,7 +1,6 @@
 package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import feign.Headers
 import feign.Param
 import feign.RequestLine
@@ -21,16 +20,13 @@ data class GitHubUser(
     val id: Long,
     val login: String,
     val name: String,
-    @JsonProperty("avatar_url")
     val avatarUrl: URI
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AccessToken(
-    @JsonProperty("access_token")
     val accessToken: String?,
     val error: String?,
-    @JsonProperty("error_description")
     val errorDescription: String?
 )
 

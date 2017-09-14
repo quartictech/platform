@@ -1,5 +1,6 @@
 package io.quartic.catalogue.datastore
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.cloud.datastore.Blob
 import com.google.cloud.datastore.DateTime
@@ -7,15 +8,16 @@ import com.google.cloud.datastore.Entity
 import com.google.cloud.datastore.Key
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
-import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.common.serdes.objectMapper
 import java.io.IOException
 import java.time.Instant
 import java.util.*
 
 class EntitySerDe(private val keyFromCoords: (DatasetCoordinates) -> Key) {
+
+    private val objectMapper = OBJECT_MAPPER.copy()
+        .setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE) // TODO - remove this special case eventually
 
     fun entityToDataset(entity: Entity): DatasetConfig {
         throwIfVersionMismatch(entity.getLong(VERSION))
@@ -27,9 +29,9 @@ class EntitySerDe(private val keyFromCoords: (DatasetCoordinates) -> Key) {
                 if (dt == null) null else Instant.ofEpochMilli(dt.timestampMillis)
         )
         return DatasetConfig(
-                metadata,
-                OBJECT_MAPPER.readValue<DatasetLocator>(entity.getBlob(LOCATOR).asInputStream()),
-                OBJECT_MAPPER.readValue<Map<String, Any>>(entity.getBlob(EXTENSIONS).asInputStream())
+            metadata,
+            objectMapper.readValue(entity.getBlob(LOCATOR).asInputStream()),
+            objectMapper.readValue(entity.getBlob(EXTENSIONS).asInputStream())
         )
     }
 
@@ -51,8 +53,8 @@ class EntitySerDe(private val keyFromCoords: (DatasetCoordinates) -> Key) {
                 setNull(REGISTERED)
             }
 
-            set(LOCATOR, Blob.copyFrom(objectMapper().writeValueAsBytes(datasetConfig.locator)))
-            set(EXTENSIONS, Blob.copyFrom(objectMapper().writeValueAsBytes(datasetConfig.extensions)))
+            set(LOCATOR, Blob.copyFrom(objectMapper.writeValueAsBytes(datasetConfig.locator)))
+            set(EXTENSIONS, Blob.copyFrom(objectMapper.writeValueAsBytes(datasetConfig.extensions)))
             build()
         }
     }
