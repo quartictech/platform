@@ -104,7 +104,6 @@ interface BuildEvent {
 
     data class Other(private val time: Long): BuildEvent {
         override fun time(): Long = time
-
         override fun type(): String = "other"
     }
 
