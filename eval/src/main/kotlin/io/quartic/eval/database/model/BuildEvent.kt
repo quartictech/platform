@@ -4,18 +4,24 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.Bucket
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
+import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
 
@@ -92,25 +98,54 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
         Type(EvaluationOutput::class, name = "evaluation_output")
     )
     sealed class Artifact {
-        data class EvaluationOutput(val steps: List<Step>) : Artifact()
+        data class EvaluationOutput(val nodes: List<Node>) : Artifact()
     }
 
-    data class Step(
-        val id: String,
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(Step::class, name = "step"),
+        Type(Raw::class, name = "raw")
+    )
+    sealed class Node {
+        abstract val id: String
+        abstract val info: LexicalInfo
+        abstract val inputs: List<V1.Dataset>
+        abstract val output: V1.Dataset
+
+        data class Step(
+            override val id: String,
+            override val info: LexicalInfo,
+            override val inputs: List<V1.Dataset>,
+            override val output: V1.Dataset
+        ) : Node()
+
+        data class Raw(
+            override val id: String,
+            override val info: LexicalInfo,
+            val source: Source,
+            override val output: V1.Dataset
+        ) : Node() {
+            @JsonIgnore
+            override val inputs = emptyList<V1.Dataset>()
+        }
+    }
+
+    data class LexicalInfo(
         val name: String,
         val description: String?,
         val file: String,
-        val lineRange: List<Int>,
-        val inputs: List<Dataset>,
-        val outputs: List<Dataset>
+        val lineRange: List<Int>
     )
 
-    data class Dataset(
-        val namespace: String?,
-        val datasetId: String
-    ) {
-        @get:JsonIgnore
-        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
+    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(Bucket::class, name = "bucket")
+    )
+    sealed class Source {
+        data class Bucket(
+            val key: String,
+            val name: String? = null   // null means default bucket
+        ) : Source()
     }
 }
 
@@ -138,20 +173,39 @@ typealias LogMessageReceived = CurrentLogMessageReceived
 val BUILD_CANCELLED = BuildCancelled()
 val BUILD_SUCCEEDED = BuildSucceeded()
 
-fun io.quartic.quarty.api.model.Step.toDatabaseModel() = Step(
-    id = this.id,
-    name = this.name,
-    description = this.description,
-    file = this.file,
-    lineRange = this.lineRange,
-    inputs = this.inputs.map { it.toDatabaseModel() },
-    outputs = this.outputs.map { it.toDatabaseModel() }
+fun Pipeline.Node.toDatabaseModel() = when (this) {
+    is Pipeline.Node.Step -> Step(
+        id = id,
+        info = info.toDatabaseModel(),
+        inputs = inputs.map { it.toDatabaseModel() },
+        output = output.toDatabaseModel()
+    )
+    is Pipeline.Node.Raw -> Raw(
+        id = id,
+        info = info.toDatabaseModel(),
+        source = source.toDatabaseModel(),
+        output = output.toDatabaseModel()
+    )
+}
+
+fun Pipeline.LexicalInfo.toDatabaseModel() = LexicalInfo(
+    name = name,
+    description = description,
+    file = file,
+    lineRange = lineRange
 )
 
-fun io.quartic.quarty.api.model.Dataset.toDatabaseModel() = Dataset(
+fun Pipeline.Dataset.toDatabaseModel() = V1.Dataset(
     namespace = this.namespace,
     datasetId = this.datasetId
 )
+
+fun Pipeline.Source.toDatabaseModel() = when (this) {
+    is Pipeline.Source.Bucket -> Bucket(
+        name = name,
+        key = key
+    )
+}
 
 fun BuildTrigger.toApiModel() = when (this) {
     is GithubWebhook -> io.quartic.eval.api.model.BuildTrigger.GithubWebhook(
