@@ -20,7 +20,7 @@ import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Github
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -109,24 +109,24 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
     sealed class Node {
         abstract val id: String
         abstract val info: LexicalInfo
-        abstract val inputs: List<Dataset>
-        abstract val output: Dataset
+        abstract val inputs: List<V1.Dataset>
+        abstract val output: V1.Dataset
 
         data class Step(
             override val id: String,
             override val info: LexicalInfo,
-            override val inputs: List<Dataset>,
-            override val output: Dataset
+            override val inputs: List<V1.Dataset>,
+            override val output: V1.Dataset
         ) : Node()
 
         data class Raw(
             override val id: String,
             override val info: LexicalInfo,
             val source: Source,
-            override val output: Dataset
+            override val output: V1.Dataset
         ) : Node() {
             @JsonIgnore
-            override val inputs = emptyList<Dataset>()
+            override val inputs = emptyList<V1.Dataset>()
         }
     }
 
@@ -195,7 +195,7 @@ fun Pipeline.LexicalInfo.toDatabaseModel() = LexicalInfo(
     lineRange = lineRange
 )
 
-fun Pipeline.Dataset.toDatabaseModel() = Dataset(
+fun Pipeline.Dataset.toDatabaseModel() = V1.Dataset(
     namespace = this.namespace,
     datasetId = this.datasetId
 )
