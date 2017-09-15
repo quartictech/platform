@@ -6,6 +6,8 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.database.model.BUILD_SUCCEEDED
+import io.quartic.eval.database.model.BuildSucceeded
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
@@ -16,6 +18,7 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.PhaseCompleted
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.isA
 import org.jdbi.v3.core.Jdbi
 import org.junit.Assert.assertThat
 import org.junit.BeforeClass
@@ -42,14 +45,8 @@ class DatabaseMigrationsShould {
         val buildId = uuid(101)
         val phaseId = uuid(102)
         val time = Instant.now()
-
-        handle.createUpdate("""
-            INSERT INTO event (id, build_id, payload, time)
-                VALUES (:id, :build_id, :payload, :time)
-            """)
-            .bind("id", eventId)
-            .bind("build_id", buildId)
-            .bindJson("payload", V1(
+        insertEvent(eventId, buildId, time,
+            V1(
                 phaseId,
                 V1.Result.Success(
                     V1.Artifact.EvaluationOutput(listOf(
@@ -73,17 +70,15 @@ class DatabaseMigrationsShould {
                         )
                     ))
                 )
-            ))
-            .bind("time", time)
-            .execute()
+            )
+        )
+
+        val eventIdSucceeded = uuid(103)
+        insertEvent(eventIdSucceeded, UUID.randomUUID(), Instant.now(), BUILD_SUCCEEDED)
 
         databaseVersion("2")
 
-        val results = handle.createQuery("""SELECT * FROM event""")
-            .mapToMap()
-            .toList()
-
-        with(results[0]) {
+        with(getEventFields(eventId)) {
             assertThat(this["id"] as UUID, equalTo(eventId))
             assertThat(this["build_id"] as UUID, equalTo(buildId))
             assertThat((this["time"] as Timestamp).toInstant(), equalTo(time))
@@ -130,6 +125,34 @@ class DatabaseMigrationsShould {
                 )
             ))
         }
+
+        // Ensure that other rows aren't nuked
+        assertThat(OBJECT_MAPPER.readValue(getEventFields(eventIdSucceeded)["payload"].toString()), isA(BuildSucceeded::class.java))
+    }
+
+    @Test
+    fun v3_migrate() {
+        databaseVersion("3")
+    }
+
+    private fun getEventFields(eventId: UUID): Map<String, Any> {
+        return handle.createQuery("""SELECT * FROM event WHERE id = :id""")
+            .bind("id", eventId)
+            .mapToMap()
+            .toList()
+            .single()
+    }
+
+    private fun insertEvent(eventId: UUID, buildId: UUID, time: Instant, payload: Any) {
+        handle.createUpdate("""
+            INSERT INTO event (id, build_id, payload, time)
+                VALUES (:id, :build_id, :payload, :time)
+            """)
+            .bind("id", eventId)
+            .bind("build_id", buildId)
+            .bindJson("payload", payload)
+            .bind("time", time)
+            .execute()
     }
 
     private fun databaseVersion(version: String): Database = DatabaseBuilder

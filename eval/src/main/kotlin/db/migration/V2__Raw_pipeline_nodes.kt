@@ -17,6 +17,10 @@ import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.jdbi.v3.core.Jdbi
 import java.sql.Connection
 
+/*
+ * NOTE!! This migration was previously broken.  We're retaining a fixed version purely as an example of how to use
+ * legacy model types.
+ */
 @Suppress("unused")
 class V2__Raw_pipeline_nodes : JdbcMigration {
     override fun migrate(connection: Connection) {
@@ -36,7 +40,12 @@ class V2__Raw_pipeline_nodes : JdbcMigration {
 
                 val newPayload = transform(oldPayload)
 
-                handle.createUpdate("""UPDATE event SET payload = :payload""")
+                handle.createUpdate("""
+                    UPDATE event
+                        SET payload = :payload
+                        WHERE id = :id
+                """)
+                    .bind("id", event["id"])
                     .bindJson("payload", newPayload)
                     .execute()
             }
