@@ -132,6 +132,11 @@ class DatabaseMigrationsShould {
         }
     }
 
+    @Test
+    fun v3_migrate() {
+        databaseVersion("3")
+    }
+
     private fun databaseVersion(version: String): Database = DatabaseBuilder
         .testDao(Database::class.java, PG.embeddedPostgres.postgresDatabase,
             MigrationVersion.fromVersion(version))
