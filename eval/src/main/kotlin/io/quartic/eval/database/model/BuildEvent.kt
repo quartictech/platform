@@ -15,7 +15,7 @@ import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.S3
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.Bucket
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
@@ -142,16 +142,16 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
         val datasetId: String
     ) {
         @get:JsonIgnore
-        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"   // TODO - is this needed?
+        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
     }
 
     @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(S3::class, name = "s3")
+        Type(Bucket::class, name = "bucket")
     )
     sealed class Source {
-        data class S3(
-            val bucket: String,
+        data class Bucket(
+            val name: String,
             val key: String
         ) : Source()
     }
@@ -209,8 +209,8 @@ fun Pipeline.Dataset.toDatabaseModel() = Dataset(
 )
 
 fun Pipeline.Source.toDatabaseModel() = when (this) {
-    is Pipeline.Source.S3 -> S3(
-        bucket = bucket,
+    is Pipeline.Source.Bucket -> Bucket(
+        name = name,
         key = key
     )
 }

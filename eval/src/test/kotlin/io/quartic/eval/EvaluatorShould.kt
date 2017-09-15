@@ -22,7 +22,7 @@ import io.quartic.quarty.api.model.Pipeline.Dataset
 import io.quartic.quarty.api.model.Pipeline.LexicalInfo
 import io.quartic.quarty.api.model.Pipeline.Node.Raw
 import io.quartic.quarty.api.model.Pipeline.Node.Step
-import io.quartic.quarty.api.model.Pipeline.Source.S3
+import io.quartic.quarty.api.model.Pipeline.Source.Bucket
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
@@ -211,7 +211,7 @@ class EvaluatorShould {
         id = "abc",
         info = LexicalInfo("whatever", "whatever", "whatever", emptyList()),
         output = Dataset(null, "X"),
-        source = S3("whatever", "whatever")
+        source = Bucket("whatever", "whatever")
     )
     private val stepY = Step(
         id = "def",

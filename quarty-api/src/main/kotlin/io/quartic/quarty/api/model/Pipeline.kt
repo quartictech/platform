@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import io.quartic.quarty.api.model.Pipeline.Node.Raw
 import io.quartic.quarty.api.model.Pipeline.Node.Step
-import io.quartic.quarty.api.model.Pipeline.Source.S3
+import io.quartic.quarty.api.model.Pipeline.Source.Bucket
 
 data class Pipeline(
     val nodes: List<Node>
@@ -52,18 +52,15 @@ data class Pipeline(
     data class Dataset(
         val namespace: String?,
         val datasetId: String
-    ) {
-        @get:JsonIgnore
-        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
-    }
+    )
 
     @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(S3::class, name = "s3")
+        Type(Bucket::class, name = "bucket")
     )
     sealed class Source {
-        data class S3(
-            val bucket: String,
+        data class Bucket(
+            val name: String,
             val key: String
         ) : Source()
     }
