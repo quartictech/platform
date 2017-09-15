@@ -1,9 +1,6 @@
 package io.quartic.eval.quarty
 
-import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.sequencer.Sequencer
-import io.quartic.eval.sequencer.SequencerImplShould
 import io.quartic.quarty.api.model.Pipeline
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
@@ -31,10 +28,10 @@ class QuartyProxyIntegration {
             assertThat(evaluate, notNullValue())
 
             val pipeline = OBJECT_MAPPER.convertValue(evaluate?.result, Pipeline::class.java)
-            assertThat(pipeline.steps.size, equalTo(2))
+            assertThat(pipeline.nodes.size, equalTo(2))
 
             // This is expected to error due to no access to Howl
-            val execute = quartyProxy.request(QuartyRequest.Execute(pipeline.steps[0].id, "noob"), devNull)
+            val execute = quartyProxy.request(QuartyRequest.Execute(pipeline.nodes[0].id, "noob"), devNull)
                 as? QuartyResponse.Complete.Error
             assertThat(execute, notNullValue())
         }

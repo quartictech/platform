@@ -22,7 +22,10 @@ class EntitySerDeShould {
                         Instant.now()
                 ),
                 DatasetLocator.GeoJsonDatasetLocator("wat"),
-                mapOf("foo" to "bar", "wat" to mapOf("ladispute" to 1337))
+                mapOf(
+                    "foo" to "bar",
+                    "wat" to mapOf("ladispute" to 1337)
+                )
         )
 
         val entity = entitySerDe.datasetToEntity(mock(), datasetConfig)

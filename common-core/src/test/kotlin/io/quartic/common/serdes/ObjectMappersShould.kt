@@ -70,4 +70,14 @@ class ObjectMappersShould {
             equalTo("""{"t":1500558391.000000000}""")
         )
     }
+
+    data class MultipartNames(val wellHelloThere: Int)
+
+    @Test
+    fun use_snake_case_in_json() {
+        val expectedRaw = """{"well_hello_there":57}"""
+
+        assertThat(OBJECT_MAPPER.writeValueAsString(MultipartNames(57)), equalTo(expectedRaw))
+        assertThat(OBJECT_MAPPER.readValue(expectedRaw), equalTo(MultipartNames(57)))
+    }
 }

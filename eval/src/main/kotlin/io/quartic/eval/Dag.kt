@@ -1,8 +1,8 @@
-package io.quartic.eval.model
+package io.quartic.eval
 
 import com.google.common.base.Preconditions.checkArgument
-import io.quartic.quarty.api.model.Pipeline.Dataset
-import io.quartic.quarty.api.model.Pipeline.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
 import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph
@@ -17,8 +17,6 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
             dag.outgoingEdgesOf(source).map { source to dag.getEdgeTarget(it) }
         }
     }
-    fun inDegreeOf(node: Node) = dag.inDegreeOf(node)
-    fun outDegreeOf(node: Node) = dag.outDegreeOf(node)
 
     override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 

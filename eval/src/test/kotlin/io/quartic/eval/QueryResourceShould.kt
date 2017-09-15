@@ -5,15 +5,17 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.Database.EventRow
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildEvent
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.quarty.api.model.Pipeline.Dataset
-import io.quartic.quarty.api.model.Pipeline.Node.Raw
-import io.quartic.quarty.api.model.Pipeline.Node.Step
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.Database.EventRow
+import io.quartic.eval.database.model.BuildEvent
+import io.quartic.eval.database.model.CurrentPhaseCompleted
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
+import io.quartic.eval.database.model.PhaseCompleted
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -37,7 +39,7 @@ class QueryResourceShould {
     @Test
     fun throw_404_if_no_latest_build_found() {
         assertThrows<NotFoundException> {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         }
     }
 
@@ -46,7 +48,7 @@ class QueryResourceShould {
         whenever(database.getLatestSuccessfulBuildNumber(customerId)).thenReturn(5678)
 
         try {
-            resource.getDag(customerId)
+            resource.getLatestDag(customerId)
         } catch(e: Exception) {}   // Swallow
 
         verify(database).getEventsForBuild(customerId, 5678)
@@ -131,5 +133,5 @@ class QueryResourceShould {
     private fun dataset(id: String, namespace: String? = "test") = Dataset(namespace, id)
 
     private fun eventRow(event: BuildEvent) =
-        EventRow(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), Instant.now(), event)
+        EventRow(UUID.randomUUID(), UUID.randomUUID(), Instant.now(), event)
 }

@@ -1,11 +1,11 @@
 customers:
-  - id: 113
+  - id: 112
     name: Noobhole
     subdomain: localhost
     namespace: noobhole
-    githubOrgId: 30663321
-    githubRepoId: 71576535
-    githubInstallationId: 45267
+    github_org_id: 30663321
+    github_repo_id: 71576535
+    github_installation_id: 45267
 
 url:
   port: 8190

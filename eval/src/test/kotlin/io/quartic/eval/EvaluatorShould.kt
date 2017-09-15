@@ -4,8 +4,9 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.Dag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
+import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
@@ -18,8 +19,10 @@ import io.quartic.github.Owner
 import io.quartic.github.Repository
 import io.quartic.quarty.api.model.Pipeline
 import io.quartic.quarty.api.model.Pipeline.Dataset
+import io.quartic.quarty.api.model.Pipeline.LexicalInfo
 import io.quartic.quarty.api.model.Pipeline.Node.Raw
 import io.quartic.quarty.api.model.Pipeline.Node.Step
+import io.quartic.quarty.api.model.Pipeline.Source.S3
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
@@ -84,12 +87,12 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         execute()
 
-        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(steps), dag)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }), dag)))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(extractDag.invoke(pipeline)).doReturn(null as Dag?)
+        whenever(extractDag(any())).doReturn(null as Dag?)
 
         execute()
 
@@ -204,14 +207,18 @@ class EvaluatorShould {
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
     private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
 
-    private val rawX = mock<Raw> {
-        on { id } doReturn "abc"
-        on { output } doReturn Dataset(null, "X")
-    }
-    private val stepY = mock<Step> {
-        on { id } doReturn "def"
-        on { output } doReturn listOf(Dataset(null, "Y"))
-    }
+    private val rawX = Raw(
+        id = "abc",
+        info = LexicalInfo("whatever", "whatever", "whatever", emptyList()),
+        output = Dataset(null, "X"),
+        source = S3("whatever", "whatever")
+    )
+    private val stepY = Step(
+        id = "def",
+        info = LexicalInfo("whatever", "whatever", "whatever", emptyList()),
+        inputs = emptyList(),
+        output = Dataset(null, "Y")
+    )
 
     private val githubRepoId: Long = 5678
     private val githubInstallationId: Long = 1234
@@ -251,10 +258,10 @@ class EvaluatorShould {
         on { githubInstallationId } doReturn githubInstallationId
     }
 
-    private val steps = mock<List<Step>>()
-    private val pipeline = Pipeline(steps)
+    private val nodes = listOf(rawX, stepY)
+    private val pipeline = Pipeline(nodes)
     private val dag = mock<Dag> {
-        on { iterator() } doReturn listOf(rawX, stepY).iterator()
+        on { iterator() } doReturn nodes.map{ it.toDatabaseModel() }.iterator()
     }
 
     private val registry = mock<RegistryServiceClient> {
@@ -286,9 +293,7 @@ class EvaluatorShould {
         on { invoke(containerHostname) } doReturn quarty
     }
 
-    private val extractDag = mock<(Pipeline) -> Dag?> {
-        on { invoke(pipeline) } doReturn dag
-    }
+    private val extractDag = mock<(List<Node>) -> Dag?>()
 
     private val sequencer = spy(MySequencer())
 
@@ -333,5 +338,9 @@ class EvaluatorShould {
         private inner class MyPhaseBuilder<R> : PhaseBuilder<R> {
             suspend override fun log(stream: String, message: String) {}
         }
+    }
+
+    init {
+        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(dag)
     }
 }

@@ -1,11 +1,11 @@
-package io.quartic.eval.model
+package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.test.assertThrows
-import io.quartic.quarty.api.model.Pipeline
-import io.quartic.quarty.api.model.Pipeline.Node
-import io.quartic.quarty.api.model.Pipeline.Node.Raw
-import io.quartic.quarty.api.model.Pipeline.Node.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted
+import io.quartic.eval.database.model.CurrentPhaseCompleted.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -78,5 +78,5 @@ class DagShould {
         ))
     }
 
-    private fun dataset(id: String) = Pipeline.Dataset(null, id)
+    private fun dataset(id: String) = Dataset(null, id)
 }

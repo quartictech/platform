@@ -1,7 +1,6 @@
 package io.quartic.quarty.api.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -12,7 +11,7 @@ import io.quartic.quarty.api.model.Pipeline.Node.Step
 import io.quartic.quarty.api.model.Pipeline.Source.S3
 
 data class Pipeline(
-    val steps: List<Node>
+    val nodes: List<Node>
 ) {
     @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
     @JsonSubTypes(
@@ -47,13 +46,11 @@ data class Pipeline(
         val name: String,
         val description: String?,
         val file: String,
-        @JsonProperty("line_range")
         val lineRange: List<Int>
     )
 
     data class Dataset(
         val namespace: String?,
-        @JsonProperty("dataset_id")
         val datasetId: String
     ) {
         @get:JsonIgnore
@@ -71,5 +68,4 @@ data class Pipeline(
         ) : Source()
     }
 }
-
 

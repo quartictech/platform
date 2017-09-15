@@ -3,7 +3,6 @@ package io.quartic.github
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonFormat.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import com.fasterxml.jackson.annotation.JsonProperty
 import java.net.URI
 import java.time.OffsetDateTime
 
@@ -16,7 +15,6 @@ data class PushEvent(
     val ref: GitRef,
     val after: GitHash,
     val before: GitHash,
-    @JsonProperty("head_commit")
     val headCommit: Commit,
     val commits: List<Commit>,
     val organization: Organization?,    // Not present for user repos
@@ -42,13 +40,10 @@ data class Commit(
 data class Repository(
     val id: Long,
     val name: String,
-    @JsonProperty("full_name")
     val fullName: String,
     val private: Boolean,
-    @JsonProperty("clone_url")
     val cloneUrl: URI,
 
-    @JsonProperty("default_branch")
     val defaultBranch: String,
 
     val owner: Owner
@@ -93,7 +88,6 @@ data class Installation(
 
 data class StatusCreate(
     val state: String,
-    @JsonProperty("target_url")
     val targetUrl: URI?,
     val description: String,
     val context: String

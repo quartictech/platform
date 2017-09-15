@@ -7,8 +7,9 @@ import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.Dag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
+import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -17,8 +18,6 @@ import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
 import io.quartic.quarty.api.model.Pipeline
-import io.quartic.quarty.api.model.Pipeline.Node.Raw
-import io.quartic.quarty.api.model.Pipeline.Node.Step
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
@@ -39,7 +38,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (Pipeline) -> Dag?,
+    private val extractDag: (List<Node>) -> Dag?,
     private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
@@ -50,9 +49,9 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { pipeline ->
+        { nodes ->
             try {
-                Dag.fromRaw(pipeline.steps)
+                Dag.fromRaw(nodes)
             } catch (e: Exception) {
                 null
             }
@@ -103,8 +102,8 @@ class Evaluator(
                         dag
                             .forEach { node ->
                                 val action = when (node) {
-                                    is Step -> "Executing step"
-                                    is Raw -> "Acquiring raw data"
+                                    is Node.Step -> "Executing step"
+                                    is Node.Raw -> "Acquiring raw data"
                                 }
                                 phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
                                     extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
@@ -138,11 +137,11 @@ class Evaluator(
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
     private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
-        val pipeline = parseRawPipeline(raw)
-        val dag = extractDag(pipeline)
+        val nodes = parseRawPipeline(raw)
+        val dag = extractDag(nodes)
         return with(dag) {
             if (dag != null) {
-                successWithArtifact(EvaluationOutput(pipeline.steps), dag)
+                successWithArtifact(EvaluationOutput(nodes), dag)
             } else {
                 userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
             }
@@ -150,7 +149,7 @@ class Evaluator(
     }
 
     private fun parseRawPipeline(raw: Any?) = try {
-        OBJECT_MAPPER.convertValue<Pipeline>(raw!!)
+        OBJECT_MAPPER.convertValue<Pipeline>(raw!!).nodes.map { it.toDatabaseModel() }
     } catch (e: Exception) {
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }

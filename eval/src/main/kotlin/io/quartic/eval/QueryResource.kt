@@ -3,28 +3,64 @@ package io.quartic.eval
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
-import io.quartic.eval.model.BuildEvent.PhaseCompleted
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success
-import io.quartic.eval.model.BuildEvent.PhaseCompleted.Result.Success.Artifact.EvaluationOutput
-import io.quartic.eval.model.Dag
-import io.quartic.quarty.api.model.Pipeline.Node
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
-    override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId)
-        .map { buildRow ->
-            Build(
-                id = buildRow.id,
-                buildNumber = buildRow.buildNumber,
-                branch = buildRow.branch,
-                customerId = buildRow.customerId,
-                trigger = buildRow.trigger.trigger,
-                status = buildRow.status,
-                time = buildRow.time
-            )
-        }
+    override fun getBuild(customerId: CustomerId, buildNumber: Long): Build {
+        val builds = database.getBuilds(customerId, buildNumber)
 
-    override fun getDag(customerId: CustomerId): CytoscapeDag {
+        if (builds.isEmpty()) {
+            throw NotFoundException(
+                "Build not found: customerId = ${customerId}, buildNumber=${buildNumber}"
+            )
+        } else return builds.first().toBuild()
+    }
+
+    override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
+        database.getEventsForBuild(customerId, buildNumber)
+            .map { println(it); it.toApi() }
+
+    private fun Database.EventRow.toApi() = when (this.payload) {
+        is LogMessageReceived -> ApiBuildEvent.Log(
+            message = this.payload.message,
+            phaseId = this.payload.phaseId,
+            time = this.time,
+            stream = this.payload.stream,
+            id = this.id
+        )
+        is PhaseStarted -> ApiBuildEvent.PhaseStarted(
+            phaseId = this.payload.phaseId,
+            description = this.payload.description,
+            time = this.time,
+            id = this.id
+        )
+        is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
+            this.payload.phaseId,
+            this.time,
+            this.id
+        )
+        else -> ApiBuildEvent.Other(this.time, this.id)
+    }
+
+    override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
+        .map { it.toBuild() }
+
+    private fun Database.BuildStatusRow.toBuild() = Build(
+        id = this.id,
+        buildNumber = this.buildNumber,
+        branch = this.branch,
+        customerId = this.customerId,
+        trigger = this.trigger.trigger.toApiModel(),
+        status = this.status,
+        time = this.time
+    )
+
+    override fun getLatestDag(customerId: CustomerId): CytoscapeDag {
         val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
             throw NotFoundException("No successful builds for ${customerId}")
 
