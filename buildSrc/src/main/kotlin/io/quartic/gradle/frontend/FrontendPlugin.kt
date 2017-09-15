@@ -9,7 +9,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Exec
-import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.language.base.plugins.LifecycleBasePlugin.ASSEMBLE_TASK_NAME
+import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.io.File
@@ -28,7 +29,8 @@ class FrontendPlugin : Plugin<Project> {
             configureDockerPlugin(bundle)
             createRunTask(installDeps)
             val lint = createLintTasks(installDeps)
-            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(lint)
+            tasks.getByName(ASSEMBLE_TASK_NAME).dependsOn(bundle)
+            tasks.getByName(CHECK_TASK_NAME).dependsOn(lint)
             configureIdeaPlugin()
         }
     }
