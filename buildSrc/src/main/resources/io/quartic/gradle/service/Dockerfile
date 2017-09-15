@@ -1,5 +1,9 @@
 FROM {{docker_base_image}}
 
+# See https://github.com/gliderlabs/docker-alpine/issues/279#issuecomment-300859312
+RUN echo http://nl.alpinelinux.org/alpine/v3.6/main > /etc/apk/repositories; \
+    echo http://nl.alpinelinux.org/alpine/v3.6/community >> /etc/apk/repositories
+
 RUN \
     apk update && \
     apk add dumb-init=1.2.0-r0
