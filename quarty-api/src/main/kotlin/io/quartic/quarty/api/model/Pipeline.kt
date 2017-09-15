@@ -60,8 +60,8 @@ data class Pipeline(
     )
     sealed class Source {
         data class Bucket(
-            val name: String,
-            val key: String
+            val key: String,
+            val name: String? = null   // null means default bucket
         ) : Source()
     }
 }

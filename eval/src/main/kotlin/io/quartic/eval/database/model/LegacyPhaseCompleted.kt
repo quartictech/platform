@@ -12,6 +12,8 @@ import java.util.*
 
 class LegacyPhaseCompleted private constructor() {
 
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(Type(V1::class, name = "phase_completed"))
     data class V1(val phaseId: UUID, val result: Result) {
         @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
         @JsonSubTypes(
@@ -51,6 +53,4 @@ class LegacyPhaseCompleted private constructor() {
             val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
         }
     }
-
-
 }
