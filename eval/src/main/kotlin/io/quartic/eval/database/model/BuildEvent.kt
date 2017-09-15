@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
@@ -21,6 +20,7 @@ import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Github
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -136,14 +136,6 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
         val file: String,
         val lineRange: List<Int>
     )
-
-    data class Dataset(
-        val namespace: String?,
-        val datasetId: String
-    ) {
-        @get:JsonIgnore
-        val fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
-    }
 
     @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
     @JsonSubTypes(

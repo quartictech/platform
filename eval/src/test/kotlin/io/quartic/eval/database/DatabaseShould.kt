@@ -8,11 +8,11 @@ import io.quartic.common.test.assertThrows
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains

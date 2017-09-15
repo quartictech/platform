@@ -9,12 +9,11 @@ import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.EventRow
 import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.CurrentPhaseCompleted
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.PhaseCompleted
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
