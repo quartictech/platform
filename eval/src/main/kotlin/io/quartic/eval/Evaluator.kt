@@ -153,7 +153,7 @@ class Evaluator(
         OBJECT_MAPPER.convertValue<Pipeline>(raw!!).nodes.map { it.toDatabaseModel() }
     } catch (e: JsonMappingException) {
         LOG.error("Invalid JSON: {}", raw)
-        throw
+        throw e
     } catch (e: Exception) {
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
