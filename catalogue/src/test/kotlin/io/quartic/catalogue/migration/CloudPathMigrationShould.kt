@@ -28,7 +28,7 @@ class CloudPathMigrationShould {
     @Test
     fun ignore_already_migrated_datasets() {
         val config = mock<DatasetConfig> {
-            on { locator } doReturn CloudDatasetLocator("/foo/bar/baz", false, "whatever")
+            on { locator } doReturn CloudDatasetLocator("/foo/managaed/foo/baz", false, "whatever")
         }
         whenever(backend.getAll()).thenReturn(mapOf(mock<DatasetCoordinates>() to config))
 
@@ -51,7 +51,7 @@ class CloudPathMigrationShould {
 
         verify(backend)[coords] = DatasetConfig(
             metadata,
-            CloudDatasetLocator("/foo/foo/bar", false, "whatever")
+            CloudDatasetLocator("/foo/managed/foo/bar", false, "whatever")
         )
     }
 }
