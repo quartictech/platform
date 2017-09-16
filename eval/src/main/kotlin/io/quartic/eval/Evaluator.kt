@@ -1,6 +1,5 @@
 package io.quartic.eval
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.coroutines.cancellable
@@ -151,11 +150,7 @@ class Evaluator(
 
     private fun parseRawPipeline(raw: Any?) = try {
         OBJECT_MAPPER.convertValue<Pipeline>(raw!!).nodes.map { it.toDatabaseModel() }
-    } catch (e: JsonMappingException) {
-        LOG.error("Invalid JSON: {}", raw)
-        throw e
     } catch (e: Exception) {
-        LOG.error("Invalid JSON: {}", raw)
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
 
