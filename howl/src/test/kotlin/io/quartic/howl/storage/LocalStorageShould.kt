@@ -1,6 +1,7 @@
 package io.quartic.howl.storage
 
 import io.quartic.howl.storage.LocalStorage.Config
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

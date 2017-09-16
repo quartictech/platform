@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 

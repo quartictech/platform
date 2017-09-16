@@ -3,6 +3,7 @@ package io.quartic.howl.storage
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue

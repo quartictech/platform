@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
 import org.apache.commons.io.IOUtils
 import java.io.File

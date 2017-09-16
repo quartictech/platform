@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test

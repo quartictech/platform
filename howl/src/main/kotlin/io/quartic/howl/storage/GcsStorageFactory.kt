@@ -8,6 +8,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 

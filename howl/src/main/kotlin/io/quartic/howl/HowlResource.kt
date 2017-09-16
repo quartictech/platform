@@ -3,8 +3,8 @@ package io.quartic.howl
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
+import io.quartic.howl.storage.NoobCoords
 import io.quartic.howl.storage.Storage
-import io.quartic.howl.storage.StorageCoords
 import org.apache.commons.io.IOUtils
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -73,7 +73,7 @@ class HowlResource(
             @PathParam("identity-namespace") identityNamespace: String,
             @PathParam("key") key: String
         ): Response {
-            val coords = StorageCoords(targetNamespace, identityNamespace, key)
+            val coords = NoobCoords.StorageCoords(targetNamespace, identityNamespace, key)
             val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
             return Response.ok()
                 .header(CONTENT_TYPE, contentType)
@@ -88,7 +88,7 @@ class HowlResource(
             key: String,
             request: HttpServletRequest
         ) = storage.putData(
-            StorageCoords(targetNamespace, identityNamespace, key),
+            NoobCoords.StorageCoords(targetNamespace, identityNamespace, key),
             request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
             request.contentType,
             request.inputStream

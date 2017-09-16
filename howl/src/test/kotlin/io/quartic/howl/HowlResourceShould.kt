@@ -6,8 +6,8 @@ import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.InputStreamWithContentType
+import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage
-import io.quartic.howl.storage.StorageCoords
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
 import org.hamcrest.CoreMatchers.equalTo
