@@ -38,8 +38,11 @@ interface HowlService {
     ): HowlStorageId
 
     @Throws(IOException::class)
-    fun downloadFile(targetNamespace: String, key: String): InputStream?
+    fun downloadUnmanagedFile(targetNamespace: String, key: String): InputStream?
 
     @Throws(IOException::class)
-    fun downloadFile(targetNamespace: String, identityNamespace: String, key: String): InputStream?
+    fun downloadManagedFile(targetNamespace: String, key: String): InputStream?
+
+    @Throws(IOException::class)
+    fun downloadManagedFile(targetNamespace: String, identityNamespace: String, key: String): InputStream?
 }

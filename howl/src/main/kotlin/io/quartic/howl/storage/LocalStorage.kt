@@ -1,7 +1,8 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
+import io.quartic.howl.storage.StorageCoords.Managed
+import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -72,7 +73,12 @@ class LocalStorage(private val config: Config) : Storage {
         return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(Paths.get(targetNamespace, identityNamespace, objectKey))
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(
+        when (this) {
+            is Managed -> Paths.get(targetNamespace, "managed", identityNamespace, objectKey)
+            is Unmanaged -> Paths.get(targetNamespace, "unmanaged", objectKey)
+        }
+    )
 
     private fun renameFile(from: Path, to: Path) {
         try {

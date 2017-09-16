@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
-import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
@@ -35,7 +34,7 @@ class GcsStorageFactory {
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-            val get = storage.objects().get(config.bucket, coords.path)
+            val get = storage.objects().get(config.bucket, coords.bucketKey)
             get.generation = version
 
             try {
@@ -55,12 +54,10 @@ class GcsStorageFactory {
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
                 storage.objects().insert(
                         config.bucket,
-                        StorageObject().setName(coords.path),
+                        StorageObject().setName(coords.bucketKey),
                         InputStreamContent(contentType, inputStream)
                 ).execute().generation)
     }
-
-    private val StorageCoords.path get() = "$identityNamespace/$objectKey"
 }
 
 

@@ -137,7 +137,7 @@ class HomeResource(
     }
 
     private fun preprocessFile(namespace: String, fileName: String, fileType: FileType): String {
-        val stream: InputStream = howl.downloadFile(namespace, fileName)
+        val stream: InputStream = howl.downloadManagedFile(namespace, fileName)
                 ?: throw NotFoundException("File not found: " + fileName)
 
         return stream.use { s ->

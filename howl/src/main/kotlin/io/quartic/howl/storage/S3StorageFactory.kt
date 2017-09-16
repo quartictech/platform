@@ -11,15 +11,13 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.howl.storage.NoobCoords.StorageCoords
 import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
 class S3StorageFactory(
     private val secretsCodec: SecretsCodec,
     credsProvider: AWSCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance(),
-    regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain(),
-    private val keyMapper: (StorageCoords) -> String = ::mapForS3
+    regionProvider: AwsRegionProvider = DefaultAwsRegionProviderChain()
 ) {
     data class Config(
         val region: String,
@@ -56,7 +54,7 @@ class S3StorageFactory(
 
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
             try {
-                val s3obj = s3.getObject(bucket.veryUnsafe, keyMapper(coords))
+                val s3obj = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
                 return InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
             } catch (e: AmazonS3Exception) {
                 if (e.errorCode != "NoSuchKey") {
@@ -74,7 +72,7 @@ class S3StorageFactory(
                     metadata.contentLength = contentLength.toLong()
                 }
                 metadata.contentType = contentType
-                s3.putObject(bucket.veryUnsafe, keyMapper(coords), s, metadata)
+                s3.putObject(bucket.veryUnsafe, coords.bucketKey, s, metadata)
             }
             return PutResult(null)  // TODO - no versioning for now
         }

@@ -1,7 +1,7 @@
 package io.quartic.howl.storage
 
 import io.quartic.howl.storage.LocalStorage.Config
-import io.quartic.howl.storage.NoobCoords.StorageCoords
+import io.quartic.howl.storage.StorageCoords.Managed
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -56,10 +56,10 @@ class LocalStorageShould {
     }
 
     private fun storeData(objectName: String, data: ByteArray)
-            = storage.putData(StorageCoords("foo", "bar", objectName), null, MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+            = storage.putData(Managed("foo", "bar", objectName), null, MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
 
     private fun getData(objectName: String, version: Long?): ByteArray? {
-        val inputStreamWithContentType = storage.getData(StorageCoords("foo", "bar", objectName), version)
+        val inputStreamWithContentType = storage.getData(Managed("foo", "bar", objectName), version)
         return if (inputStreamWithContentType != null) {
             val outputStream = ByteArrayOutputStream()
             IOUtils.copy(inputStreamWithContentType.inputStream, outputStream)

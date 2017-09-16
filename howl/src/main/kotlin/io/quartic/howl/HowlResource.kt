@@ -3,8 +3,10 @@ package io.quartic.howl
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.howl.storage.NoobCoords
 import io.quartic.howl.storage.Storage
+import io.quartic.howl.storage.StorageCoords
+import io.quartic.howl.storage.StorageCoords.Managed
+import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -14,13 +16,20 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
 
-// TODO - get rid of 2D variants, and move {identity-namespace} into Resource path
-@Path("/")
+// TODO - get rid of 2D variants
+@Path("/{target-namespace}")
 class HowlResource(
-        private val storage: Storage,
-        private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
+    private val storage: Storage,
+    private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
 ) {
-    @Path("/managed/{target-namespace}")
+    @GET
+    @Path("/unmanaged/{key}")
+    fun unmanagedResource(
+        @PathParam("target-namespace") targetNamespace: String,
+        @PathParam("key") key: String
+    ) = downloadFile(Unmanaged(targetNamespace, key))
+
+    @Path("/managed")
     fun managedResource(
         @PathParam("target-namespace") targetNamespace: String
     ) = ManagedHowlResource(targetNamespace)
@@ -72,27 +81,28 @@ class HowlResource(
         fun downloadFile(
             @PathParam("identity-namespace") identityNamespace: String,
             @PathParam("key") key: String
-        ): Response {
-            val coords = NoobCoords.StorageCoords(targetNamespace, identityNamespace, key)
-            val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
-            return Response.ok()
-                .header(CONTENT_TYPE, contentType)
-                .entity(StreamingOutput {
-                    inputStream.use { istream -> IOUtils.copy(istream, it) }
-                })
-                .build()
-        }
+        ) = downloadFile(Managed(targetNamespace, identityNamespace, key))
 
         private fun uploadFileOrThrow(
             identityNamespace: String,
             key: String,
             request: HttpServletRequest
         ) = storage.putData(
-            NoobCoords.StorageCoords(targetNamespace, identityNamespace, key),
+            Managed(targetNamespace, identityNamespace, key),
             request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
             request.contentType,
             request.inputStream
         ) ?: throw NotFoundException()
+    }
+
+    private fun downloadFile(coords: StorageCoords): Response {
+        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        return Response.ok()
+            .header(CONTENT_TYPE, contentType)
+            .entity(StreamingOutput {
+                inputStream.use { istream -> IOUtils.copy(istream, it) }
+            })
+            .build()
     }
 
 }
