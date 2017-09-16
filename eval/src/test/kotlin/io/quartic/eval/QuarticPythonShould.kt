@@ -17,7 +17,7 @@ class QuarticPythonShould {
         set -e
         python3 -m venv .env
         source .env/bin/activate
-        pip install git+git://github.com/quartictech/quartic-python.git@feature/fix-raw
+        pip install git+git://github.com/quartictech/quartic-python.git
         pip install requests datadiff
         """
 
