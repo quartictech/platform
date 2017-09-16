@@ -6,13 +6,14 @@ import okio.BufferedSink
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
+import javax.ws.rs.core.HttpHeaders.USER_AGENT
 
 class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
     private class UserAgentInterceptor(private val userAgent: String) : Interceptor {
         override fun intercept(chain: Interceptor.Chain): Response {
             val originalRequest = chain.request()
             val requestWithUserAgent = originalRequest.newBuilder()
-                    .header("User-Agent", userAgent)
+                    .header(USER_AGENT, userAgent)
                     .build()
             return chain.proceed(requestWithUserAgent)
         }
@@ -88,6 +89,7 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
     }
 
     private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl.toString())!!.newBuilder()) {
+        addPathSegment("managed")
         components.forEach { addEncodedPathSegment(it) }
         build()
     }

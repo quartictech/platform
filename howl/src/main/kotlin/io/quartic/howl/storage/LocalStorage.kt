@@ -71,7 +71,7 @@ class LocalStorage(private val config: Config) : Storage {
         return fileNames.map { it -> parseLong(it) }.max()
     }
 
-    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(Paths.get(targetNamespace, identityNamespace, objectName))
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(Paths.get(targetNamespace, identityNamespace, objectKey))
 
     private fun renameFile(from: Path, to: Path) {
         try {

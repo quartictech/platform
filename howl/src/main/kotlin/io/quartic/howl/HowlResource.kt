@@ -15,84 +15,84 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.StreamingOutput
 
 // TODO - get rid of 2D variants, and move {identity-namespace} into Resource path
-@Path("/{target-namespace}")
+@Path("/")
 class HowlResource(
         private val storage: Storage,
         private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
 ) {
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    fun uploadAnonymousFile(
-            @PathParam("target-namespace") targetNamespace: String,
-            @Context request: HttpServletRequest
-    ) = uploadAnonymousFile(targetNamespace, targetNamespace, request)
+    @Path("/managed/{target-namespace}")
+    fun managedResource(
+        @PathParam("target-namespace") targetNamespace: String
+    ) = ManagedHowlResource(targetNamespace)
 
-    @POST
-    @Path("/{identity-namespace}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun uploadAnonymousFile(
-            @PathParam("target-namespace") targetNamespace: String,
+    inner class ManagedHowlResource(private val targetNamespace: String) {
+        @POST
+        @Produces(MediaType.APPLICATION_JSON)
+        fun uploadAnonymousFile(
+            @Context request: HttpServletRequest
+        ) = uploadAnonymousFile(targetNamespace, request)
+
+        @POST
+        @Path("/{identity-namespace}")
+        @Produces(MediaType.APPLICATION_JSON)
+        fun uploadAnonymousFile(
             @PathParam("identity-namespace") identityNamespace: String,
             @Context request: HttpServletRequest
-    ): HowlStorageId {
-        val howlStorageId = howlStorageIdGenerator.get()
-        uploadFileOrThrow(targetNamespace, identityNamespace, howlStorageId.uid, request)
-        return howlStorageId
-    }
+        ): HowlStorageId {
+            val howlStorageId = howlStorageIdGenerator.get()
+            uploadFileOrThrow(identityNamespace, howlStorageId.uid, request)
+            return howlStorageId
+        }
 
-    @PUT
-    @Path("/{filename}")
-    fun uploadFile(
-            @PathParam("target-namespace") targetNamespace: String,
-            @PathParam("filename") fileName: String,
+        @PUT
+        @Path("/{key}")
+        fun uploadFile(
+            @PathParam("key") key: String,
             @Context request: HttpServletRequest
-    ) = uploadFile(targetNamespace, targetNamespace, fileName, request)
+        ) = uploadFile(targetNamespace, key, request)
 
-    @PUT
-    @Path("/{identity-namespace}/{filename}")
-    fun uploadFile(
-            @PathParam("target-namespace") targetNamespace: String,
+        @PUT
+        @Path("/{identity-namespace}/{key}")
+        fun uploadFile(
             @PathParam("identity-namespace") identityNamespace: String,
-            @PathParam("filename") fileName: String,
+            @PathParam("key") key: String,
             @Context request: HttpServletRequest
-    ) {
-        uploadFileOrThrow(targetNamespace, identityNamespace, fileName, request)
-    }
+        ) {
+            uploadFileOrThrow(identityNamespace, key, request)
+        }
 
-    private fun uploadFileOrThrow(
-            targetNamespace: String,
-            identityNamespace: String,
-            fileName: String,
-            request: HttpServletRequest
-    ) = storage.putData(
-            StorageCoords(targetNamespace, identityNamespace, fileName),
-            request.contentLength,  // TODO: what if this is bigger than MAX_VALUE?
-            request.contentType,
-            request.inputStream
-    ) ?: throw NotFoundException()
+        @GET
+        @Path("/{key}")
+        fun downloadFile(
+            @PathParam("key") key: String
+        ) = downloadFile(targetNamespace, key)
 
-    @GET
-    @Path("/{filename}")
-    fun downloadFile(
-            @PathParam("target-namespace") targetNamespace: String,
-            @PathParam("filename") fileName: String
-    ) = downloadFile(targetNamespace, targetNamespace, fileName)
-
-    @GET
-    @Path("/{identity-namespace}/{filename}")
-    fun downloadFile(
-            @PathParam("target-namespace") targetNamespace: String,
+        @GET
+        @Path("/{identity-namespace}/{key}")
+        fun downloadFile(
             @PathParam("identity-namespace") identityNamespace: String,
-            @PathParam("filename") fileName: String
-    ): Response {
-        val coords = StorageCoords(targetNamespace, identityNamespace, fileName)
-        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
-        return Response.ok()
+            @PathParam("key") key: String
+        ): Response {
+            val coords = StorageCoords(targetNamespace, identityNamespace, key)
+            val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+            return Response.ok()
                 .header(CONTENT_TYPE, contentType)
                 .entity(StreamingOutput {
                     inputStream.use { istream -> IOUtils.copy(istream, it) }
                 })
                 .build()
+        }
+
+        private fun uploadFileOrThrow(
+            identityNamespace: String,
+            key: String,
+            request: HttpServletRequest
+        ) = storage.putData(
+            StorageCoords(targetNamespace, identityNamespace, key),
+            request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
+            request.contentType,
+            request.inputStream
+        ) ?: throw NotFoundException()
     }
 
 }

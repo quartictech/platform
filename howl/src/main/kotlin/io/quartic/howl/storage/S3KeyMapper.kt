@@ -1,8 +1,8 @@
 package io.quartic.howl.storage
 
 fun mapForS3(coords: StorageCoords) =
-    if (coords.objectName.startsWith("raw/")) {
-        coords.objectName
+    if (coords.objectKey.startsWith("raw/")) {
+        coords.objectKey
     } else {
-        ".quartic/${coords.identityNamespace}/${coords.objectName}"
+        ".quartic/${coords.identityNamespace}/${coords.objectKey}"
     }

@@ -59,7 +59,7 @@ class GcsStorageFactory {
                 ).execute().generation)
     }
 
-    private val StorageCoords.path get() = "$identityNamespace/$objectName"
+    private val StorageCoords.path get() = "$identityNamespace/$objectKey"
 }
 
 
