@@ -64,7 +64,7 @@ class HomeResourceShould {
     @Test
     fun create_dataset_if_namespace_authorised() {
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
-        whenever(howl.downloadManagedFile(any(), any())).thenReturn("blah".byteInputStream())
+        whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
 
         resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
 

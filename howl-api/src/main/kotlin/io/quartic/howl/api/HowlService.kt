@@ -8,26 +8,11 @@ interface HowlService {
     @Throws(IOException::class)
     fun uploadFile(
         targetNamespace: String,
-        key: String,
-        contentType: String,
-        upload: (OutputStream) -> Unit
-    )
-
-    @Throws(IOException::class)
-    fun uploadFile(
-        targetNamespace: String,
         identityNamespace: String,
         key: String,
         contentType: String,
         upload: (OutputStream) -> Unit
     )
-
-    @Throws(IOException::class)
-    fun uploadAnonymousFile(
-        targetNamespace: String,
-        contentType: String,
-        upload: (OutputStream) -> Unit
-    ): HowlStorageId
 
     @Throws(IOException::class)
     fun uploadAnonymousFile(
@@ -39,9 +24,6 @@ interface HowlService {
 
     @Throws(IOException::class)
     fun downloadUnmanagedFile(targetNamespace: String, key: String): InputStream?
-
-    @Throws(IOException::class)
-    fun downloadManagedFile(targetNamespace: String, key: String): InputStream?
 
     @Throws(IOException::class)
     fun downloadManagedFile(targetNamespace: String, identityNamespace: String, key: String): InputStream?

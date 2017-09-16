@@ -25,13 +25,6 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
 
     override fun uploadFile(
         targetNamespace: String,
-        key: String,
-        contentType: String,
-        upload: (OutputStream) -> Unit
-    ) = uploadFile(url(targetNamespace, MANAGED, key), contentType, upload)
-
-    override fun uploadFile(
-        targetNamespace: String,
         identityNamespace: String,
         key: String,
         contentType: String,
@@ -45,12 +38,6 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
                 .build()
         client.newCall(request).execute()
     }
-
-    override fun uploadAnonymousFile(
-            targetNamespace: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
-    ) = uploadAnonymousFile(url(targetNamespace, MANAGED), contentType, upload)
 
     override fun uploadAnonymousFile(
             targetNamespace: String,
@@ -69,9 +56,6 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
 
     override fun downloadUnmanagedFile(targetNamespace: String, key: String)
         = downloadFile(url(targetNamespace, UNMANAGED, key))
-
-    override fun downloadManagedFile(targetNamespace: String, key: String)
-        = downloadFile(url(targetNamespace, MANAGED, key))
 
     override fun downloadManagedFile(targetNamespace: String, identityNamespace: String, key: String)
         = downloadFile(url(targetNamespace, MANAGED, identityNamespace, key))

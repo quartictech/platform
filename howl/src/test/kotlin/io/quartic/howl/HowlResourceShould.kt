@@ -36,16 +36,7 @@ class HowlResourceShould {
         .build()
 
     @Test
-    fun store_file_on_put_with_2d_coords() {
-        assertPutBehavesCorrectly("foo/managed/thing", Managed("foo", "foo", "thing"))
-    }
-
-    @Test
-    fun store_file_on_put_with_3d_coords() {
-        assertPutBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
-    }
-
-    private fun assertPutBehavesCorrectly(path: String, expectedCoords: Managed) {
+    fun store_file_on_put() {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
@@ -55,25 +46,15 @@ class HowlResourceShould {
             Storage.PutResult(55)
         }
 
-        request(path).put(Entity.text(data))
+        request("foo/managed/bar/thing").put(Entity.text(data))
 
-        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(Managed("foo", "bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
-    fun store_file_on_post_with_2d_coords() {
+    fun store_file_on_post() {
         whenever(idGen.get()).thenReturn(HowlStorageId("42"))
-        assertPostBehavesCorrectly("foo/managed", Managed("foo", "foo", "42"), HowlStorageId("42"))
-    }
-
-    @Test
-    fun store_file_on_post_with_3d_coords() {
-        whenever(idGen.get()).thenReturn(HowlStorageId("42"))
-        assertPostBehavesCorrectly("foo/managed/bar", Managed("foo", "bar", "42"), HowlStorageId("42"))
-    }
-
-    private fun assertPostBehavesCorrectly(path: String, expectedCoords: Managed, expectedId: HowlStorageId) {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
@@ -83,10 +64,10 @@ class HowlResourceShould {
             Storage.PutResult(55)
         }
 
-        val howlStorageId = request(path).post(Entity.text(data), HowlStorageId::class.java)
+        val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
 
-        assertThat(howlStorageId, equalTo(expectedId))
-        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        assertThat(howlStorageId, equalTo(HowlStorageId("42")))
+        verify(storage).putData(eq(Managed("foo", "bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -106,9 +87,9 @@ class HowlResourceShould {
         whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
-        request("test/managed").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
+        request("test/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putData(eq(Managed("test", "test", "69")), eq(-1), eq(null), any())
+        verify(storage).putData(eq(Managed("test", "thing", "69")), eq(-1), eq(null), any())
     }
 
     @Test
@@ -117,12 +98,7 @@ class HowlResourceShould {
     }
 
     @Test
-    fun return_file_on_get_with_2d_coords() {
-        assertGetBehavesCorrectly("foo/managed/thing", Managed("foo", "foo", "thing"))
-    }
-
-    @Test
-    fun return_file_on_get_with_3d_coords() {
+    fun return_managed_file_on_get() {
         assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
     }
 
