@@ -24,19 +24,19 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
             .build()
 
     override fun uploadFile(
-            targetNamespace: String,
-            fileName: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
-    ) = uploadFile(url(targetNamespace, fileName), contentType, upload)
+        targetNamespace: String,
+        key: String,
+        contentType: String,
+        upload: (OutputStream) -> Unit
+    ) = uploadFile(url(targetNamespace, key), contentType, upload)
 
     override fun uploadFile(
-            targetNamespace: String,
-            identityNamespace: String,
-            fileName: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
-    ) = uploadFile(url(targetNamespace, identityNamespace, fileName), contentType, upload)
+        targetNamespace: String,
+        identityNamespace: String,
+        key: String,
+        contentType: String,
+        upload: (OutputStream) -> Unit
+    ) = uploadFile(url(targetNamespace, identityNamespace, key), contentType, upload)
 
     private fun uploadFile(url: HttpUrl, contentType: String, upload: (OutputStream) -> Unit) {
         val request = Request.Builder()
@@ -67,11 +67,11 @@ class HowlClient(userAgent: String, private val baseUrl: URI) : HowlService {
         return decode(client.newCall(request).execute().body()!!.string(), HowlStorageId::class.java)
     }
 
-    override fun downloadFile(targetNamespace: String, fileName: String)
-            = downloadFile(url(targetNamespace, fileName))
+    override fun downloadFile(targetNamespace: String, key: String)
+            = downloadFile(url(targetNamespace, key))
 
-    override fun downloadFile(targetNamespace: String, identityNamespace: String, fileName: String)
-            = downloadFile(url(targetNamespace, identityNamespace, fileName))
+    override fun downloadFile(targetNamespace: String, identityNamespace: String, key: String)
+            = downloadFile(url(targetNamespace, identityNamespace, key))
 
     private fun downloadFile(url: HttpUrl): InputStream? {
         val request = Request.Builder()
