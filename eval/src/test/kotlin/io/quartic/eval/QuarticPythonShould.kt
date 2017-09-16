@@ -13,11 +13,12 @@ import java.nio.file.Paths
 
 class QuarticPythonShould {
     companion object {
-        val SCRIPT = """
+        const val QUARTIC_PYTHON_VERSION = "0.2.0"
+        const val SCRIPT = """
         set -e
         python3 -m venv .env
         source .env/bin/activate
-        pip install git+git://github.com/quartictech/quartic-python.git
+        pip install git+git://github.com/quartictech/quartic-python.git@${QUARTIC_PYTHON_VERSION}
         pip install requests datadiff
         """
 
@@ -67,13 +68,12 @@ class QuarticPythonShould {
 
         val outputFile = folder.newFile()
 
-        runScript(
-            """
+        runScript("""
                 source .env/bin/activate
                 python -m quartic.pipeline.runner --evaluate ${outputFile.absolutePath} \
                     --exception ${folder.newFile().absolutePath} \
                     ${pipelinesDir.absolutePath}
-        """)
+                """)
 
 
         OBJECT_MAPPER.readValue<Pipeline>(outputFile)
