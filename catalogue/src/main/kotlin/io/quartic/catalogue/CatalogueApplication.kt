@@ -4,6 +4,7 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.catalogue.api.model.DatasetId
+import io.quartic.catalogue.migration.CloudPathMigration
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.uid.randomGenerator
 import io.quartic.common.websocket.serverEndpointConfig
@@ -20,6 +21,9 @@ class CatalogueApplication : ApplicationBase<CatalogueConfiguration>() {
 
     public override fun runApplication(configuration: CatalogueConfiguration, environment: Environment) {
         val storageBackend = configuration.backend.build()
+
+        CloudPathMigration().migrate(storageBackend)
+
         val catalogue = CatalogueResource(storageBackend, didGenerator, Clock.systemUTC())
         environment.healthChecks().register("storageBackend", StorageBackendHealthCheck(storageBackend))
         environment.jersey().register(catalogue)

@@ -118,7 +118,7 @@ class HomeResource(
                 try {
                     val name = preprocessFile(namespace.namespace, request.fileName, request.fileType)
                     val locator = CloudDatasetLocator(
-                        "/%s/%s".format(namespace, name),
+                        "/${namespace}/${namespace}/${name}",
                         false,
                         request.mimeType())
                     DatasetConfig(
