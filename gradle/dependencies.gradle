@@ -8,13 +8,11 @@ versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard c
 versions.feign = "9.5.0"
 versions.coroutines = "0.17"
 versions.tyrus = "1.13"
-versions.rxjava = "1.2.1"
 versions.retrofit = "2.3.0"
 versions.vertx = "3.4.2"
 
 libraries.guava = "com.google.guava:guava:19.0"
 libraries.commonsCodec = "commons-codec:commons-codec:1.9"
-libraries.rxjava = "io.reactivex:rxjava:${versions.rxjava}"
 libraries.websocket = "javax.websocket:javax.websocket-api:1.1"
 libraries.coroutines = [
     "org.jetbrains.kotlinx:kotlinx-coroutines-core:${versions.coroutines}",
