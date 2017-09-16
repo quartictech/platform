@@ -70,10 +70,12 @@ class ServicePlugin : Plugin<Project> {
             image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
                 it.from(tasks.getByName(TASK_DIST_TAR_NAME).outputs)
-                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate), mapOf(
-                    "name" to name,
-                    "version" to version
-                ))
+                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate)) {
+                    mapOf(
+                        "name" to name,
+                        "version" to version
+                    )
+                }
             }
         }
     }

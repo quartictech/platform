@@ -182,8 +182,8 @@ class FrontendPlugin : Plugin<Project> {
                 it.from(bundle.outputs) {
                     it.into("bundle")
                 }
-                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate), emptyMap())
-                it.fromTemplate("default.conf", asFile(nginxConfTemplate), emptyMap())
+                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate)) { emptyMap() }
+                it.fromTemplate("default.conf", asFile(nginxConfTemplate)) { mapOf("files_to_try" to ext.nginxFilesToTry) }
             }
         }
     }

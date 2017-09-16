@@ -8,10 +8,10 @@ fun Any.getResourceAsText(name: String) = javaClass.getResource(name).readText()
 
 fun Project.asFile(text: String) = resources.text.fromString(text).asFile()
 
-fun CopySpec.fromTemplate(name: String, file: File, replacements: Map<String, Any>) {
+fun CopySpec.fromTemplate(name: String, file: File, replacements: () -> Map<String, Any>) {
     this.from(file) {
         it.rename { _ -> name }
-        it.filter { it.replacePlaceholders(replacements) }
+        it.filter { it.replacePlaceholders(replacements()) }
     }
 }
 
