@@ -155,6 +155,7 @@ class Evaluator(
         LOG.error("Invalid JSON: {}", raw)
         throw e
     } catch (e: Exception) {
+        LOG.error("Invalid JSON: {}", raw)
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
 
