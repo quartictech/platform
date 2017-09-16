@@ -10,6 +10,7 @@ import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
@@ -57,8 +58,16 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     private fun qube(config: EvalConfiguration) = QubeProxy.create(
         WebsocketClientImpl.create(config.qube.url),
-        config.qube.pod
+        injectPodEnvironment(config.qube.pod)
     )
+
+    private fun injectPodEnvironment(podSpec: PodSpec) =
+       podSpec.copy(podSpec.containers.map { containerSpec ->
+           containerSpec.copy(env = containerSpec.env
+               .plus("QUARTIC_PYTHON_VERSION" to QUARTIC_PYTHON_VERSION)
+           )
+       })
+
 
     private fun database(config: EvalConfiguration, environment: Environment) =
         DatabaseBuilder(
@@ -70,5 +79,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
+
+        const val QUARTIC_PYTHON_VERSION = "0.2.0"
     }
 }

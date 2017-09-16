@@ -13,12 +13,11 @@ import java.nio.file.Paths
 
 class QuarticPythonShould {
     companion object {
-        const val QUARTIC_PYTHON_VERSION = "0.2.0"
         const val SCRIPT = """
         set -e
         python3 -m venv .env
         source .env/bin/activate
-        pip install git+git://github.com/quartictech/quartic-python.git@${QUARTIC_PYTHON_VERSION}
+        pip install git+git://github.com/quartictech/quartic-python.git@${EvalApplication.QUARTIC_PYTHON_VERSION}
         pip install requests datadiff
         """
 
