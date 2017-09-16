@@ -8,23 +8,17 @@ import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
-import io.quartic.common.geojson.GeoJsonParser
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.home.CreateDatasetRequest
 import io.quartic.home.CreateStaticDatasetRequest
-import io.quartic.home.FileType
-import io.quartic.home.FileType.*
-import io.quartic.home.conversion.CsvConverter
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import retrofit2.HttpException
-import java.io.IOException
-import java.io.InputStream
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -115,54 +109,19 @@ class HomeResource(
         throwIfNamespaceNotAllowed(user, namespace)
         val datasetConfig = when (request) {
             is CreateStaticDatasetRequest -> {
-                try {
-                    val name = preprocessFile(namespace.namespace, request.fileName, request.fileType)
-                    val locator = CloudDatasetLocator(
-                        "/${namespace}/${namespace}/${name}",
+                DatasetConfig(
+                    request.metadata,
+                    CloudDatasetLocator(
+                        "/${namespace}/${namespace}/${request.fileName}",
                         false,
-                        request.mimeType())
-                    DatasetConfig(
-                        request.metadata,
-                        locator,
-                        request.extensions()
+                        DEFAULT_MIME_TYPE
                     )
-                } catch (e: IOException) {
-                    throw RuntimeException("Exception while preprocessing file", e)
-                }
+                )
             }
             else -> throw BadRequestException("Unknown request type '${request.javaClass.simpleName}'")
         }
 
         return catalogue.registerDataset(namespace, datasetConfig).id
-    }
-
-    private fun preprocessFile(namespace: String, fileName: String, fileType: FileType): String {
-        val stream: InputStream = howl.downloadManagedFile(namespace, namespace, fileName)
-                ?: throw NotFoundException("File not found: " + fileName)
-
-        return stream.use { s ->
-            when (fileType) {
-                GEOJSON -> {
-                    try {
-                        GeoJsonParser(s).validate()
-                    } catch (e: Exception) {
-                        throw BadRequestException("Exception while validating GeoJSON", e)
-                    }
-                    fileName
-                }
-                CSV -> {
-                    val storageId = howl.uploadAnonymousFile(namespace, namespace, MediaType.APPLICATION_JSON) { outputStream ->
-                        try {
-                            CsvConverter().convert(s, outputStream)
-                        } catch (e: IOException) {
-                            throw BadRequestException("Exception while converting CSV to GeoJSON", e)
-                        }
-                    }
-                    storageId.uid
-                }
-                RAW -> fileName
-            }
-        }
     }
 
     @POST
@@ -208,5 +167,9 @@ class HomeResource(
         if (customer.namespace != namespace.namespace) {
             throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
         }
+    }
+
+    companion object {
+        private val DEFAULT_MIME_TYPE = "application/octet-stream"
     }
 }

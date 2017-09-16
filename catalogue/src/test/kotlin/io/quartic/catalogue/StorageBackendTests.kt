@@ -1,6 +1,9 @@
 package io.quartic.catalogue
 
-import io.quartic.catalogue.api.model.*
+import io.quartic.catalogue.api.model.DatasetConfig
+import io.quartic.catalogue.api.model.DatasetCoordinates
+import io.quartic.catalogue.api.model.DatasetLocator
+import io.quartic.catalogue.api.model.DatasetMetadata
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Test
@@ -85,7 +88,7 @@ abstract class StorageBackendTests {
                 "attribution",
                 Instant.now())
         val extensions = mapOf("A" to "B")
-        val locator = DatasetLocator.CloudDatasetLocator("WAT", false, MimeType.RAW)
+        val locator = DatasetLocator.CloudDatasetLocator("WAT", false, "whatever")
         return DatasetConfig(metadata, locator, extensions)
     }
 
