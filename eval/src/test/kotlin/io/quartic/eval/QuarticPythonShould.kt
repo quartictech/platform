@@ -15,7 +15,7 @@ class QuarticPythonShould {
     companion object {
         val SCRIPT = """
         set -e
-        virtualenv .env
+        python3 -m venv .env
         source .env/bin/activate
         pip install git+git://github.com/quartictech/quartic-python.git@feature/fix-raw
         pip install requests datadiff
