@@ -64,9 +64,7 @@ async def evaluate_pipeline(pipeline_dir, root_path, stdout_cb, stderr_cb):
            steps_file, "--exception", exception_file, pipeline_dir]
     logger.info("Executing: %s", cmd)
     await run_wrapped(cmd, stdout_cb, stderr_cb, root_path, exception_file, "evaluating pipeline")
-    return {
-        "steps": json.load(open(steps_file))
-    }
+    return json.load(open(steps_file))
 
 async def execute_pipeline(pipeline_dir, root_path, step_id, namespace, stdout_cb, stderr_cb):
     exception_file = tempfile.mkstemp()[1]
