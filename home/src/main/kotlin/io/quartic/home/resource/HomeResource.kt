@@ -8,7 +8,6 @@ import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
-import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
@@ -37,7 +36,6 @@ class HomeResource(
     private val evalTrigger: EvalTriggerServiceClient,
     private val registry: RegistryServiceClient
 ) {
-    private val LOG by logger()
     // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
 
     // TODO - how does frontend know what namespace to use for dataset creation?
@@ -81,7 +79,6 @@ class HomeResource(
         }
     }
 
-
     @DELETE
     @Path("/datasets/{namespace}/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -108,16 +105,14 @@ class HomeResource(
     ): DatasetId {
         throwIfNamespaceNotAllowed(user, namespace)
         val datasetConfig = when (request) {
-            is CreateStaticDatasetRequest -> {
-                DatasetConfig(
-                    request.metadata,
-                    CloudDatasetLocator(
-                        "/${namespace}/${namespace}/${request.fileName}",
-                        false,
-                        DEFAULT_MIME_TYPE
-                    )
+            is CreateStaticDatasetRequest -> DatasetConfig(
+                request.metadata,
+                CloudDatasetLocator(
+                    "/${namespace}/${namespace}/${request.fileName}",
+                    false,
+                    DEFAULT_MIME_TYPE
                 )
-            }
+            )
             else -> throw BadRequestException("Unknown request type '${request.javaClass.simpleName}'")
         }
 
@@ -128,8 +123,10 @@ class HomeResource(
     @Path("/file/{namespace}")
     @Produces(MediaType.APPLICATION_JSON)
     fun uploadFile(
+        @Auth user: User,
         @PathParam("namespace") namespace: DatasetNamespace,
-        @Context request: HttpServletRequest): HowlStorageId {
+        @Context request: HttpServletRequest
+    ): HowlStorageId {
         return howl.uploadAnonymousFile(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
             try {
                 copy(request.inputStream, outputStream)
@@ -156,7 +153,7 @@ class HomeResource(
         val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for
 
         val datasetsInNamespace = datasets[coords.namespace]
-                ?: throw notFoundException("Namespace", coords.namespace.namespace)
+            ?: throw notFoundException("Namespace", coords.namespace.namespace)
         if (!datasetsInNamespace.contains(coords.id)) {
             throw notFoundException("Dataset", coords.id.uid)
         }

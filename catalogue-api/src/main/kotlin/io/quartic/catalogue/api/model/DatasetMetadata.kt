@@ -6,5 +6,5 @@ data class DatasetMetadata(
     val name: String,
     val description: String,
     val attribution: String,
-    val registered: Instant?
+    val registered: Instant? = null
 )
