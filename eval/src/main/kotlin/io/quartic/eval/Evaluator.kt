@@ -151,6 +151,7 @@ class Evaluator(
     private fun parseRawPipeline(raw: Any?) = try {
         OBJECT_MAPPER.convertValue<Pipeline>(raw!!).nodes.map { it.toDatabaseModel() }
     } catch (e: Exception) {
+        LOG.error("Error parsing Quarty response: ${raw}")
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
 
