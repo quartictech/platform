@@ -23,8 +23,6 @@ dependencies {
 
     compile "io.fabric8:kubernetes-client:2.6.1"
 
-    compile libraries.rxjava
-
     compile libraries.vertx.web
 
     testCompile project(":common-test")
