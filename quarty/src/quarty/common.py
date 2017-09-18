@@ -14,10 +14,17 @@ def load_config(path):
         return yaml.load(stream)
 
 async def initialise_repo(repo_url, repo_commit, root_path):
-    logger.info("Cloning repo: %s", repo_url)
-
-    await run_subprocess_checked(["git", "clone", repo_url, root_path],
-                                 "Error while cloning code from respository: {}".format(repo_url))
+    for i in range(5):
+        logger.info("Cloning repo: %s (attempt: %s)", repo_url, i)
+        try:
+            await run_subprocess_checked(["git", "clone", repo_url, root_path],
+                                        "Error while cloning code from respository: {}".format(repo_url))
+            break
+        except QuartyException:
+            if i == 4:
+                raise QuartyException("Too many failures trying to clone from github")
+            pass
+        asyncio.sleep(5)
 
     # Checkout revision
     logger.info("Checking out commit: %s", repo_commit)
