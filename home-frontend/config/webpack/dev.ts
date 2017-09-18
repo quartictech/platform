@@ -1,4 +1,5 @@
 import * as webpack from "webpack"
+import CopyWebpackPlugin from "copy-webpack-plugin";
 import * as baseConfig from "./base";
 
 var config = Object.assign({}, baseConfig, {
@@ -16,7 +17,8 @@ var config = Object.assign({}, baseConfig, {
 		  }
 		}),
 		new webpack.HotModuleReplacementPlugin(),
-		new webpack.NoEmitOnErrorsPlugin()
+		new webpack.NoEmitOnErrorsPlugin(),
+		new CopyWebpackPlugin([{from: "src/public"}]),
 	]
 
 });
