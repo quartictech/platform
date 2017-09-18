@@ -9,7 +9,9 @@ import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
 import io.quartic.howl.storage.Storage.PutResult
+import io.quartic.howl.storage.Storage.StorageMetadata
 import java.io.InputStream
+import java.time.Instant
 
 class GcsStorageFactory {
     data class Config(val bucket: String) : StorageConfig
@@ -33,6 +35,17 @@ class GcsStorageFactory {
     }
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
+        override fun getMetadata(coords: StorageCoords): StorageMetadata =
+            storage.objects().get(config.bucket, coords.bucketKey)
+                .execute()
+                .let {
+                    StorageMetadata(
+                        Instant.ofEpochMilli(it.updated.value),
+                        it.contentType,
+                        it.size.toLong()
+                    )
+                }
+
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
             get.generation = version

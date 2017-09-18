@@ -41,6 +41,9 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
+    override fun getMetadata(coords: StorageCoords): Storage.StorageMetadata? = null
+
+
     override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null

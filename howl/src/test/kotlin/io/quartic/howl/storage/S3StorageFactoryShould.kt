@@ -5,12 +5,14 @@ import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.howl.storage.S3StorageFactory.Config
 import io.quartic.howl.storage.StorageCoords.Managed
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
+import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalUnit
 import java.util.*
 import javax.ws.rs.core.MediaType
 
@@ -43,6 +45,19 @@ class S3StorageFactoryShould {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
         assertThat(storage.getData(coords, null), nullValue())
+    }
+
+    @Test
+    fun store_metadata() {
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val data = "Hello world!"
+
+        storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        val metadata = storage.getMetadata(coords)
+        assertThat(metadata!!.contentLength, equalTo(12L))
+        assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
+        assertThat(metadata.lastModified, greaterThan(Instant.now().minus(5, ChronoUnit.MINUTES)))
+        assertThat(metadata.lastModified, lessThan(Instant.now().plus(5, ChronoUnit.MINUTES)))
     }
 
     private fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8)

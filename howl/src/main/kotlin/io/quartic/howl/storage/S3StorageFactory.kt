@@ -12,7 +12,9 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.howl.storage.Storage.PutResult
+import io.quartic.howl.storage.Storage.StorageMetadata
 import java.io.InputStream
+import java.time.Instant
 
 class S3StorageFactory(
     private val secretsCodec: SecretsCodec,
@@ -64,6 +66,11 @@ class S3StorageFactory(
                 }
             }
         }
+
+        override fun getMetadata(coords: StorageCoords): StorageMetadata =
+            s3.getObjectMetadata(bucket.veryUnsafe, coords.bucketKey).let {
+                StorageMetadata(it.lastModified.toInstant(), it.contentType, it.contentLength)
+            }
 
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
             inputStream.use { s ->

@@ -1,6 +1,5 @@
 package io.quartic.howl
 
-import io.quartic.common.logging.logger
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
@@ -11,11 +10,8 @@ import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.Context
+import javax.ws.rs.core.*
 import javax.ws.rs.core.HttpHeaders.CONTENT_TYPE
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.StreamingOutput
 
 @Path("/{target-namespace}")
 class HowlResource(
@@ -28,6 +24,14 @@ class HowlResource(
         @PathParam("target-namespace") targetNamespace: String,
         @PathParam("key") key: String
     ) = downloadFile(Unmanaged(targetNamespace, key))
+
+    @HEAD
+    @Path("/unmanaged/{key}")
+    fun headUnmanaged(
+        @PathParam("target-namespace") targetNamespace: String,
+        @PathParam("key") key: String
+    ) = headFile(Unmanaged(targetNamespace, key))
+
 
     @Path("/managed/{identity-namespace}")
     fun managedResource(
@@ -57,6 +61,10 @@ class HowlResource(
         @Path("/{key}")
         fun downloadFile(@PathParam("key") key: String) = downloadFile(Managed(targetNamespace, identityNamespace, key))
 
+        @HEAD
+        @Path("/{key}")
+        fun headFile(@PathParam("key") key: String) = headFile(Managed(targetNamespace, identityNamespace, key))
+
         private fun uploadFileOrThrow(
             identityNamespace: String,
             key: String,
@@ -68,6 +76,19 @@ class HowlResource(
             request.inputStream
         ) ?: throw NotFoundException("Storage backend could not write file")
     }
+
+    private fun headFile(coords: StorageCoords): Response =
+        storage.getMetadata(coords).let {
+            if (it != null) {
+                Response.ok()
+                    .header(HttpHeaders.CONTENT_LENGTH, it.contentLength)
+                    .header(HttpHeaders.CONTENT_TYPE, it.contentType)
+                    .header(HttpHeaders.LAST_MODIFIED, it.lastModified)
+                    .build()
+            } else {
+                Response.ok().build()
+            }
+        }
 
     private fun downloadFile(coords: StorageCoords): Response {
         val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
