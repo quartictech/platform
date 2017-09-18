@@ -9,11 +9,11 @@ Quartic requires only two things within your pipelines repository:
 
 Both of these can be checked for and configured using the Quartic Command Line Interface (QLI).
 
-### Setting up a repo
+## Setting up a repo
 
 Your code is assumed to be in a Git repository and additionally hosted in a Github repository you have access to.
 
-### Python environment
+## Python environment
 
 We strongly recommend you develop locally within a virtualenv. You should also be using Python3.
 
@@ -39,7 +39,7 @@ Note the following:
     - you can have as many levels of nesting as you like within any of your pipeline modules.
     - module directories are declared in `quartic.yml`. A default configuration can be produced using `qli init` which will your pipeline directory to `pipelines/`.
 
-### External library dependencies
+## External library dependencies
 
 Any dependencies that your code relies on will be looked for within an optional `requirements.txt` at the root of the repository, compatible with `pip`.
 You can produce this file in the usual way with `pip freeze > requirements.txt`.
