@@ -83,7 +83,7 @@ Executing the pipeline produces datasets at each step and is triggered from the 
 
 ### Next steps
 
-Congrats! You've just built and run your first data pipeline complete with monitoring, automation,
+Congrats! You've just built and run your first data pipeline with monitoring, automation,
 version control, and provenance.
 
 Next, we suggest you move on to the slightly longer guide to learn about the DAG, and revisit any topics
