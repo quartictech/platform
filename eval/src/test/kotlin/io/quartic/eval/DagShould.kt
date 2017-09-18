@@ -1,70 +1,80 @@
 package io.quartic.eval
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import io.quartic.common.serdes.OBJECT_MAPPER
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.Dag.Node
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Dataset
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Step
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.Assert.assertThat
 import org.junit.Test
 
 class DagShould {
-    fun readSteps(file: String) =
-        OBJECT_MAPPER.readValue<List<Step>>(javaClass.getResourceAsStream(file))
-
-    @Test
-    fun build_basic_dag() {
-        Dag.fromSteps(readSteps("/steps.json"))
-        // No errors
-    }
-
     @Test
     fun detect_cyclic_dag() {
+        val a = Step("111", mock(),
+            listOf(dataset("B")),
+            dataset("A")
+        ) as Node
+        val b = Step("222", mock(),
+            listOf(dataset("A")),
+            dataset("B")
+        ) as Node
+        val nodes = listOf(a, b)
+
         assertThrows<IllegalArgumentException> {
-            Dag.fromSteps(readSteps("/steps_cyclic.json"))
+            Dag.fromRaw(nodes)
         }
     }
 
     @Test
     fun detect_multiple_steps_per_output() {
+        val a = Raw("111", mock(), mock(),
+            dataset("A")
+        ) as Node
+        val b1 = Step("222", mock(),
+            listOf(dataset("A")),
+            dataset("B")
+        ) as Node
+        val b2 = Step("333", mock(),
+            listOf(dataset("A")),
+            dataset("B")
+        ) as Node
+        val nodes = listOf(a, b1, b2)
+
         assertThrows<IllegalArgumentException> {
-            Dag.fromSteps(readSteps("/steps_duplicate_outputs.json"))
+            Dag.fromRaw(nodes)
         }
     }
 
     @Test
     fun generate_correct_edges() {
-        val stepX = Step(
-            id = "123",
-            name = "foo",
-            description = "whatever",
-            file = "whatever",
-            lineRange = emptyList(),
-            inputs = listOf(dataset("A"), dataset("B")),
-            outputs = listOf(dataset("D"))
-        )
+        val a = Raw("111", mock(), mock(),
+            dataset("A")
+        ) as Node
+        val b = Raw("222", mock(), mock(),
+            dataset("B")
+        ) as Node
+        val c = Raw("333", mock(), mock(),
+            dataset("C")
+        ) as Node
+        val d = Step("444", mock(),
+            listOf(dataset("A"), dataset("B")),
+            dataset("D")
+        ) as Node
+        val e = Step("555", mock(),
+            listOf(dataset("B"), dataset("C"), dataset("D")),
+            dataset("E")
+        ) as Node
+        val nodes = listOf(a, b, c, d, e)
 
-        val stepY = Step(
-            id = "456",
-            name = "bar",
-            description = "whatever",
-            file = "whatever",
-            lineRange = emptyList(),
-            inputs = listOf(dataset("B"), dataset("C"), dataset("D")),
-            outputs = listOf(dataset("E"))
-        )
-
-
-        val steps = listOf(stepX, stepY)
-
-        assertThat(Dag.fromSteps(steps).edges, containsInAnyOrder(
-            Node(dataset("A")) to Node(dataset("D"), stepX),
-            Node(dataset("B")) to Node(dataset("D"), stepX),
-            Node(dataset("B")) to Node(dataset("E"), stepY),
-            Node(dataset("C")) to Node(dataset("E"), stepY),
-            Node(dataset("D"), stepX) to Node(dataset("E"), stepY)
+        assertThat(Dag.fromRaw(nodes).edges, containsInAnyOrder(
+            a to d,
+            b to d,
+            b to e,
+            c to e,
+            d to e
         ))
     }
 

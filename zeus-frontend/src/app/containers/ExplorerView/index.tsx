@@ -199,7 +199,7 @@ class ExplorerView extends React.Component<Props, State> {
   }
 
   private maybePrettyName() {
-    return ifLoaded(this.props.datasetInfo, info => info[this.props.params.datasetName].prettyName, "<< unknown >>");
+    return ifLoaded(this.props.datasetInfo, info => info[this.props.params.datasetName].pretty_name, "<< unknown >>");
   }
 
   private columns = () => this.props.datasetContent.data.schema;

@@ -1,15 +1,18 @@
 package io.quartic.gradle.frontend
 
+import io.quartic.gradle.asFile
 import io.quartic.gradle.docker.DockerExtension
 import io.quartic.gradle.docker.DockerPlugin
+import io.quartic.gradle.fromTemplate
+import io.quartic.gradle.getResourceAsText
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.Exec
-import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.language.base.plugins.LifecycleBasePlugin.ASSEMBLE_TASK_NAME
+import org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import java.io.File
@@ -28,7 +31,8 @@ class FrontendPlugin : Plugin<Project> {
             configureDockerPlugin(bundle)
             createRunTask(installDeps)
             val lint = createLintTasks(installDeps)
-            tasks.getByName(LifecycleBasePlugin.CHECK_TASK_NAME).dependsOn(lint)
+            tasks.getByName(ASSEMBLE_TASK_NAME).dependsOn(bundle)
+            tasks.getByName(CHECK_TASK_NAME).dependsOn(lint)
             configureIdeaPlugin()
         }
     }
@@ -172,19 +176,14 @@ class FrontendPlugin : Plugin<Project> {
     private fun Project.configureDockerPlugin(bundle: Task) {
         plugins.apply(DockerPlugin::class.java)
 
-        fun CopySpec.fromResource(name: String) =
-            from(resources.text.fromString(this@FrontendPlugin.javaClass.getResource(name).readText()).asFile()) {
-                it.rename { _ -> name }
-            }
-
         extensions.getByType(DockerExtension::class.java).apply {
             image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
                 it.from(bundle.outputs) {
                     it.into("bundle")
                 }
-                it.fromResource("Dockerfile")
-                it.fromResource("default.conf")
+                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate)) { emptyMap() }
+                it.fromTemplate("default.conf", asFile(nginxConfTemplate)) { mapOf("files_to_try" to ext.nginxFilesToTry) }
             }
         }
     }
@@ -196,6 +195,9 @@ class FrontendPlugin : Plugin<Project> {
         block.invoke(task)
         return task
     }
+
+    private val dockerfileTemplate = getResourceAsText("Dockerfile")
+    private val nginxConfTemplate = getResourceAsText("default.conf")
 
     private val Project.ext get() = extensions.getByType(FrontendExtension::class.java)
 

@@ -7,39 +7,24 @@ import java.io.OutputStream
 interface HowlService {
     @Throws(IOException::class)
     fun uploadFile(
-            targetNamespace: String,
-            fileName: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
-    )
-
-    @Throws(IOException::class)
-    fun uploadFile(
-            targetNamespace: String,
-            identityNamespace: String,
-            fileName: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
+        targetNamespace: String,
+        identityNamespace: String,
+        key: String,
+        contentType: String,
+        upload: (OutputStream) -> Unit
     )
 
     @Throws(IOException::class)
     fun uploadAnonymousFile(
-            targetNamespace: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
+        targetNamespace: String,
+        identityNamespace: String,
+        contentType: String,
+        upload: (OutputStream) -> Unit
     ): HowlStorageId
 
     @Throws(IOException::class)
-    fun uploadAnonymousFile(
-            targetNamespace: String,
-            identityNamespace: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
-    ): HowlStorageId
+    fun downloadUnmanagedFile(targetNamespace: String, key: String): InputStream?
 
     @Throws(IOException::class)
-    fun downloadFile(targetNamespace: String, fileName: String): InputStream?
-
-    @Throws(IOException::class)
-    fun downloadFile(targetNamespace: String, identityNamespace: String, fileName: String): InputStream?
+    fun downloadManagedFile(targetNamespace: String, identityNamespace: String, key: String): InputStream?
 }

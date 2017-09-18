@@ -15,7 +15,7 @@ export interface Dataset<T> {
 }
 
 export interface DatasetInfo {
-  prettyName: string;
+  pretty_name: string;
 }
 
 export interface SessionInfo {
