@@ -1,4 +1,4 @@
-export const apiRootUrl = `${location.origin}${location.pathname}api`;
+export const apiRootUrl = `${location.origin}/api`;
 
 import { IDatasetMetadata, IDatasetCoords } from "../models";
 

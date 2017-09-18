@@ -3,7 +3,8 @@ import * as path from "path";
 module.exports = {
   output: {
     path: path.resolve("build", "bundle"),
-    filename: "bundle.js"
+    filename: "bundle.js",
+    publicPath: "/",
   },
 
   resolve: {

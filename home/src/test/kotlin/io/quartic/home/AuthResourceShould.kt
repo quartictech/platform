@@ -110,7 +110,7 @@ class AuthResourceShould {
         val response = resource.githubCallback("noobs", "abc%def", "uvw%xyz")
         with(response) {
             assertThat(status, equalTo(TEMPORARY_REDIRECT.statusCode))
-            assertThat(location.toString(), equalTo("http://noobs.some.where/#/login?provider=gh&code=abc%25def&state=uvw%25xyz"))
+            assertThat(location.toString(), equalTo("http://noobs.some.where/login?provider=gh&code=abc%25def&state=uvw%25xyz"))
         }
     }
 
