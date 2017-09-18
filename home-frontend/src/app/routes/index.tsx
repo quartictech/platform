@@ -1,6 +1,5 @@
 import * as React from "react";
-import { IndexRoute, Route, useRouterHistory } from "react-router";
-import { createHashHistory } from "history";
+import { IndexRoute, Route, browserHistory } from "react-router";
 import {
   App,
   DatasetsView,
@@ -12,7 +11,7 @@ import {
 } from "../containers";
 import { EnsureLoggedIn } from "./login";
 
-const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
+const appHistory = browserHistory;
 
 function getRoutes() {
   return (

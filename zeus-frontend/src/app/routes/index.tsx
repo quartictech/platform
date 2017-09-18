@@ -1,13 +1,12 @@
 import * as React from "react";
-import { IndexRedirect, Route, useRouterHistory } from "react-router";
-import { createHashHistory } from "history";
+import { IndexRedirect, Route, browserHistory } from "react-router";
 import App from "../containers/App";
 import AssetView from "../containers/AssetView";
 import ExplorerView from "../containers/ExplorerView";
 import InsightView from "../containers/InsightView";
 import SearchView from "../containers/SearchView";
 
-const appHistory = useRouterHistory(createHashHistory)({ queryKey: false });
+const appHistory = browserHistory;
 
 function getRoutes() {
   return (
