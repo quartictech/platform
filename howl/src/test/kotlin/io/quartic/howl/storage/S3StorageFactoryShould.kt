@@ -31,6 +31,14 @@ class S3StorageFactoryShould {
     }
 
     @Test
+    fun ignore_content_length_if_negative() {
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val data = "Hello world!"
+
+        storage.putData(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
+    }
+
+    @Test
     fun return_null_if_key_not_found() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
