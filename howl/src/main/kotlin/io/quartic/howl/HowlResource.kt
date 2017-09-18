@@ -63,15 +63,12 @@ class HowlResource(
             identityNamespace: String,
             key: String,
             request: HttpServletRequest
-        ) {
-            LOG.info("Request with content length = ${request.contentLength} and content type = ${request.contentType}")
-            storage.putData(
-                Managed(targetNamespace, identityNamespace, key),
-                request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
-                request.contentType,
-                request.inputStream
-            ) ?: throw NotFoundException()
-        }
+        ) = storage.putData(
+            Managed(targetNamespace, identityNamespace, key),
+            request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
+            request.contentType,
+            request.inputStream
+        ) ?: throw NotFoundException()
     }
 
     private fun downloadFile(coords: StorageCoords): Response {
