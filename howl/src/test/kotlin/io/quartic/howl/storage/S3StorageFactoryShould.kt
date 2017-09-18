@@ -12,7 +12,6 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.time.temporal.TemporalUnit
 import java.util.*
 import javax.ws.rs.core.MediaType
 
@@ -27,7 +26,7 @@ class S3StorageFactoryShould {
 
         storage.getData(coords, null).use {
             it!!
-            assertThat(it.contentType, equalTo(MediaType.TEXT_PLAIN))
+            assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
         }
     }
@@ -53,8 +52,8 @@ class S3StorageFactoryShould {
         val data = "Hello world!"
 
         storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
-        val metadata = storage.getMetadata(coords)
-        assertThat(metadata!!.contentLength, equalTo(12L))
+        val metadata = storage.getData(coords, null)!!.metadata
+        assertThat(metadata.contentLength, equalTo(12L))
         assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(metadata.lastModified, greaterThan(Instant.now().minus(5, ChronoUnit.MINUTES)))
         assertThat(metadata.lastModified, lessThan(Instant.now().plus(5, ChronoUnit.MINUTES)))

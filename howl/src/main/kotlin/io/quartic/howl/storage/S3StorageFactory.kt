@@ -13,8 +13,8 @@ import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.howl.storage.Storage.PutResult
 import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
-import java.time.Instant
 
 class S3StorageFactory(
     private val secretsCodec: SecretsCodec,
@@ -39,6 +39,8 @@ class S3StorageFactory(
     }
 
     fun create(config: Config) = object : Storage {
+
+
         private val s3 by lazy {
             val stsProvider = STSAssumeRoleSessionCredentialsProvider.Builder(config.roleArnEncrypted.decrypt().veryUnsafe, ROLE_SESSION_NAME)
                 .withExternalId(config.externalIdEncrypted.decrypt().veryUnsafe)
@@ -54,23 +56,28 @@ class S3StorageFactory(
 
         private val bucket = config.bucketEncrypted.decrypt()
 
-        override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-            try {
-                val s3obj = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
-                return InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
-            } catch (e: AmazonS3Exception) {
-                if (e.errorCode != "NoSuchKey") {
-                    throw e
-                } else {
-                    return null
-                }
-            }
+        override fun getData(coords: StorageCoords, version: Long?): Storage.StorageResult? = wrapS3Exception {
+            val s3obj = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
+            StorageResult(
+                StorageMetadata(
+                    s3obj.objectMetadata.lastModified.toInstant(),
+                    s3obj.objectMetadata.contentType,
+                    s3obj.objectMetadata.contentLength),
+                s3obj.objectContent
+            )
         }
 
-        override fun getMetadata(coords: StorageCoords): StorageMetadata =
-            s3.getObjectMetadata(bucket.veryUnsafe, coords.bucketKey).let {
-                StorageMetadata(it.lastModified.toInstant(), it.contentType, it.contentLength)
-            }
+
+        override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = wrapS3Exception {
+            s3.getObjectMetadata(bucket.veryUnsafe, coords.bucketKey)
+                .let {
+                    StorageMetadata(
+                        it.lastModified.toInstant(),
+                        it.contentType,
+                        it.contentLength
+                    )
+                }
+        }
 
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
             inputStream.use { s ->
@@ -83,6 +90,18 @@ class S3StorageFactory(
             }
             return PutResult(null)  // TODO - no versioning for now
         }
+
+        private fun <T> wrapS3Exception(block: () -> T): T? = try {
+           block()
+        } catch (e: AmazonS3Exception) {
+            if (e.errorCode != "NoSuchKey") {
+                throw e
+            } else {
+                null
+            }
+        }
+
+
     }
 
     private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)

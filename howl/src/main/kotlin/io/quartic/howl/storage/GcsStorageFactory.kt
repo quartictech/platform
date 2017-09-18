@@ -10,6 +10,7 @@ import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
 import io.quartic.howl.storage.Storage.PutResult
 import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
 import java.time.Instant
 
@@ -35,33 +36,34 @@ class GcsStorageFactory {
     }
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
-        override fun getMetadata(coords: StorageCoords): StorageMetadata =
-            storage.objects().get(config.bucket, coords.bucketKey)
-                .execute()
-                .let {
-                    StorageMetadata(
-                        Instant.ofEpochMilli(it.updated.value),
-                        it.contentType,
-                        it.size.toLong()
-                    )
-                }
-
-        override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
+        override fun getData(coords: StorageCoords, version: Long?) = wrapGcsException {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
             get.generation = version
 
-            try {
-                val httpResponse = get.executeMedia()
-                val content = httpResponse.content
-                if (content != null) {
-                    return InputStreamWithContentType(httpResponse.contentType, content)
-                }
-            } catch (e: GoogleJsonResponseException) {
-                if (e.statusCode != 404) {
-                    throw e
-                }
+            val httpResponse = get.executeMedia()
+            val content = httpResponse.content
+            val metadata = getMetadata(coords, version)
+
+            if (content != null) {
+                StorageResult(
+                    metadata!!,
+                    content
+                )
+            } else {
+                null
             }
-            return null
+        }
+
+
+        override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = wrapGcsException {
+            val get = storage.objects().get(config.bucket, coords.bucketKey)
+            val response = get.execute()
+
+            StorageMetadata(
+                Instant.ofEpochMilli(response.updated.value),
+                response.contentType,
+                response.size.toLong()
+            )
         }
 
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
@@ -70,6 +72,17 @@ class GcsStorageFactory {
                         StorageObject().setName(coords.bucketKey),
                         InputStreamContent(contentType, inputStream)
                 ).execute().generation)
+
+
+        private fun <T> wrapGcsException(block: () -> T): T? = try {
+            block()
+        } catch (e: GoogleJsonResponseException) {
+             if (e.statusCode != 404) {
+                 throw e
+             } else {
+                 null
+             }
+        }
     }
 }
 

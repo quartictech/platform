@@ -1,6 +1,6 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.Storage.PutResult
+import io.quartic.howl.storage.Storage.*
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
@@ -21,16 +21,20 @@ class LocalStorage(private val config: Config) : Storage {
     private val lock = ReentrantReadWriteLock()
     private val versionCounter = AtomicLong(System.currentTimeMillis())
 
-    override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
+    override fun getData(coords: StorageCoords, version: Long?): StorageResult? {
         try {
             lock.readLock().lock()
             val path = getVersionPath(coords, version)
             if (path != null) {
                 val file = path.toFile()
                 if (file.exists()) {
-                    return InputStreamWithContentType(
+                    return StorageResult(
+                        StorageMetadata(
+                            Files.getLastModifiedTime(path).toInstant(),
                             Files.probeContentType(path) ?: DEFAULT_CONTENT_TYPE,
-                            FileInputStream(file)
+                            Files.size(path)
+                        ),
+                        FileInputStream(file)
                     )
                 }
             }
@@ -41,8 +45,7 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
-    override fun getMetadata(coords: StorageCoords): Storage.StorageMetadata? = null
-
+    override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = getData(coords, version)?.metadata
 
     override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
         coords.path.toFile().mkdirs()

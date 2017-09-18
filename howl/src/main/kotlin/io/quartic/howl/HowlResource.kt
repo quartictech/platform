@@ -8,10 +8,14 @@ import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.*
 import javax.ws.rs.core.HttpHeaders.CONTENT_TYPE
+import javax.ws.rs.core.HttpHeaders.LAST_MODIFIED
+import javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH
 
 @Path("/{target-namespace}")
 class HowlResource(
@@ -31,7 +35,6 @@ class HowlResource(
         @PathParam("target-namespace") targetNamespace: String,
         @PathParam("key") key: String
     ) = headFile(Unmanaged(targetNamespace, key))
-
 
     @Path("/managed/{identity-namespace}")
     fun managedResource(
@@ -77,26 +80,27 @@ class HowlResource(
         ) ?: throw NotFoundException("Storage backend could not write file")
     }
 
-    private fun headFile(coords: StorageCoords): Response =
-        storage.getMetadata(coords).let {
-            if (it != null) {
-                Response.ok()
-                    .header(HttpHeaders.CONTENT_LENGTH, it.contentLength)
-                    .header(HttpHeaders.CONTENT_TYPE, it.contentType)
-                    .header(HttpHeaders.LAST_MODIFIED, it.lastModified)
-                    .build()
-            } else {
-                Response.ok().build()
-            }
-        }
 
     private fun downloadFile(coords: StorageCoords): Response {
-        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        val (metadata, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
         return Response.ok()
-            .header(CONTENT_TYPE, contentType)
+            .header(CONTENT_TYPE, metadata.contentType)
+            .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+                .format(metadata.lastModified))
+            .header(CONTENT_LENGTH, metadata.contentLength)
             .entity(StreamingOutput {
                 inputStream.use { istream -> IOUtils.copy(istream, it) }
             })
+            .build()
+    }
+
+    private fun headFile(coords: StorageCoords): Response {
+        val metadata = storage.getMetadata(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        return Response.ok()
+            .header(CONTENT_TYPE, metadata.contentType)
+            .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+                .format(metadata.lastModified))
+            .header(CONTENT_LENGTH, metadata.contentLength)
             .build()
     }
 
