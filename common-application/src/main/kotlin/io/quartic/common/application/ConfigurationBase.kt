@@ -30,31 +30,34 @@ abstract class ConfigurationBase : Configuration() {
     var url: ServerDetails = ServerDetails()
         set(value) = configureServer(value)
 
+    var logLevel: Level = Level.INFO
+        set(value) = configureLogging(value)
+
     val secretsCodec by lazy {
         SecretsCodec(masterKeyBase64)
     }
 
     init {
-        configureLogging()
+        configureLogging(logLevel)
     }
 
     // Opinionated server configuration
-    private fun configureServer(value: ServerDetails) {
+    private fun configureServer(details: ServerDetails) {
         super.setServerFactory(DefaultServerFactory().apply {
-            applicationContextPath = value.contextPath
+            applicationContextPath = details.contextPath
             applicationConnectors = listOf(HttpConnectorFactory().apply {
-                port = if (value.randomPort) 0 else value.port
+                port = if (details.randomPort) 0 else details.port
             })
             adminConnectors = listOf(HttpConnectorFactory().apply {
-                port = if (value.randomPort) 0 else (value.port + 1)
+                port = if (details.randomPort) 0 else (details.port + 1)
             })
         })
     }
 
     // Opinionated logging configuration
-    private fun configureLogging() {
+    private fun configureLogging(level: Level) {
         super.setLoggingFactory(DefaultLoggingFactory().apply {
-            level = Level.INFO
+            this.level = level
             setAppenders(listOf(ConsoleAppenderFactory<ILoggingEvent>().apply {
                 logFormat = "%d{ISO8601, UTC} %highlight(%-5level) [%logger{36}]: %msg%n%yellow(%rEx) %nopex"
             }))
