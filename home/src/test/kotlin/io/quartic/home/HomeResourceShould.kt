@@ -66,7 +66,7 @@ class HomeResourceShould {
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
         whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
 
-        resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
+        resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah"))
 
         verify(catalogue).registerDataset(eq(foo), any())
 
@@ -76,7 +76,7 @@ class HomeResourceShould {
     @Test
     fun not_create_dataset_and_respond_with_404_if_namespace_not_authorised() {
         assertThrows<NotFoundException> {
-            resource.createDataset(arlo, bar, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
+            resource.createDataset(arlo, bar, CreateStaticDatasetRequest(mock(), "yeah"))
         }
 
         verifyNoMoreInteractions(catalogue)

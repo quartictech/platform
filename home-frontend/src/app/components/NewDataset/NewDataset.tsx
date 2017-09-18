@@ -71,7 +71,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       },
       {
         files: this.state.files,
-        fileType: "RAW",
       },
     );
   }

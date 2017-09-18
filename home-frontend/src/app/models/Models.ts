@@ -16,7 +16,6 @@ export interface IDatasetLocator {
 
 export interface IFiles {
   files: any[];
-  fileType: string;
 }
 
 export interface IDataset {

@@ -4,7 +4,7 @@ logging:
     io.dropwizard: INFO
   appenders:
     - type: console
-      log_format: "%d{ISO8601, UTC} %highlight(%-5level) [%logger{36}]: %msg%n%rEx"
+      log_format: "%d{ISO8601, UTC} %highlight(%-5level) [%logger{36}]: %msg%n%yellow(%rEx) %nopex"
 
 <#if MASTER_KEY_BASE64??>
 master_key_base64: ${MASTER_KEY_BASE64}

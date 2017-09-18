@@ -66,7 +66,7 @@ class HowlResource(
             request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
             request.contentType,
             request.inputStream
-        ) ?: throw NotFoundException()
+        ) ?: throw NotFoundException("Storage backend could not write file")
     }
 
     private fun downloadFile(coords: StorageCoords): Response {
