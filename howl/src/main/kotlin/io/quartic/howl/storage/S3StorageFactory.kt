@@ -68,7 +68,7 @@ class S3StorageFactory(
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
             inputStream.use { s ->
                 val metadata = ObjectMetadata()
-                if (contentLength != null) {
+                if (contentLength != null && contentLength > 0) {
                     metadata.contentLength = contentLength.toLong()
                 }
                 metadata.contentType = contentType

@@ -1,5 +1,6 @@
 package io.quartic.howl
 
+import io.quartic.common.logging.logger
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
