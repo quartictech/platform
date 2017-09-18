@@ -86,7 +86,7 @@ class AuthResource(
         // We're not an open redirector (due to formatted target), so it's fine to do no validation here
         // We can't use UriBuilder or the like, because these aren't real query params, they're for react-router
         val uri = URI.create(
-            "${gitHubConfig.redirectHost.format(issuer)}/#/login?" +
+            "${gitHubConfig.redirectHost.format(issuer)}/login?" +
             "provider=gh&" +
             "code=${code.nonNull("code").urlEncode()}&" +
             "state=${state.nonNull("state").urlEncode()}"

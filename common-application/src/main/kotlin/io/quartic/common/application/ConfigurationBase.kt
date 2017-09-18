@@ -23,7 +23,7 @@ abstract class ConfigurationBase : Configuration() {
             DEV_MASTER_KEY_BASE64
         }
     }
-    
+
     val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
 
     // Opinionated port selection
@@ -56,7 +56,7 @@ abstract class ConfigurationBase : Configuration() {
         super.setLoggingFactory(DefaultLoggingFactory().apply {
             level = Level.INFO
             setAppenders(listOf(ConsoleAppenderFactory<ILoggingEvent>().apply {
-                logFormat = "%d{ISO8601, UTC} %highlight(%-5level) [%logger{36}]: %msg%n%rEx"
+                logFormat = "%d{ISO8601, UTC} %highlight(%-5level) [%logger{36}]: %msg%n%yellow(%rEx) %nopex"
             }))
         })
     }

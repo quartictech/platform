@@ -1,4 +1,4 @@
-export const apiRootUrl = `${location.origin}${location.pathname}api`;
+export const apiRootUrl = `${location.origin}/api`;
 
 import { IDatasetMetadata, IDatasetCoords } from "../models";
 
@@ -31,8 +31,8 @@ function parseJSON(response: Response) {
 }
 
 export function fetchUtil(url, options?) {
-  const headers: Headers = options && options.header ? options.headers : new Headers();
-  headers.set(QUARTIC_XSRF_HEADER, localStorage.getItem(QUARTIC_XSRF));
+  const headers: Headers = options && options.headers ? options.headers : {};
+  headers[QUARTIC_XSRF_HEADER] = localStorage.getItem(QUARTIC_XSRF);
   const newOptions = Object.assign({}, options, {
     credentials: "same-origin",
     headers,
@@ -63,8 +63,6 @@ export function fetchDag(build: string) {
   return fetchUtil(`${apiRootUrl}/dag/`);
 }
 
-const validContentType = t => (t != null && t.length > 0) ? t : "application/geo+json";
-
 export function githubAuth(code: string, state: string) {
   return fetchAuth(
     `${apiRootUrl}/auth/gh/complete?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
@@ -76,9 +74,6 @@ export function githubAuth(code: string, state: string) {
 
 export function uploadFile(namespace: string, files: any[]) {
   return fetchUtil(`${apiRootUrl}/file/${encodeURIComponent(namespace)}`, {
-    headers: {
-      "Content-Type": validContentType(files[0].type),
-    },
     method: "POST",
     body: files[0],
   });
@@ -91,7 +86,7 @@ export function buildPipeline() {
 }
 
 // TODO: wire through namespace
-export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string, fileType: string) {
+export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string) {
   return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(namespace)}`, {
     headers: {
       "Content-Type": "application/json",
@@ -100,8 +95,7 @@ export function createDataset(namespace: string, metadata: IDatasetMetadata, fil
     body: JSON.stringify({
       type: "static",
       metadata,
-      fileName,
-      fileType,
+      file_name: fileName,
     }),
   });
 }

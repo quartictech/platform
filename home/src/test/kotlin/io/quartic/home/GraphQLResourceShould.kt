@@ -7,13 +7,13 @@ import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.auth.User
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryServiceClient
-import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.GitHub
 import io.quartic.github.GitHubUser
 import io.quartic.home.resource.GraphQLResource
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.net.URI
@@ -63,7 +63,7 @@ class GraphQLResourceShould {
         on { getBuildEventsAsync(any(), any()) } doReturn CompletableFuture.completedFuture(events)
     }
 
-    private val github = mock<GitHub>() {
+    private val github = mock<GitHub> {
         on { user(eq(111)) } doReturn GitHubUser(
             111,
             "bigmo",
@@ -83,6 +83,7 @@ class GraphQLResourceShould {
             }"""))
 
         assertThat(result.errors, equalTo(emptyList()))
+        @Suppress("UNCHECKED_CAST")
         val feed = result.data["feed"] as List<Map<String, *>>
         assertThat(feed.size, equalTo(2))
         assertThat(feed[0].keys, equalTo(setOf("type", "id", "time", "status", "number")))
@@ -107,8 +108,9 @@ class GraphQLResourceShould {
             ))
 
         assertThat(result.errors.size, equalTo(0))
+        @Suppress("UNCHECKED_CAST")
         val data = result.data["build"] as Map<String, *>
-        assertThat(data.keys, equalTo(setOf<String>("id", "number", "events")))
+        assertThat(data.keys, equalTo(setOf("id", "number", "events")))
     }
 
     @Test
@@ -119,6 +121,7 @@ class GraphQLResourceShould {
         ))
 
         assertThat(result.errors.size, equalTo(0))
+        @Suppress("UNCHECKED_CAST")
         val data: Map<String, Any> = result.data["profile"] as Map<String, Any>
         val expected: Map<String, Any> = mapOf("name" to "Big Monad", "avatarUrl" to "http://noob.gif")
         assertThat(data, equalTo(expected))

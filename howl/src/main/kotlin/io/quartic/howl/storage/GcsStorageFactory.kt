@@ -34,7 +34,7 @@ class GcsStorageFactory {
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
         override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-            val get = storage.objects().get(config.bucket, coords.path)
+            val get = storage.objects().get(config.bucket, coords.bucketKey)
             get.generation = version
 
             try {
@@ -54,12 +54,10 @@ class GcsStorageFactory {
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
                 storage.objects().insert(
                         config.bucket,
-                        StorageObject().setName(coords.path),
+                        StorageObject().setName(coords.bucketKey),
                         InputStreamContent(contentType, inputStream)
                 ).execute().generation)
     }
-
-    private val StorageCoords.path get() = "$identityNamespace/$objectName"
 }
 
 

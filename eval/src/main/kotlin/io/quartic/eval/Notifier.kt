@@ -1,7 +1,7 @@
 package io.quartic.eval
 
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.api.model.BuildTrigger.*
+import io.quartic.eval.api.model.BuildTrigger.GithubWebhook
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
@@ -36,7 +36,7 @@ class Notifier(
         customer: Customer,
         buildNumber: Long,
         event: Event) {
-        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}")
+        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/pipeline/${buildNumber}")
 
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(

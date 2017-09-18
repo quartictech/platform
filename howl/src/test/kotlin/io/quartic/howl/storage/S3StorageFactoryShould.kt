@@ -4,6 +4,7 @@ import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.howl.storage.S3StorageFactory.Config
+import io.quartic.howl.storage.StorageCoords.Managed
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.Assert.assertThat
@@ -17,7 +18,7 @@ class S3StorageFactoryShould {
 
     @Test
     fun get_data_that_was_put() {
-        val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
         storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
@@ -30,8 +31,16 @@ class S3StorageFactoryShould {
     }
 
     @Test
+    fun ignore_content_length_if_negative() {
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val data = "Hello world!"
+
+        storage.putData(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
+    }
+
+    @Test
     fun return_null_if_key_not_found() {
-        val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
         assertThat(storage.getData(coords, null), nullValue())
     }

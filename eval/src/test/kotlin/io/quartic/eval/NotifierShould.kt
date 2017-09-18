@@ -37,7 +37,7 @@ class NotifierShould {
         on { name } doReturn "noob co"
     }
 
-    private val buildUri = URI.create("http://noobhole/#/pipeline/100")
+    private val buildUri = URI.create("http://noobhole/pipeline/100")
 
 
     @Test
@@ -72,7 +72,7 @@ class NotifierShould {
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 succeeded",
-                titleLink = URI.create("http://noobhole/#/pipeline/100"),
+                titleLink = URI.create("http://noobhole/pipeline/100"),
                 text = "Hello there",
                 fields = listOf(
                     HeyField("Branch", "develop", true),
@@ -104,7 +104,7 @@ class NotifierShould {
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/100"),
+                titleLink = URI.create("http://noobhole/pipeline/100"),
                 text = "Oh dear",
                 fields = listOf(
                     HeyField("Branch", "develop", true),

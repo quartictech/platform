@@ -1,7 +1,16 @@
 package io.quartic.howl.storage
 
-data class StorageCoords(
-        val targetNamespace: String,
+sealed class StorageCoords {
+    abstract val targetNamespace: String
+
+    data class Managed(
+        override val targetNamespace: String,
         val identityNamespace: String,
-        val objectName: String
-)
+        val objectKey: String
+    ) : StorageCoords()
+
+    data class Unmanaged(
+        override val targetNamespace: String,
+        val objectKey: String
+    ) : StorageCoords()
+}
