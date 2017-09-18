@@ -56,7 +56,7 @@ class HomeView extends React.Component<IProps, {}> {
         <div className={s.cardBody}>
           <h5>
             <Link to={`/build/${item.number}`}>
-              #{item.number} - Validate
+              {item.number} - Validate
             </Link>
           </h5>
           <b>Branch</b> {item.branch}
@@ -79,7 +79,7 @@ class HomeView extends React.Component<IProps, {}> {
         <div className={s.cardBody}>
           <h5>
             <Link to={`/build/${item.number}`}>
-              #{item.number} - Build
+              {item.number} - Build
             </Link>
           </h5>
           <b>Branch</b> {item.branch}
