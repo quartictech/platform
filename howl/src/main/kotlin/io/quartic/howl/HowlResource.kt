@@ -22,8 +22,6 @@ class HowlResource(
     private val storage: Storage,
     private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
 ) {
-    val LOG by logger()
-
     @GET
     @Path("/unmanaged/{key}")
     fun downloadUnmanaged(
