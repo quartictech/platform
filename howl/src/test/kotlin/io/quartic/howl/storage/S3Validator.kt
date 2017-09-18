@@ -3,6 +3,7 @@ package io.quartic.howl.storage
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
@@ -19,7 +20,7 @@ fun main(args: Array<String>) {
         externalIdEncrypted = EncryptedSecret(args[3])
     ))
 
-    val coords = StorageCoords("foo", UUID.randomUUID().toString(), "hello.txt")
+    val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
     val data = "Hello world!"
 
     storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())

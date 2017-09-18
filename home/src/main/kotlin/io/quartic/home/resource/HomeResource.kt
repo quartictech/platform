@@ -118,7 +118,7 @@ class HomeResource(
                 try {
                     val name = preprocessFile(namespace.namespace, request.fileName, request.fileType)
                     val locator = CloudDatasetLocator(
-                        "/%s/%s".format(namespace, name),
+                        "/${namespace}/managed/${namespace}/${name}",
                         false,
                         request.mimeType())
                     DatasetConfig(
@@ -137,7 +137,7 @@ class HomeResource(
     }
 
     private fun preprocessFile(namespace: String, fileName: String, fileType: FileType): String {
-        val stream: InputStream = howl.downloadFile(namespace, fileName)
+        val stream: InputStream = howl.downloadManagedFile(namespace, namespace, fileName)
                 ?: throw NotFoundException("File not found: " + fileName)
 
         return stream.use { s ->
@@ -151,7 +151,7 @@ class HomeResource(
                     fileName
                 }
                 CSV -> {
-                    val storageId = howl.uploadAnonymousFile(namespace, MediaType.APPLICATION_JSON) { outputStream ->
+                    val storageId = howl.uploadAnonymousFile(namespace, namespace, MediaType.APPLICATION_JSON) { outputStream ->
                         try {
                             CsvConverter().convert(s, outputStream)
                         } catch (e: IOException) {
@@ -171,7 +171,7 @@ class HomeResource(
     fun uploadFile(
         @PathParam("namespace") namespace: DatasetNamespace,
         @Context request: HttpServletRequest): HowlStorageId {
-        return howl.uploadAnonymousFile(namespace.namespace, request.contentType) { outputStream ->
+        return howl.uploadAnonymousFile(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
             try {
                 copy(request.inputStream, outputStream)
             } catch (e: Exception) {

@@ -1,7 +1,10 @@
 package io.quartic.gradle.service
 
+import io.quartic.gradle.asFile
 import io.quartic.gradle.docker.DockerExtension
 import io.quartic.gradle.docker.DockerPlugin
+import io.quartic.gradle.fromTemplate
+import io.quartic.gradle.getResourceAsText
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
@@ -23,7 +26,7 @@ class ServicePlugin : Plugin<Project> {
 
             configureJavaPlugin()
             configureApplicationPlugin(ext)
-            configureDockerPlugin(ext)
+            configureDockerPlugin()
         }
     }
 
@@ -60,30 +63,22 @@ class ServicePlugin : Plugin<Project> {
         }
     }
 
-    private fun Project.configureDockerPlugin(ext: ServiceExtension) {
+    private fun Project.configureDockerPlugin() {
         plugins.apply(DockerPlugin::class.java)
 
         extensions.getByType(DockerExtension::class.java).apply {
             image = "${System.getenv()["QUARTIC_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
                 it.from(tasks.getByName(TASK_DIST_TAR_NAME).outputs)
-                it.from(resources.text.fromString(dockerfileTemplate).asFile()) {
-                    it.rename { _ -> "Dockerfile" }
-                    it.filter {
-                        replace(it, mapOf(
-                            "name" to name,
-                            "version" to version,
-                            "docker_base_image" to ext.dockerBaseImage
-                        ))
-                    }
+                it.fromTemplate("Dockerfile", asFile(dockerfileTemplate)) {
+                    mapOf(
+                        "name" to name,
+                        "version" to version
+                    )
                 }
             }
         }
     }
 
-    private val dockerfileTemplate = javaClass.getResource("Dockerfile").readText()
-
-    private fun replace(original: String, replacements: Map<String, Any>) = replacements
-        .entries
-        .fold(original) { a, e -> a.replace("{{${e.key}}}", e.value.toString()) }
+    private val dockerfileTemplate = getResourceAsText("Dockerfile")
 }
