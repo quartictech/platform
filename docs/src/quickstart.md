@@ -14,7 +14,7 @@ Data pipelines are entirely described in Python.
 
 An example data pipeline is [available on GitHub](https://github.com/quartictech/hello-quartic). This code derives several datasets from the example data source.
 
-If you'd like to run this code, or use it as a starting point for your own pipeline, please fork the repository to your own Github account and connect it to Quartic.
+If you'd like to run this code, or use it as a starting point for your own pipeline, please fork the repository to your own GitHub account and connect it to Quartic.
 
 ### Connecting a data source
 
