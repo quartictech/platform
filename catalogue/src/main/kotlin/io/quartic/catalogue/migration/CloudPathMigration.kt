@@ -18,7 +18,6 @@ class CloudPathMigration {
                     LOG.info("Updating ${locator.path}")
                     backend[coords] = config.copy(
                         locator = locator.copy(
-                            path = "/${bits[1]}/${bits[1]}/${bits[2]}"
                             path = "/${bits[1]}/managed/${bits[1]}/${bits[2]}"
                         )
                     )
