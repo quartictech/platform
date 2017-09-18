@@ -49,6 +49,29 @@ Frontend components are best run separately in development (to benefit from hot 
 ./gradlew home-front:run
 ```
 
+## Local dev
+
+Get a local DB dump by doing the following:
+
+```
+kubectl port-forward -n platform `./get-pod platform postgres` 5432
+```
+(from the infra repo.)
+
+Then:
+```
+pg_dumpall -h localhost -p 5432 -U postgres > dump.sql
+```
+
+Then:
+```
+psql -h localhost -p 15432 -U postgres eval < dump.sql
+```
+
+You'll need postgres running before the last step. You may also need to do a number of drop/create before this will work if you have the DB already created from a previous run.
+
+Finally, make sure the number in `registry/registry.yml` matches the customer number in the build table. Get this by running `select * from build;` when in the `eval` DB.
+
 
 ## Setting up Postgres
 
