@@ -24,13 +24,14 @@ Once you're done, you'll need to provide Quartic with the following:
 The Quartic engineering team will then test and confirm configuration.
 
 ## Configuration process
-In these steps, we'll assume you're using the __AWS Management Console__, but all of this may be done programmatically
-through the __AWS CLI__.
+In these steps, we'll assume you're using the [__AWS Management Console__](https://console.aws.amazon.com), but all of
+this may be done programmatically through the [__AWS CLI__](https://aws.amazon.com/cli).
 
 ### 1. Create a dedicated S3 bucket in your AWS account
 
-1. Go to __S3 → Create bucket__.
-2. Fill in the required details.
+1. Go to __[S3](https://console.aws.amazon.com/s3)__.
+2. Click __Create bucket__, and fill in the required details:
+
    - The bucket name can be anything that fits your organisation's naming scheme (but we recommend something like
      `quartic-data.your-domain.com`).
    - The chosen region should take __Personally Identifiable Information (PII)__ regulations into account.
@@ -38,8 +39,9 @@ through the __AWS CLI__.
 
 ### 2. Create a new IAM role for Quartic
 
-1. Go to __IAM → Roles → Create role → Another AWS account → Provide access between your AWS account and
-   a 3rd party AWS account__, and fill in the following details:
+1. Go to __[IAM → Roles](https://console.aws.amazon.com/iam/home#/roles)__.
+2. Click __Create role → Another AWS account →
+   Provide access between your AWS account and a 3rd party AWS account__, and fill in the following details:
 
    ```
    Account ID = 555071496850 (Quartic's AWS account ID)
@@ -56,9 +58,10 @@ through the __AWS CLI__.
 
 ### 3. Create a policy allowing the IAM role full access to the bucket
 
-1. Go to __IAM → Roles → `role_name` → Permissions → Add inline policy → Policy Generator → Select__ (where
+1. Go to __[IAM → Roles](https://console.aws.amazon.com/iam/home#/roles)__.
+2. Click __`role_name` → Permissions → Add inline policy → Policy Generator → Select__ (where
    `role_name` is the name you chose in Step #2).
-2. Fill in the following details:
+3. Fill in the following details:
 
    ```
    Effect = Allow
