@@ -1,6 +1,7 @@
 package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
+import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
@@ -62,8 +63,6 @@ class NotifierShould {
         notifier.notifyStart(manualTrigger)
         verifyZeroInteractions(github)
     }
-
-
 
     @Test
     fun send_success_on_success() {
@@ -127,5 +126,13 @@ class NotifierShould {
             ),
             accessToken = accessToken
         )
+    }
+
+    @Test
+    fun not_throw_if_github_auth_fails() {
+        whenever(github.accessTokenAsync(any())).thenReturn(exceptionalFuture())
+
+        notifier.notifyStart(trigger)
+        // Not expecting to throw
     }
 }
