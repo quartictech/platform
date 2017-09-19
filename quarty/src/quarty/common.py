@@ -2,6 +2,7 @@ import logging
 import tempfile
 import os
 import json
+import asyncio
 import yaml
 
 from quarty.utils import run_subprocess_checked, stream_subprocess, PipelineException, QuartyException
