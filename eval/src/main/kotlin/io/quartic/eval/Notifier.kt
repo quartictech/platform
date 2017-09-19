@@ -42,7 +42,7 @@ class Notifier(
         customer: Customer,
         buildNumber: Long,
         event: Event) {
-        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/pipeline/${buildNumber}")
+        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/build/${buildNumber}")
 
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
