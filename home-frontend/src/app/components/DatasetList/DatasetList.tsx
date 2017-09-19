@@ -82,10 +82,11 @@ class DatasetListInner extends React.Component<IDatasetListProps, {}> {
                     content="Use this locator in your pipeline code."
                     position={Position.RIGHT}
                     intent={Intent.PRIMARY}
+                    useSmartPositioning={true}
                   >
                     <Icon
-                      iconName="pt-icon-info-sign"
-                      style={{ color: "#137CBD" }}
+                      iconName="info-sign"
+                      intent={Intent.PRIMARY}
                     />
                   </Tooltip>
                 </th>
