@@ -112,6 +112,10 @@ class DatabaseShould {
         insertBuild(uuid(2000))
         insertEvent(uuid(2000), BUILD_CANCELLED)
 
+        // Build #4 (different customer
+        insertBuild(uuid(3000), CustomerId(250))
+        insertEvent(uuid(3000), BUILD_SUCCEEDED)
+
         assertThat(DATABASE.getLatestSuccessfulBuildNumber(customerId), equalTo(2L))
     }
 
