@@ -43,7 +43,9 @@ const DatasetRow = (props: IDatasetRowProps) => (
       {maybeDescription(props.dataset.metadata)}
     </td>
     <td style={{ wordWrap: "break-word" }}>
-      {props.id}
+      <code>
+        {props.id}
+      </code>
     </td>
   </tr>
 );
