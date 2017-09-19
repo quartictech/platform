@@ -1,6 +1,7 @@
 package io.quartic.eval
 
 import com.google.common.base.Preconditions.checkArgument
+import io.quartic.common.logging.logger
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import org.jgrapht.DirectedGraph
@@ -21,6 +22,8 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
     override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 
     companion object {
+        val LOG by logger()
+
         fun fromRaw(nodes: List<Node>): Dag {
             val dag = DefaultDirectedGraph<Node, DummyEdge>(DummyEdge::class.java)
 
@@ -33,11 +36,18 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
                 dag.addVertex(node)
             }
 
+            val unproducedDatasets = mutableSetOf<Dataset>()
             nodes.forEach { node ->
                 node.inputs.forEach { input ->
-                    dag.addEdge(datasetsToNodes[input], node)
+                    if (input !in datasetsToNodes) {
+                        unproducedDatasets.add(input)
+                    } else {
+                        dag.addEdge(datasetsToNodes[input], node)
+                    }
                 }
             }
+            checkArgument(unproducedDatasets.isEmpty(),
+                "Datasets are not produced by any node: ${unproducedDatasets.joinToString("\n")}")
 
             checkArgument(!CycleDetector(dag).detectCycles(), "Graph contains cycles")
 
