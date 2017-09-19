@@ -31,8 +31,9 @@ function parseJSON(response: Response) {
 }
 
 export function fetchUtil(url, options?) {
-  const headers: Headers = options && options.headers ? options.headers : {};
+  const headers = options && options.headers ? options.headers : {};
   headers[QUARTIC_XSRF_HEADER] = localStorage.getItem(QUARTIC_XSRF);
+  headers["Accept"] = "application/json";
   const newOptions = Object.assign({}, options, {
     credentials: "same-origin",
     headers,

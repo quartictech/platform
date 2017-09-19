@@ -17,6 +17,7 @@ networkInterface.use([{
     // get the authentication token from local storage if it exists
     const token = localStorage.getItem(QUARTIC_XSRF);
     req.options.headers[QUARTIC_XSRF_HEADER] = token;
+    req.options.headers["Accept"] = "application/json";
     next();
   },
 }]);
