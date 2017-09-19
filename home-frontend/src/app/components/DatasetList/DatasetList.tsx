@@ -3,6 +3,9 @@ import {
   Classes,
   Intent,
   Button,
+  Tooltip,
+  Position,
+  Icon,
 } from "@blueprintjs/core";
 import { IDataset, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
@@ -39,6 +42,9 @@ const DatasetRow = (props: IDatasetRowProps) => (
     <td style={{ wordWrap: "break-word" }}>
       {maybeDescription(props.dataset.metadata)}
     </td>
+    <td style={{ wordWrap: "break-word" }}>
+      {props.id}
+    </td>
   </tr>
 );
 
@@ -69,8 +75,20 @@ class DatasetListInner extends React.Component<IDatasetListProps, {}> {
           >
             <thead>
               <tr>
-                <th width="30%">Name</th>
-                <th width="70%">Description</th>
+                <th width="20%">Name</th>
+                <th width="40%">Description</th>
+                <th width="40%">Locator &nbsp;
+                  <Tooltip
+                    content="Use this locator in your pipeline code."
+                    position={Position.RIGHT}
+                    intent={Intent.PRIMARY}
+                  >
+                    <Icon
+                      iconName="pt-icon-info-sign"
+                      style={{ color: "#137CBD" }}
+                    />
+                  </Tooltip>
+                </th>
               </tr>
             </thead>
             <tbody>
