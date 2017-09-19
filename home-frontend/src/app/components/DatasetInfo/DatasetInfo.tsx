@@ -14,8 +14,10 @@ import {
 
 import { IDataset, IDatasetCoords } from "../../models";
 import _ = require("underscore");
+import { withRouter, InjectedRouter } from "react-router";
 
 interface IDatasetInfoProps {
+  router?: InjectedRouter;
   coords: IDatasetCoords;
   dataset: IDataset;
   deleteClick: Function;
@@ -25,7 +27,7 @@ interface IDatasetInfoState {
   isDeleteDialogOpen: boolean;
 }
 
-export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfoState> {
+class DatasetInfoInner extends React.Component<IDatasetInfoProps, IDatasetInfoState> {
   constructor() {
     super();
     this.state = {
@@ -99,6 +101,7 @@ export class DatasetInfo extends React.Component<IDatasetInfoProps, IDatasetInfo
   onYes() {
     this.setState({ isDeleteDialogOpen: false });
     this.props.deleteClick(this.props.coords);
+    this.props.router.push(`/`);
   }
 }
 
@@ -132,3 +135,6 @@ const PropertiesRow = ({ propertyKey, value }) => {
 const toUpperCase = (str: string) => {
   return str.substr(0, 1).toUpperCase() + str.substr(1);
 };
+
+// tslint:disable-next-line:variable-name
+export const DatasetInfo = withRouter(DatasetInfoInner);
