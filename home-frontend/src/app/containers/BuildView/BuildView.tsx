@@ -109,7 +109,7 @@ class BuildView extends React.Component<IProps, IState> {
           <div>
             <span
               style={{ float: "right" }}
-              className={classNames("pt-tag", intentForDatasetStatus(this.props.data.build.status))}
+              className={classNames("pt-tag", "pt-minimal", intentForDatasetStatus(this.props.data.build.status))}
             >
               {this.props.data.build.status}
             </span>
