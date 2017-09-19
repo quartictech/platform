@@ -97,8 +97,11 @@ interface Database {
 
     @SqlQuery("""
         SELECT build_number FROM build
-            LEFT JOIN event on build.id = event.build_id
-            WHERE event.payload @> '{"type": "build_succeeded"}'
+            LEFT JOIN event on
+                build.id = event.build_id
+            WHERE
+                build.customer_id = :customer_id AND
+                event.payload @> '{"type": "build_succeeded"}'
             ORDER BY event.time DESC
             LIMIT 1
         """)
