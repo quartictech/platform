@@ -30,7 +30,6 @@ libraries.dropwizard = [
     jdbi: "com.github.arteam:dropwizard-jdbi3:1.0-rc3",
     websockets: "com.liveperson:dropwizard-websockets:${versions.dropwizard}",
     metricsInfluxdb: "com.izettle:dropwizard-metrics-influxdb:1.1.8",
-    templateConfig: "de.thomaskrille:dropwizard-template-config:1.4.0",
     testing: "io.dropwizard:dropwizard-testing:${versions.dropwizard}",
 ]
 

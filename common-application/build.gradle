@@ -7,7 +7,6 @@ dependencies {
     compile libraries.jjwt
     compile libraries.dropwizard.core
     compile libraries.dropwizard.auth
-    compile libraries.dropwizard.templateConfig
 
     runtime libraries.dropwizard.metricsInfluxdb
 
