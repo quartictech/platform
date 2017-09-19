@@ -12,6 +12,7 @@ import { gql, graphql } from "react-apollo";
 import { createStructuredSelector } from "reselect";
 import * as selectors from "../../redux/selectors";
 import * as actions from "../../redux/actions";
+import { intentForDatasetStatus } from "../../helpers/Utils";
 const s = require("./style.css");
 
 import { FeedItem, Validate, Execute } from "../../models";
@@ -34,23 +35,15 @@ export function isExecute(item: FeedItem): item is Execute {
 }
 
 class HomeView extends React.Component<IProps, {}> {
-  intentForStatus = (status) => {
-    switch (status) {
-      case "running": return "pt-intent-primary";
-      case "success": return "pt-intent-success";
-      case "failure": return "pt-intent-danger";
-    }
-  }
-
   renderValidate(item: Validate) {
     return (
       <div className={s.feedItem} key={item.id}>
         <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-upload")} />
-        <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+        <div className={classNames("pt-tag", "pt-minimal", intentForDatasetStatus(item.status), s.statusText)}>
           {item.status}
         </div>
         <div className={s.cardTime}>
-            <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
+          <small>{moment.min(moment.unix(item.time), moment()).fromNow()}</small>
         </div>
 
         <div className={s.cardBody}>
@@ -69,7 +62,7 @@ class HomeView extends React.Component<IProps, {}> {
     return (
       <div className={s.feedItem} key={item.id}>
         <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-graph")} />
-        <div className={classNames("pt-tag", "pt-minimal", this.intentForStatus(item.status), s.statusText)}>
+        <div className={classNames("pt-tag", "pt-minimal", intentForDatasetStatus(item.status), s.statusText)}>
           {item.status}
         </div>
         <div className={s.cardTime}>
