@@ -36,15 +36,18 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
                 dag.addVertex(node)
             }
 
+            val unproducedDatasets = mutableSetOf<Dataset>()
             nodes.forEach { node ->
                 node.inputs.forEach { input ->
                     if (input !in datasetsToNodes) {
-                        LOG.warn("Input not produced anywhere: {}", input)
+                        unproducedDatasets.add(input)
                     } else {
                         dag.addEdge(datasetsToNodes[input], node)
                     }
                 }
             }
+            checkArgument(unproducedDatasets.isEmpty(),
+                "Datasets are not produced by any node: ${unproducedDatasets.joinToString("\n")}")
 
             checkArgument(!CycleDetector(dag).detectCycles(), "Graph contains cycles")
 

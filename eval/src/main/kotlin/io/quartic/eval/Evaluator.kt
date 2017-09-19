@@ -53,7 +53,7 @@ class Evaluator(
             try {
                 Dag.fromRaw(nodes)
             } catch (e: Exception) {
-                LOG.error("DAG invalid due to: ", e)
+                LOG.error("Exception while validating DAG:", e)
                 null
             }
         },
