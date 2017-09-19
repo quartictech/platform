@@ -53,13 +53,13 @@ class Evaluator(
             try {
                 Dag.fromRaw(nodes)
             } catch (e: Exception) {
+                LOG.error("DAG invalid due to: ", e)
                 null
             }
         },
         { hostname -> QuartyProxy(hostname) }
     )
 
-    private val LOG by logger()
 
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
@@ -183,4 +183,8 @@ class Evaluator(
         block = { await() },
         onThrow = { throw EvaluatorException("Error while ${action}", it) }
     )
+
+    companion object {
+        private val LOG by logger()
+    }
 }
