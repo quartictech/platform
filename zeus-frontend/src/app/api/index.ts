@@ -15,7 +15,7 @@ const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timest
 
 const fetchUtil = <T>(url, options?) => {
   const headers = {
-    "Accept": "application/json"
+    "Accept": "application/json",
   };
   const newOptions = Object.assign({}, options, {
     credentials: "same-origin",
@@ -26,7 +26,7 @@ const fetchUtil = <T>(url, options?) => {
     .then(checkStatus)
     .then((response: Response) => response.text())
     .then<T>(r => JSON.parse(r, dateInferringReviver));
-}
+};
 
 const searchableResource = <T>(name: string) => ({
   name,
