@@ -101,7 +101,7 @@ class DatasetInfoInner extends React.Component<IDatasetInfoProps, IDatasetInfoSt
   onYes() {
     this.setState({ isDeleteDialogOpen: false });
     this.props.deleteClick(this.props.coords);
-    this.props.router.push(`/`);
+    this.props.router.push(`/datasets`);
   }
 }
 
