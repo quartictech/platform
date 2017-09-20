@@ -47,6 +47,13 @@ class S3StorageFactoryShould {
     }
 
     @Test
+    fun return_null_metadata_if_key_not_found() {
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+
+        assertThat(storage.getMetadata(coords, null), nullValue())
+    }
+
+    @Test
     fun store_metadata() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"

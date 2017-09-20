@@ -118,11 +118,11 @@ class HowlResourceShould {
         )
 
         val response = request("foo/unmanaged/wat").head()
-        val formattedDateTIme = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+        val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
             .format(instant)
         assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
         assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
-        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTIme)))
+        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
     }
 
 

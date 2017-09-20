@@ -4,6 +4,7 @@ import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.Storage
+import io.quartic.howl.storage.Storage.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
@@ -83,11 +84,7 @@ class HowlResource(
 
     private fun downloadFile(coords: StorageCoords): Response {
         val (metadata, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
-        return Response.ok()
-            .header(CONTENT_TYPE, metadata.contentType)
-            .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
-                .format(metadata.lastModified))
-            .header(CONTENT_LENGTH, metadata.contentLength)
+        return metadataHeaders(metadata, Response.ok())
             .entity(StreamingOutput {
                 inputStream.use { istream -> IOUtils.copy(istream, it) }
             })
@@ -96,12 +93,17 @@ class HowlResource(
 
     private fun headFile(coords: StorageCoords): Response {
         val metadata = storage.getMetadata(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
-        return Response.ok()
+        return metadataHeaders(metadata, Response.ok())
+            .build()
+    }
+
+    private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
+        responseBuilder
             .header(CONTENT_TYPE, metadata.contentType)
             .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
                 .format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
-            .build()
-    }
+
+
 
 }
