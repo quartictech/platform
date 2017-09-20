@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
     val data = "Hello world!"
 
     storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
-    storage.getData(coords, null).use {
+    storage.getData(coords).use {
         it!!
         assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(it.inputStream.readTextAndClose(), equalTo(data))

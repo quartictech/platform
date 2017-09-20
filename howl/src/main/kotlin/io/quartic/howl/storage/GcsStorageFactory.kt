@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
-import io.quartic.howl.storage.Storage.PutResult
 import io.quartic.howl.storage.Storage.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
@@ -36,13 +35,12 @@ class GcsStorageFactory {
     }
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
-        override fun getData(coords: StorageCoords, version: Long?) = wrapGcsException {
+        override fun getData(coords: StorageCoords) = wrapGcsException {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
-            get.generation = version
 
             val httpResponse = get.executeMedia()
             val content = httpResponse.content
-            val metadata = getMetadata(coords, version)
+            val metadata = getMetadata(coords)
 
             if (content != null) {
                 StorageResult(
@@ -55,7 +53,7 @@ class GcsStorageFactory {
         }
 
 
-        override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = wrapGcsException {
+        override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
             val response = get.execute()
 
@@ -66,13 +64,17 @@ class GcsStorageFactory {
             )
         }
 
-        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
-                storage.objects().insert(
-                        config.bucket,
-                        StorageObject().setName(coords.bucketKey),
-                        InputStreamContent(contentType, inputStream)
-                ).execute().generation)
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+            storage.objects()
+                .insert(
+                    config.bucket,
+                    StorageObject().setName(coords.bucketKey),
+                    InputStreamContent(contentType, inputStream)
+                )
+                .execute()
 
+            return true
+        }
 
         private fun <T> wrapGcsException(block: () -> T): T? = try {
             block()
