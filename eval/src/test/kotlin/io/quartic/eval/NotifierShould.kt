@@ -40,6 +40,22 @@ class NotifierShould {
 
     private val buildUri = URI.create("http://noobhole/build/100")
 
+    @Test
+    fun send_pending_on_queue() {
+        notifier.notifyQueue(trigger)
+        verify(github).sendStatusAsync(
+            owner = "noobing",
+            repo = "noob",
+            sha = trigger.commit,
+            status = StatusCreate(
+                "pending",
+                targetUrl = null,
+                description = Notifier.QUEUE_MESSAGE,
+                context = "quartic"
+            ),
+            accessToken = accessToken
+        )
+    }
 
     @Test
     fun send_pending_on_start() {
