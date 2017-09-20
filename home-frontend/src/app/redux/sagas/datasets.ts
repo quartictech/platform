@@ -23,7 +23,6 @@ function* createDataset(action): SagaIterator {
       action.data.namespace,
       action.data.metadata,
       uploadResult.data,
-      action.data.files.fileType,
     );
     if (!createResult.err) {
       yield call(showSuccess, `Successfully created dataset: ${action.data.metadata.name}`);

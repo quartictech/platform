@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
@@ -191,11 +192,6 @@ class EvaluatorShould {
 
     private fun evaluate() = runBlocking {
         evaluator.evaluateAsync(webhookTrigger).join()
-    }
-
-
-    private fun <R> exceptionalFuture() = CompletableFuture<R>().apply {
-        completeExceptionally(RuntimeException("Sad"))
     }
 
     private val customerNamespace = "raging"

@@ -13,7 +13,7 @@ async def _read_stream(stream, cb):
     while True:
         line = await stream.readline()
         if line:
-            cb(line)
+            cb(line.decode().rstrip())
         else:
             break
 

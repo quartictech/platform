@@ -1,7 +1,9 @@
 package io.quartic.eval
 
+import com.google.common.base.Throwables.getRootCause
+import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.api.model.BuildTrigger.*
+import io.quartic.eval.api.model.BuildTrigger.GithubWebhook
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
@@ -16,27 +18,31 @@ class Notifier(
     private val homeUrlFormat: String,
     private val clock: Clock = Clock.systemUTC()
 ) {
+    private val LOG by logger()
+
     sealed class Event {
         abstract val message: String
         data class Success(override val message: String) : Event()
         data class Failure(override val message: String) : Event()
     }
 
-    fun notifyStart(trigger: BuildTrigger) = if (trigger is GithubWebhook) {
-        sendGithubStatus(
-            trigger = trigger,
-            state = "pending",
-            targetUrl = null,
-            description = START_MESSAGE
-        )
-    } else null
+    fun notifyStart(trigger: BuildTrigger) {
+        if (trigger is GithubWebhook) {
+            sendGithubStatus(
+                trigger = trigger,
+                state = "pending",
+                targetUrl = null,
+                description = START_MESSAGE
+            )
+        }
+    }
 
     fun notifyComplete(
         trigger: BuildTrigger,
         customer: Customer,
         buildNumber: Long,
         event: Event) {
-        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/#/pipeline/${buildNumber}")
+        val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/build/${buildNumber}")
 
         client.notifyAsync(HeyNotification(listOf(
             HeyAttachment(
@@ -75,13 +81,18 @@ class Notifier(
     }
 
     private fun sendGithubStatus(trigger: GithubWebhook, state: String, targetUrl: URI?, description: String) =
-        github.sendStatusAsync(
-            trigger.repoOwner,
-            trigger.repoName,
-            trigger.commit,
-            StatusCreate(state, targetUrl, description, "quartic"),
-            github.accessTokenAsync(trigger.installationId).get()
-        )
+        github.accessTokenAsync(trigger.installationId)
+            .thenAccept {
+                github.sendStatusAsync(
+                    trigger.repoOwner,
+                    trigger.repoName,
+                    trigger.commit,
+                    StatusCreate(state, targetUrl, description, "quartic"),
+                    it
+                )
+            }
+            .exceptionally { LOG.warn("Error notifying GitHub", getRootCause(it)); null }
+
 
     companion object {
         internal val START_MESSAGE = "Quartic is validating your pipeline"

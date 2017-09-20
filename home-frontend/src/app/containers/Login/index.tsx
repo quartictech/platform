@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import * as actions from "../../redux/actions";
 
@@ -58,18 +59,20 @@ class Login extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div className={s.container}>
-        <div className="pt-card pt-elevation-4" style={{ width: 600, padding: 40, margin: "auto" }} >
-          <img
-              className={s.logo}
-              src={logo}
-              role="presentation"
-              data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
-              data-variation="mini"
-          />
-          {this.props.location.query.provider === "gh" ? this.renderSpinner() : this.renderLogin()}
+      <DocumentTitle title="Quartic - Login">
+        <div className={s.container}>
+          <div className="pt-card pt-elevation-4" style={{ width: 600, padding: 40, margin: "auto" }} >
+            <img
+                className={s.logo}
+                src={logo}
+                role="presentation"
+                data-content={`Version: ${(process.env.BUILD_VERSION || "unknown")}`}
+                data-variation="mini"
+            />
+            {this.props.location.query.provider === "gh" ? this.renderSpinner() : this.renderLogin()}
+          </div>
         </div>
-      </div>
+      </DocumentTitle>
     );
   }
 }

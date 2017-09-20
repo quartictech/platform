@@ -3,9 +3,8 @@ package io.quartic.qube
 import io.dropwizard.setup.Environment
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.logging.logger
-import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.logging.logger
 import io.quartic.qube.pods.KubernetesClient
 import io.quartic.qube.pods.Qubicle
 import io.quartic.qube.resource.BackChannelResource
@@ -18,7 +17,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
             javaClass,
             configuration.database,
             environment,
-            SecretsCodec(configuration.masterKeyBase64)
+            configuration.secretsCodec
         )
 
         val jobStore = databaseBuilder.dao<Database>()

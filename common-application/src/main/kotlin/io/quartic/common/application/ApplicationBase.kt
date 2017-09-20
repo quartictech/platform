@@ -1,6 +1,5 @@
 package io.quartic.common.application
 
-import de.thomaskrille.dropwizard_template_config.TemplateConfigBundle
 import io.dropwizard.Application
 import io.dropwizard.auth.AuthDynamicFeature
 import io.dropwizard.auth.AuthValueFactoryProvider
@@ -16,12 +15,6 @@ import io.quartic.common.pingpong.PingPongResource
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.serdes.configureObjectMapper
-import org.apache.commons.io.IOUtils.toInputStream
-import org.apache.commons.io.IOUtils.toString
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.SequenceInputStream
-import java.nio.charset.StandardCharsets.UTF_8
 
 abstract class ApplicationBase<T : ConfigurationBase>(
     private val tokenAuthenticated: Boolean = false
@@ -34,15 +27,6 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     final override fun initialize(bootstrap: Bootstrap<T>) {
         with (bootstrap) {
             configureObjectMapper(objectMapper)
-
-            setConfigurationSourceProvider { path ->
-                SequenceInputStream(
-                    toInputStream(baseConfig + "\n", UTF_8),
-                    FileInputStream(path)
-                )
-            }
-
-            addBundle(TemplateConfigBundle())
             initializeApplication(this)
         }
     }
@@ -83,13 +67,4 @@ abstract class ApplicationBase<T : ConfigurationBase>(
     protected abstract fun runApplication(configuration: T, environment: Environment)
 
     protected fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
-
-    // TODO: this string substitution is gross, should come up with something better
-    private val baseConfig: String
-        get() = try {
-            toString(javaClass.getResourceAsStream("/application.yml"), UTF_8)
-                    .replace("\\$\\{APPLICATION_NAME}".toRegex(), details.name.toLowerCase())
-        } catch (e: IOException) {
-            throw RuntimeException("Couldn't read base config", e)
-        }
 }

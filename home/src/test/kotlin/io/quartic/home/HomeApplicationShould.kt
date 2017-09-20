@@ -146,7 +146,7 @@ class HomeApplicationShould {
         browser.get()
 
         // Extract fragment query params
-        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(browser.location.fragment)!!
+        val match = ".*code=(.*)&state=(.*)".toRegex().matchEntire(browser.location.query)!!
         val code = match.groups[1]!!.value
         val state = match.groups[2]!!.value
 

@@ -5,7 +5,6 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.howl.storage.InputStreamWithContentType
 import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
@@ -19,8 +18,12 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
@@ -102,10 +105,37 @@ class HowlResourceShould {
         assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    fun return_headers_on_head() {
+        val instant = Instant.now()
+        whenever(storage.getMetadata(any(), anyOrNull())).thenReturn(
+            Storage.StorageMetadata(
+                instant,
+                MediaType.TEXT_PLAIN,
+                3
+            )
+        )
+
+        val response = request("foo/unmanaged/wat").head()
+        val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+            .format(instant)
+        assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
+        assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
+        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
+    }
+
+
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
         whenever(storage.getData(any(), anyOrNull())).thenReturn(
-            InputStreamWithContentType(MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+            Storage.StorageResult(
+                Storage.StorageMetadata(
+                    Instant.now(),
+                    MediaType.TEXT_PLAIN,
+                    3),
+                ByteArrayInputStream(data)
+            )
         )
 
         val response = request(path).get()
