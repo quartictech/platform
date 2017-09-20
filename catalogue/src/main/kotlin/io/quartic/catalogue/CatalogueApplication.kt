@@ -4,6 +4,7 @@ import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.dropwizard.websockets.WebsocketBundle
 import io.quartic.catalogue.database.Database
+import io.quartic.catalogue.migration.BackendToDatabaseMigration
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.websocket.serverEndpointConfig
@@ -17,9 +18,11 @@ class CatalogueApplication : ApplicationBase<CatalogueConfiguration>() {
     }
 
     public override fun runApplication(configuration: CatalogueConfiguration, environment: Environment) {
-        // TODO - migration away from backend to database
-
+        val backend = configuration.backend.build()
         val database = database(configuration, environment)
+
+        BackendToDatabaseMigration().migrate(backend, database)     // TODO - remove this once deployed
+
         val catalogue = CatalogueResource(database)
         environment.jersey().register(catalogue)
         websocketBundle.addEndpoint(serverEndpointConfig("/api/datasets/watch", catalogue))
