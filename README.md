@@ -33,6 +33,12 @@
   brew install aspell --with-lang-en
   ```
 
+- Docker
+
+  ```
+  brew install docker
+  ```
+
 
 ## Running the stack locally
 
@@ -49,6 +55,7 @@ Frontend components are best run separately in development (to benefit from hot 
 ./gradlew home-front:run
 ```
 
+
 ## Local dev
 
 Get a local DB dump by doing the following:
@@ -56,21 +63,26 @@ Get a local DB dump by doing the following:
 ```
 kubectl port-forward -n platform `./get-pod platform postgres` 5432
 ```
+
 (from the infra repo.)
 
 Then:
+
 ```
 pg_dumpall -h localhost -p 5432 -U postgres > dump.sql
 ```
 
 Then:
+
 ```
 psql -h localhost -p 15432 -U postgres eval < dump.sql
 ```
 
-You'll need postgres running before the last step. You may also need to do a number of drop/create before this will work if you have the DB already created from a previous run.
+You'll need postgres running before the last step. You may also need to do a number of drop/create before this will work
+if you have the DB already created from a previous run.
 
-Finally, make sure the number in `registry/registry.yml` matches the customer number in the build table. Get this by running `select * from build;` when in the `eval` DB.
+Finally, make sure the number in `registry/registry.yml` matches the customer number in the build table. Get this by
+running `select * from build;` when in the `eval` DB.
 
 
 ## Setting up Postgres
@@ -114,6 +126,62 @@ The whole thing is orchestrated by Gradle, as usual.  To run with a watch:
 The spellchecking list is in `docs/wordlist`.  Please curate this carefully.
 
 
+## GitHub integration configuration
+
+GitHub integrations come in [two flavours][1] - GitHub apps and OAuth apps.  We need both:
+
+- we use the GitHub app for webhooks and for making build-related API queries (e.g. to get short-lived access tokens).
+- we use the OAuth app for frontend user auth.  
+
+In the following instructions, `${STACK_NAME}` will be something like `Staging`, and `${DOMAIN}` will be something
+like `api.staging.quartic.io`.
+
+[1]: https://developer.github.com/apps/building-integrations/setting-up-a-new-integration/about-choosing-an-integration-type/
+
+
+### GitHub app
+
+1. Start [here](https://github.com/organizations/quartictech/settings/apps), and click
+   **Register a new application**.
+
+2. Fill in the details:
+
+  - GitHub App name: **Quartic (`${STACK_NAME}`)**
+  - Homepage URL: **https://www.quartic.io**
+  - Webhook URL: **https://`${DOMAIN}`/api/hooks/github**
+  - Webhook secret: [See here](#github-webhook-secret)
+
+3. Enable the following permissions:
+
+  - Commit statuses: **Read & write**
+  
+    - **Status**
+    
+  - Repository contents: **Read-only**
+  
+    - **Push**
+
+4. Tick **Any account**.
+
+5. Click **Create GitHub App**.
+
+6. Click **Generate private key** ([see here](#github-private-key)).
+
+
+### OAuth app
+
+1. Start [here](https://github.com/organizations/quartictech/settings/applications), and click
+   **Register a new application**.
+
+2. Fill in the details:
+
+  - Application name: **Quartic (`${STACK_NAME}`)**
+  - Homepage URL: **https://www.quartic.io**
+  - Authorization callback URL: **https://`${DOMAIN}`/api/auth/gh/callback**
+  
+3. Click **Register application**.
+
+
 ## Secrets
 
 To avoid storing plaintext secrets in Git (either here or in the `infra` repo), all secrets that come in via
@@ -133,7 +201,9 @@ Flags:
 - `-f` encodes from a file.
 
 
-### OAuth token signing key (`home`)
+### OAuth token signing key
+ 
+**(Needed by `home`)**
 
 512 bits of entropy, base-64 encoded.  Can generate with something like:
 
@@ -142,12 +212,16 @@ println(SecureRandom().nextBytes(512 / 8).encodeAsBase64())
 ```
 
 
-### GitHub client secret (`home`)
+### GitHub client secret
+
+**(Needed by `home`)**
 
 In our GitHub OAuth app settings, click **Reset client secret**.
 
 
-### GitHub webhook secret (`glisten`)
+### GitHub webhook secret
+
+**(Needed by `glisten`)**
 
 Currently generated with:
 
@@ -158,7 +232,9 @@ pwgen -1s 20
 Also needs to be stored in our GitHub (non-OAuth) app settings.
 
 
-### GitHub private key (`qube`)
+### GitHub private key
+
+**(Needed by `eval`)**
 
 1. In our GitHub (non-Oauth) app settings, click **Regenerate private key**, and download.
 2. Convert to a saner format we can load from Java
