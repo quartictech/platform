@@ -89,7 +89,6 @@ class CatalogueResource(
 
     private fun updateClient(session: Session, datasets: Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>) {
         try {
-            println(datasets)
             session.asyncRemote.sendText(OBJECT_MAPPER.writeValueAsString(datasets))
         } catch (e: JsonProcessingException) {
             LOG.error("Error producing JSON", e)

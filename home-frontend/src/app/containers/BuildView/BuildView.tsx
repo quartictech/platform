@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import * as moment from "moment";
 import { gql, graphql } from "react-apollo";
 
@@ -6,8 +7,11 @@ import * as _ from "underscore";
 
 import { Button, Collapse } from "@blueprintjs/core";
 
+import * as classNames from "classnames";
+
 const s = require("./style.css");
 import { Build, BuildEvent } from "../../models";
+import { intentForDatasetStatus } from "../../helpers/Utils";
 
 interface IProps {
   params: {
@@ -102,10 +106,20 @@ class BuildView extends React.Component<IProps, IState> {
     if (!this.props.data.loading) {
       const logEvents = this.props.data.build.events;
       return (
-        <div className={s.container}>
-          <h1>Build #{this.props.data.build.number}</h1>
-          {this.renderPhases(logEvents)}
-        </div>
+        <DocumentTitle title={`Quartic - Build #${this.props.data.build.number}`}>
+          <div className={s.container}>
+            <div>
+              <span
+                style={{ float: "right" }}
+                className={classNames("pt-tag", "pt-minimal", intentForDatasetStatus(this.props.data.build.status))}
+              >
+                {this.props.data.build.status}
+              </span>
+              <h1>Build #{this.props.data.build.number}</h1>
+            </div>
+            {this.renderPhases(logEvents)}
+          </div>
+        </DocumentTitle>
       );
     } else {
       return null;
