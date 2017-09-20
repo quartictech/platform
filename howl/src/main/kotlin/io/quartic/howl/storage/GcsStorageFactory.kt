@@ -8,7 +8,10 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
+import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
+import java.time.Instant
 
 class GcsStorageFactory {
     data class Config(val bucket: String) : StorageConfig
@@ -32,21 +35,33 @@ class GcsStorageFactory {
     }
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
-        override fun getData(coords: StorageCoords): InputStreamWithContentType? {
+        override fun getData(coords: StorageCoords) = wrapGcsException {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
 
-            try {
-                val httpResponse = get.executeMedia()
-                val content = httpResponse.content
-                if (content != null) {
-                    return InputStreamWithContentType(httpResponse.contentType, content)
-                }
-            } catch (e: GoogleJsonResponseException) {
-                if (e.statusCode != 404) {
-                    throw e
-                }
+            val httpResponse = get.executeMedia()
+            val content = httpResponse.content
+            val metadata = getMetadata(coords)
+
+            if (content != null) {
+                StorageResult(
+                    metadata!!,
+                    content
+                )
+            } else {
+                null
             }
-            return null
+        }
+
+
+        override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException {
+            val get = storage.objects().get(config.bucket, coords.bucketKey)
+            val response = get.execute()
+
+            StorageMetadata(
+                Instant.ofEpochMilli(response.updated.value),
+                response.contentType,
+                response.size.toLong()
+            )
         }
 
         override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
@@ -59,6 +74,16 @@ class GcsStorageFactory {
                 .execute()
 
             return true
+        }
+
+        private fun <T> wrapGcsException(block: () -> T): T? = try {
+            block()
+        } catch (e: GoogleJsonResponseException) {
+             if (e.statusCode != 404) {
+                 throw e
+             } else {
+                 null
+             }
         }
     }
 }

@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 
 import { Link } from "react-router";
@@ -112,7 +113,7 @@ class HomeView extends React.Component<IProps, {}> {
   renderFeed = () => (
     <div>
       <Button
-        text="Build Pipeline"
+        text="Build pipeline"
         iconName="play"
         intent={Intent.SUCCESS}
         style={{ float: "right" }}
@@ -143,9 +144,11 @@ class HomeView extends React.Component<IProps, {}> {
 
   render() {
     return (
-      <div className={s.container}>
-        {this.renderContainer()}
-      </div>
+      <DocumentTitle title="Quartic - Home">
+        <div className={s.container}>
+          {this.renderContainer()}
+        </div>
+      </DocumentTitle>
     );
   }
 }
