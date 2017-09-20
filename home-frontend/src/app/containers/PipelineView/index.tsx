@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import { Link } from "react-router";
 import { Classes, Spinner } from "@blueprintjs/core";
@@ -28,11 +29,13 @@ class PipelineView extends React.Component<IProps, {}> {
   // TODO - change title here
   render() {
     return (
-      <div className={s.container}>
-        <div className={s.main}>
-          {this.renderPipeline()}
+      <DocumentTitle title="Quartic - Pipeline">
+        <div className={s.container}>
+          <div className={s.main}>
+            {this.renderPipeline()}
+          </div>
         </div>
-      </div>
+      </DocumentTitle>
     );
   }
 

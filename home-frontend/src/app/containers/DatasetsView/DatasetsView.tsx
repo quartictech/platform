@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 
 import { DatasetMap, Ui } from "../../models";
@@ -31,23 +32,25 @@ class DatasetsView extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <div className={s.container}>
-        <NewDataset
-          visible={this.props.ui.activeModal === "newDataset"}
-          createDataset={this.props.createDataset}
-          closeNewDatasetClick={this.props.closeNewDatasetModal}
-        />
-        <div className={s.main}>
-          <div className={s.center}>
-            <DatasetList
-              searchString={this.props.ui.searchString}
-              datasets={this.props.datasets}
-              showNewDatasetModal={this.props.showNewDatasetModal}
-            />
-          </div>
+      <DocumentTitle title="Quartic - Datasets">
+        <div className={s.container}>
+          <NewDataset
+            visible={this.props.ui.activeModal === "newDataset"}
+            createDataset={this.props.createDataset}
+            closeNewDatasetClick={this.props.closeNewDatasetModal}
+          />
+          <div className={s.main}>
+            <div className={s.center}>
+              <DatasetList
+                searchString={this.props.ui.searchString}
+                datasets={this.props.datasets}
+                showNewDatasetModal={this.props.showNewDatasetModal}
+              />
+            </div>
 
+          </div>
         </div>
-      </div>
+      </DocumentTitle>
     );
   }
 }
