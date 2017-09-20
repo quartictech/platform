@@ -5,8 +5,6 @@ import java.io.InputStream
 import java.time.Instant
 
 interface Storage {
-    data class PutResult(val version: Long?)
-
     data class StorageMetadata(
         val lastModified: Instant,
         val contentType: String,
@@ -18,13 +16,12 @@ interface Storage {
     }
 
     @Throws(IOException::class)
-    fun getData(coords: StorageCoords, version: Long?): StorageResult?
+    fun getData(coords: StorageCoords): StorageResult?
 
     @Throws(IOException::class)
-    fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata?
-
+    fun getMetadata(coords: StorageCoords): StorageMetadata?
 
     // Null return indicates NotFound (TODO - wtf does that even mean?)
     @Throws(IOException::class)
-    fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult?
+    fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean
 }
