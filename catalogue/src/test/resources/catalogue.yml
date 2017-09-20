@@ -1,6 +1,3 @@
-backend:
-  type: in_memory
-
 database:
   user: postgres
   port: 15432
