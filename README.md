@@ -7,10 +7,10 @@
   brew cask install jce-unlimited-strength-policy
   ```
 
-- NPM 4+
+- Yarn 1.0.2+
 
   ```
-  brew install node
+  brew install yarn
   ```
   
 - Python 3 + Virtualenv

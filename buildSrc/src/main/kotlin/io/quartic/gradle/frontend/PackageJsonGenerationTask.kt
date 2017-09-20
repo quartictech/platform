@@ -18,10 +18,10 @@ open class PackageJsonGenerationTask : DefaultTask() {
     @TaskAction
     fun generatePackageJson() {
         val mapper = jacksonObjectMapper().enable(SerializationFeature.INDENT_OUTPUT)
-        mapper.writeValue(packageJson, NpmDependencies(prod, dev))
+        mapper.writeValue(packageJson, YarnDependencies(prod, dev))
     }
 
-    private data class NpmDependencies(
+    private data class YarnDependencies(
         @JsonProperty("dependencies") val prod: Map<String, String>,
         @JsonProperty("devDependencies") val dev: Map<String, String>
     )
