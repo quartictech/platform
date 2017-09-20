@@ -63,7 +63,7 @@ const DatasetRow = (props: IDatasetRowProps) => (
 const maybeDescription = (metadata: IDatasetMetadata) =>
   (metadata.name === metadata.description)
     ? null
-    : <p>{metadata.description}</p>;
+    : <span>{metadata.description}</span>;
 
 class DatasetListInner extends React.Component<IDatasetListProps, {}> {
   render() {
