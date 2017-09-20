@@ -10,10 +10,9 @@ frontend {
     prod "cytoscape-dagre", "1.6.0"
     prod "immutable", "3.8.1"
     prod "react", "15.4.2"
-
     prod "react-apollo", "1.4.15"
     prod "react-addons-css-transition-group", "15.4.0"
-
+    prod "react-document-title", "2.0.3"
     prod "react-dom", "15.4.2"
     prod "react-dropzone", "3.7.3"
     prod "react-redux", "5.0.2"

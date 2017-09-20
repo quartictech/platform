@@ -30,6 +30,8 @@ include "home-frontend"
 include "howl"
 include "howl-api"
 
+include "integration"
+
 include "quarty"
 include "quarty-api"
 
