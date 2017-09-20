@@ -11,7 +11,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
 class S3StorageFactory(
@@ -52,20 +51,20 @@ class S3StorageFactory(
 
         private val bucket = config.bucketEncrypted.decrypt()
 
-        override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
-            try {
+        override fun getData(coords: StorageCoords): InputStreamWithContentType? {
+            return try {
                 val s3obj = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
-                return InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
+                InputStreamWithContentType(s3obj.objectMetadata.contentType, s3obj.objectContent)
             } catch (e: AmazonS3Exception) {
                 if (e.errorCode != "NoSuchKey") {
                     throw e
                 } else {
-                    return null
+                    null
                 }
             }
         }
 
-        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
             inputStream.use { s ->
                 val metadata = ObjectMetadata()
                 if (contentLength != null && contentLength > 0) {
@@ -74,7 +73,7 @@ class S3StorageFactory(
                 metadata.contentType = contentType
                 s3.putObject(bucket.veryUnsafe, coords.bucketKey, s, metadata)
             }
-            return PutResult(null)  // TODO - no versioning for now
+            return true
         }
     }
 

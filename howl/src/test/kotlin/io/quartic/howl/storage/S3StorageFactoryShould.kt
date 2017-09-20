@@ -23,7 +23,7 @@ class S3StorageFactoryShould {
 
         storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
 
-        storage.getData(coords, null).use {
+        storage.getData(coords).use {
             it!!
             assertThat(it.contentType, equalTo(MediaType.TEXT_PLAIN))
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
@@ -42,7 +42,7 @@ class S3StorageFactoryShould {
     fun return_null_if_key_not_found() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
-        assertThat(storage.getData(coords, null), nullValue())
+        assertThat(storage.getData(coords), nullValue())
     }
 
     private fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8)

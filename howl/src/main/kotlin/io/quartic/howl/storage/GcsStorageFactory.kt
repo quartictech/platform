@@ -8,7 +8,6 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
-import io.quartic.howl.storage.Storage.PutResult
 import java.io.InputStream
 
 class GcsStorageFactory {
@@ -33,9 +32,8 @@ class GcsStorageFactory {
     }
 
     fun create(config: Config) = object : io.quartic.howl.storage.Storage {
-        override fun getData(coords: StorageCoords, version: Long?): InputStreamWithContentType? {
+        override fun getData(coords: StorageCoords): InputStreamWithContentType? {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
-            get.generation = version
 
             try {
                 val httpResponse = get.executeMedia()
@@ -51,12 +49,17 @@ class GcsStorageFactory {
             return null
         }
 
-        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) = PutResult(
-                storage.objects().insert(
-                        config.bucket,
-                        StorageObject().setName(coords.bucketKey),
-                        InputStreamContent(contentType, inputStream)
-                ).execute().generation)
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+            storage.objects()
+                .insert(
+                    config.bucket,
+                    StorageObject().setName(coords.bucketKey),
+                    InputStreamContent(contentType, inputStream)
+                )
+                .execute()
+
+            return true
+        }
     }
 }
 

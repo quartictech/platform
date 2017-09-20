@@ -1,6 +1,5 @@
 package io.quartic.howl
 
-import io.quartic.common.logging.logger
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
@@ -61,16 +60,20 @@ class HowlResource(
             identityNamespace: String,
             key: String,
             request: HttpServletRequest
-        ) = storage.putData(
-            Managed(targetNamespace, identityNamespace, key),
-            request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
-            request.contentType,
-            request.inputStream
-        ) ?: throw NotFoundException("Storage backend could not write file")
+        ) {
+            if (!storage.putData(
+                Managed(targetNamespace, identityNamespace, key),
+                request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
+                request.contentType,
+                request.inputStream
+            )) {
+                throw NotFoundException("Storage backend could not write file")
+            }
+        }
     }
 
     private fun downloadFile(coords: StorageCoords): Response {
-        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        val (contentType, inputStream) = storage.getData(coords) ?: throw NotFoundException()  // TODO: provide a useful message
         return Response.ok()
             .header(CONTENT_TYPE, contentType)
             .entity(StreamingOutput {
