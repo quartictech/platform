@@ -73,6 +73,7 @@ export interface BuildEvent {
   type: string;
   time: number;
   phase_id: string;
+  stream?: string;
 }
 
 export interface Build extends FeedItem {
