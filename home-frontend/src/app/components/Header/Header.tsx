@@ -78,6 +78,11 @@ class Header extends React.Component<IProps, {}> {
         </div>
 
         <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
+          <a
+            className="pt-button pt-minimal pt-icon-help"
+            href="https://docs.quartic.io"
+            target="_blank"
+          />
           {this.maybeRenderProfile()}
         </div>
       </nav>
