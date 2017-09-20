@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.withTimeoutOrNull
 import org.junit.Assert.fail
 import java.util.concurrent.TimeUnit
 
-public fun <T> runOrTimeout(timeoutMs: Long = 1000, block: suspend () -> T): T = runBlocking {
+public fun <T> runOrTimeout(timeoutMs: Long = 5000, block: suspend () -> T): T = runBlocking {
     withTimeout(timeoutMs, TimeUnit.MILLISECONDS) {
         block()
     }
