@@ -35,3 +35,19 @@ pre.bash {
   overflow: auto;
 }
 
+.logTime {
+  color: gray;
+}
+
+.logStdout {
+  color: white;
+}
+
+.logStderr {
+  color: #FF7373;
+}
+
+.logProgress {
+  color: #48AFF0;
+}
+

@@ -37,8 +37,21 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   private renderLogs(events) {
-    return events.map(event => `[${this.formatTime(event.time)}] ${event.message}`)
-      .join("\n");
+    const eventClassName = (event) => {
+      switch (event.stream) {
+        case "stdout": return s.logStdout;
+        case "stderr": return s.logStderr;
+        case "progress": return s.logProgress;
+        default: return s.logStdout;
+      }
+    };
+
+    return events.map(event => (
+      <div>
+        <span className={s.logTime}>{this.formatTime(event.time)}</span>&nbsp;
+        <span className={eventClassName(event)}>{event.message}</span>
+      </div>
+    ));
   }
 
   private orderPhases(events: BuildEvent[]) {
