@@ -19,12 +19,21 @@ interface IProps {
 }
 
 class DatasetView extends React.Component<IProps, {}> {
-
   componentDidMount() {
     this.props.fetchDatasets();
   }
 
+  componentWillReceiveProps(newProps) {
+    if (newProps.params.namespace !== this.props.params.namespace ||
+        newProps.params.id !== this.props.params.id) {
+      this.props.fetchDatasets();
+    }
+  }
+
   render() {
+    if (!(this.props.params.namespace in this.props.datasets)) {
+      return null;
+    }
     const dataset = this.props.datasets[this.props.params.namespace][this.props.params.id];
     return (
       <DocumentTitle title={`Quartic - ${dataset.metadata.name}`}>

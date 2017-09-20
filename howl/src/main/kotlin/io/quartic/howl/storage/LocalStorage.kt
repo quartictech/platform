@@ -8,35 +8,29 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.lang.Long.parseLong
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class LocalStorage(private val config: Config) : Storage {
     data class Config(val dataDir: String = "./data") : StorageConfig
 
     private val lock = ReentrantReadWriteLock()
-    private val versionCounter = AtomicLong(System.currentTimeMillis())
 
-    override fun getData(coords: StorageCoords, version: Long?): StorageResult? {
+    override fun getData(coords: StorageCoords): StorageResult? {
         try {
             lock.readLock().lock()
-            val path = getVersionPath(coords, version)
-            if (path != null) {
-                val file = path.toFile()
-                if (file.exists()) {
-                    return StorageResult(
-                        StorageMetadata(
-                            Files.getLastModifiedTime(path).toInstant(),
-                            Files.probeContentType(path) ?: DEFAULT_CONTENT_TYPE,
-                            Files.size(path)
-                        ),
-                        FileInputStream(file)
-                    )
-                }
+            val file = coords.path.toFile()
+            if (file.exists()) {
+                return StorageResult(
+                    StorageMetadata(
+                        Files.getLastModifiedTime(coords.path).toInstant(),
+                        Files.probeContentType(coords.path) ?: DEFAULT_CONTENT_TYPE,
+                        Files.size(coords.path)
+                    ),
+                    FileInputStream(file)
+                )
             }
         } finally {
             lock.readLock().unlock()
@@ -45,38 +39,22 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
-    override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = getData(coords, version)?.metadata
+    override fun getMetadata(coords: StorageCoords): StorageMetadata? = getData(coords)?.metadata
 
-    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null
-        val version = versionCounter.incrementAndGet()
         try {
             tempFile = File.createTempFile("howl", "partial")
             FileOutputStream(tempFile!!).use { fileOutputStream -> IOUtils.copy(inputStream, fileOutputStream) }
 
-            renameFile(tempFile.toPath(), getVersionPath(coords, version)!!)
+            renameFile(tempFile.toPath(), coords.path)
         } finally {
             if (tempFile != null) {
                 tempFile.delete()
             }
         }
-        return PutResult(version)
-    }
-
-    private fun getVersionPath(coords: StorageCoords, version: Long?): Path? {
-        val readVersion = version ?: getLatestVersion(coords)
-
-        if (readVersion != null) {
-            return coords.path.resolve(readVersion.toString())
-        } else {
-            return null
-        }
-    }
-
-    private fun getLatestVersion(coords: StorageCoords): Long? {
-        val fileNames = coords.path.toFile().list() ?: return null
-        return fileNames.map { it -> parseLong(it) }.max()
+        return true
     }
 
     private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(
@@ -89,6 +67,7 @@ class LocalStorage(private val config: Config) : Storage {
     private fun renameFile(from: Path, to: Path) {
         try {
             lock.writeLock().lock()
+            Files.deleteIfExists(to)
             Files.move(from, to)
         } finally {
             lock.writeLock().unlock()
