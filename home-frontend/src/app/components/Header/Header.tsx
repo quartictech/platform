@@ -1,0 +1,138 @@
+import * as React from "react";
+import { Link } from "react-router";
+import {
+  Classes,
+  Intent,
+  Menu,
+  MenuItem,
+  MenuDivider,
+  Popover,
+  Button,
+  Position,
+  Tooltip,
+} from "@blueprintjs/core";
+import * as classNames from "classnames";
+import { Profile } from "../../models";
+const style = require("./style.css");
+const logo = require("./quartic.svg");
+
+interface IProps {
+  searchBoxChange: any;
+  onLogOutClick: () => void;
+  profile?: Profile;
+}
+
+class Header extends React.Component<IProps, {}> {
+  constructor(props: IProps) {
+    super(props);
+    this.onSearch = this.onSearch.bind(this);
+  }
+
+  onSearch(e) {
+    this.props.searchBoxChange(e.target.value);
+  }
+
+  render() {
+    const imgStyle = {
+      height: "100%",
+      paddingTop: "10px",
+      paddingBottom: "10px",
+      marginLeft: "-5px",
+      marginRight: "10px",
+    };
+
+    return (
+      <nav className={classNames(Classes.NAVBAR, Classes.FIXED_TOP, Classes.DARK)}>
+
+        <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_LEFT)}>
+          <Link to="/" style={{ height: "100%", display: "inline-block" }}>
+            <img
+              style={imgStyle}
+              src={logo}
+              role="presentation"
+            />
+          </Link>
+          <input
+            className="pt-input"
+            placeholder="Search datasets..."
+            type="text"
+            onChange={this.onSearch}
+          />
+
+          <span className={Classes.NAVBAR_DIVIDER} />
+
+          <Link
+            className="pt-button pt-minimal pt-icon-database"
+            to="/datasets"
+          >
+            Datasets
+          </Link>
+          <Link
+            className="pt-button pt-minimal pt-icon-graph"
+            to="/pipeline"
+          >
+            Pipeline
+          </Link>
+
+
+        </div>
+
+        <div className={classNames(Classes.NAVBAR_GROUP, Classes.ALIGN_RIGHT)}>
+          {this.maybeRenderProfile()}
+        </div>
+      </nav>
+    );
+  }
+
+  private maybeRenderProfile() {
+    if (!this.props.profile) {
+      return null;
+    }
+
+    // A button is somewhat weird as it does nothing currently, but at least it renders in a nice way
+    return (
+        <Popover content={this.renderSettings()} position={Position.BOTTOM_RIGHT}>
+            <Tooltip
+              content="Settings"
+              position={Position.BOTTOM_RIGHT}
+              tooltipClassName={Classes.MINIMAL}
+            >
+              <div style={{ height: "100%", display: "block" }}>
+                <Button
+                  className={classNames(Classes.MINIMAL)}
+                  style={{ lineHeight: "50px" }}
+                  rightIconName="chevron-down"
+                  text={this.props.profile.name}
+                >
+                  <img
+                    className={style.profile}
+                    src={this.props.profile.avatarUrl}
+                  />
+                </Button>
+              </div>
+            </Tooltip>
+        </Popover>
+    );
+  }
+
+  private renderSettings() {
+    return (
+      <Menu>
+        <MenuItem
+          text={`Quartic version: ${process.env.BUILD_VERSION || "unknown"}`}
+          iconName="info-sign"
+          disabled={true}
+        />
+        <MenuDivider />
+        <MenuItem
+          text="Sign out"
+          iconName="log-out"
+          intent={Intent.DANGER}
+          onClick={this.props.onLogOutClick}
+        />
+      </Menu>
+    );
+  }
+}
+
+export { Header };
