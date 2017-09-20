@@ -5,7 +5,7 @@ import { gql, graphql } from "react-apollo";
 
 import * as _ from "underscore";
 
-import { Button, Collapse } from "@blueprintjs/core";
+import { Button, Collapse, Colors } from "@blueprintjs/core";
 
 import * as classNames from "classnames";
 
@@ -37,8 +37,21 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   private renderLogs(events) {
-    return events.map(event => `[${this.formatTime(event.time)}] ${event.message}`)
-      .join("\n");
+    const eventStyle: (event: BuildEvent) => React.CSSProperties = (event) => {
+      switch (event.stream) {
+        case "stdout": return { color: "white" };
+        case "stderr": return { color: Colors.RED5 };
+        case "progress": return { color: Colors.BLUE5, fontWeight: "bold" };
+        default: return { color: "white" };
+      }
+    };
+
+    return events.map(event => (
+      <div>
+        <span style={{ color: "gray" }}>{this.formatTime(event.time)}</span>&nbsp;
+        <span style={eventStyle(event)}>{event.message}</span>
+      </div>
+    ));
   }
 
   private orderPhases(events: BuildEvent[]) {
@@ -65,7 +78,7 @@ class BuildView extends React.Component<IProps, IState> {
   private renderPhase(phase, events) {
     if (events.length === 0) {
       return (
-        <div key={phase.id} className={s.phaseItem}>
+        <div key={phase.phase_id} className={s.phaseItem}>
           <span className={s.phaseTitle}>
             <small>{this.formatTime(phase.time)}</small>
             <b> {phase.description}</b>
@@ -74,7 +87,7 @@ class BuildView extends React.Component<IProps, IState> {
       );
     } else {
       return (
-        <div key={phase.id} className={s.phaseItem}>
+        <div key={phase.phase_id} className={s.phaseItem}>
           <div className={s.phaseHeader}>
             <Button
               className="pt-minimal pt-intent-primary"
@@ -117,7 +130,9 @@ class BuildView extends React.Component<IProps, IState> {
               </span>
               <h1>Build #{this.props.data.build.number}</h1>
             </div>
-            {this.renderPhases(logEvents)}
+            <div>
+              {this.renderPhases(logEvents)}
+            </div>
           </div>
         </DocumentTitle>
       );

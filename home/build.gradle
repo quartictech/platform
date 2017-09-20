@@ -26,6 +26,7 @@ dependencies {
 
     testCompile project(":common-test")
     testCompile libraries.dropwizard.testing
+    testCompile libraries.jerseyTestFrameworkProviderGrizzly
     testCompile libraries.wiremock
 }
 

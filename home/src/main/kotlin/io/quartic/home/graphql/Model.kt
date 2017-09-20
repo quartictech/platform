@@ -3,6 +3,7 @@ package io.quartic.home.graphql
 import graphql.annotations.*
 import io.quartic.eval.api.model.ApiBuildEvent
 import java.time.Instant
+import java.util.*
 
 data class Build(
     @GraphQLField
@@ -52,6 +53,9 @@ data class User(
 ))
 interface BuildEvent {
     @GraphQLField
+    fun id(): String
+
+    @GraphQLField
     fun time(): Long
 
     @GraphQLField
@@ -59,6 +63,8 @@ interface BuildEvent {
 
     @From<ApiBuildEvent.Log>
     data class Log (
+        private val id: UUID,
+
         @get:GraphQLField
         @get:GraphQLName("phase_id")
         val phaseId: String,
@@ -73,10 +79,13 @@ interface BuildEvent {
     ): BuildEvent {
         override fun type() = "log"
         override fun time() = time.epochSecond
+        override fun id() = id.toString()
     }
 
     @From<ApiBuildEvent.PhaseStarted>
     data class PhaseStarted(
+        private val id: UUID,
+
         @get:GraphQLField
         @get:GraphQLName("phase_id")
         val phaseId: String,
@@ -88,10 +97,13 @@ interface BuildEvent {
     ): BuildEvent {
         override fun time() = time.epochSecond
         override fun type() = "phase_started"
+        override fun id() = id.toString()
     }
 
     @From<ApiBuildEvent.PhaseCompleted>
     data class PhaseCompleted(
+        private val id: UUID,
+
         @get:GraphQLField
         @get:GraphQLName("phase_id")
         val phaseId: String,
@@ -100,11 +112,13 @@ interface BuildEvent {
     ): BuildEvent {
         override fun time() = time.epochSecond
         override fun type() = "phase_completed"
+        override fun id() = id.toString()
     }
 
-    data class Other(private val time: Long): BuildEvent {
+    data class Other(private val id: UUID, private val time: Long): BuildEvent {
         override fun time(): Long = time
         override fun type(): String = "other"
+        override fun id() = id.toString()
     }
 
 }
