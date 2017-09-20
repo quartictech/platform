@@ -1,4 +1,8 @@
-import { ApolloClient, createNetworkInterface } from "react-apollo";
+import {
+  ApolloClient,
+  createNetworkInterface,
+  IntrospectionFragmentMatcher,
+} from "react-apollo";
 import { apiRootUrl, ApiError } from "./api";
 import { QUARTIC_XSRF, QUARTIC_XSRF_HEADER } from "../helpers/Utils";
 
@@ -31,4 +35,28 @@ networkInterface.useAfter([{
   },
 }]);
 
-export const client = new ApolloClient({ networkInterface, reduxRootSelector: state => state.get("apollo") });
+// TODO: It would be great to use the real schema here
+export const fragmentMatcher = new IntrospectionFragmentMatcher({
+  introspectionQueryResultData: {
+    __schema: {
+      types: [
+        {
+          kind: "INTERFACE",
+          name: "BuildEvent",
+          possibleTypes: [
+            { name: "Log" },
+            { name: "PhaseStarted" },
+            { name: "PhaseCompleted" },
+            { name: "Other" },
+          ],
+        },
+      ],
+    },
+  },
+});
+
+export const client = new ApolloClient({
+  networkInterface,
+  reduxRootSelector: state => state.get("apollo"),
+  fragmentMatcher,
+});

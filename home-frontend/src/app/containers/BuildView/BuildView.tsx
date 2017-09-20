@@ -65,7 +65,7 @@ class BuildView extends React.Component<IProps, IState> {
   private renderPhase(phase, events) {
     if (events.length === 0) {
       return (
-        <div key={phase.id} className={s.phaseItem}>
+        <div key={phase.phase_id} className={s.phaseItem}>
           <span className={s.phaseTitle}>
             <small>{this.formatTime(phase.time)}</small>
             <b> {phase.description}</b>
@@ -74,7 +74,7 @@ class BuildView extends React.Component<IProps, IState> {
       );
     } else {
       return (
-        <div key={phase.id} className={s.phaseItem}>
+        <div key={phase.phase_id} className={s.phaseItem}>
           <div className={s.phaseHeader}>
             <Button
               className="pt-minimal pt-intent-primary"
@@ -117,7 +117,9 @@ class BuildView extends React.Component<IProps, IState> {
               </span>
               <h1>Build #{this.props.data.build.number}</h1>
             </div>
-            {this.renderPhases(logEvents)}
+            <div>
+              {this.renderPhases(logEvents)}
+            </div>
           </div>
         </DocumentTitle>
       );
