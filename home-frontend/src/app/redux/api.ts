@@ -73,8 +73,8 @@ export function githubAuth(code: string, state: string) {
   );
 }
 
-export function uploadFile(namespace: string, files: any[]) {
-  return fetchUtil(`${apiRootUrl}/file/${encodeURIComponent(namespace)}`, {
+export function uploadFile(files: any[]) {
+  return fetchUtil(`${apiRootUrl}/file`, {
     method: "POST",
     body: files[0],
   });
@@ -86,24 +86,21 @@ export function buildPipeline() {
   });
 }
 
-// TODO: wire through namespace
-export function createDataset(namespace: string, metadata: IDatasetMetadata, fileName: string) {
-  return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(namespace)}`, {
+export function createDataset(metadata: IDatasetMetadata, fileName: string) {
+  return fetchUtil(`${apiRootUrl}/datasets`, {
     headers: {
       "Content-Type": "application/json",
     },
     method: "POST",
     body: JSON.stringify({
-      type: "static",
       metadata,
       file_name: fileName,
     }),
   });
 }
 
-// TODO: wire through namespace
 export function deleteDataset(coords: IDatasetCoords) {
-  return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(coords.namespace)}/${encodeURIComponent(coords.id)}`, {
+  return fetchUtil(`${apiRootUrl}/datasets/${encodeURIComponent(coords.id)}`, {
     method: "DELETE",
   });
 }
