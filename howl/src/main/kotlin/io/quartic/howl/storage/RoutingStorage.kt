@@ -8,6 +8,7 @@ class RoutingStorage(
     s3Factory: S3StorageFactory,
     configs: Map<String, StorageConfig>
 ) : Storage {
+
     private val LOG by logger()
 
     private val dests = configs.mapValues {
@@ -22,6 +23,10 @@ class RoutingStorage(
 
     override fun getData(coords: StorageCoords, version: Long?) =
         dests[coords.targetNamespace]?.getData(coords, version)
+
+    override fun getMetadata(coords: StorageCoords, version: Long?): Storage.StorageMetadata? =
+        dests[coords.targetNamespace]?.getMetadata(coords, version)
+
 
     override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) =
         dest(coords)?.putData(coords, contentLength, contentType, inputStream)
