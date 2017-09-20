@@ -12,7 +12,6 @@ import com.amazonaws.services.s3.model.S3Object
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.howl.storage.Storage.PutResult
 import io.quartic.howl.storage.Storage.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
@@ -40,8 +39,6 @@ class S3StorageFactory(
     }
 
     fun create(config: Config) = object : Storage {
-
-
         private val s3 by lazy {
             val stsProvider = STSAssumeRoleSessionCredentialsProvider.Builder(config.roleArnEncrypted.decrypt().veryUnsafe, ROLE_SESSION_NAME)
                 .withExternalId(config.externalIdEncrypted.decrypt().veryUnsafe)
@@ -57,7 +54,7 @@ class S3StorageFactory(
 
         private val bucket = config.bucketEncrypted.decrypt()
 
-        override fun getData(coords: StorageCoords, version: Long?): Storage.StorageResult? = wrapS3Exception {
+        override fun getData(coords: StorageCoords): Storage.StorageResult? = wrapS3Exception {
             val s3Object = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
             StorageResult(
                 storageMetadata(s3Object.objectMetadata),
@@ -65,7 +62,7 @@ class S3StorageFactory(
             )
         }
 
-        override fun getMetadata(coords: StorageCoords, version: Long?): StorageMetadata? = wrapS3Exception {
+        override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapS3Exception {
             s3.getObjectMetadata(bucket.veryUnsafe, coords.bucketKey)
                 .let { storageMetadata(it) }
         }
@@ -77,7 +74,7 @@ class S3StorageFactory(
                 objectMetadata.contentLength
             )
 
-        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): PutResult? {
+        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
             inputStream.use { s ->
                 val metadata = ObjectMetadata()
                 if (contentLength != null && contentLength > 0) {
@@ -86,7 +83,7 @@ class S3StorageFactory(
                 metadata.contentType = contentType
                 s3.putObject(bucket.veryUnsafe, coords.bucketKey, s, metadata)
             }
-            return PutResult(null)  // TODO - no versioning for now
+            return true
         }
 
         private fun <T> wrapS3Exception(block: () -> T): T? = try {

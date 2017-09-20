@@ -24,7 +24,7 @@ class S3StorageFactoryShould {
 
         storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
 
-        storage.getData(coords, null).use {
+        storage.getData(coords).use {
             it!!
             assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
@@ -43,14 +43,14 @@ class S3StorageFactoryShould {
     fun return_null_if_key_not_found() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
-        assertThat(storage.getData(coords, null), nullValue())
+        assertThat(storage.getData(coords), nullValue())
     }
 
     @Test
     fun return_null_metadata_if_key_not_found() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
-        assertThat(storage.getMetadata(coords, null), nullValue())
+        assertThat(storage.getMetadata(coords), nullValue())
     }
 
     @Test
@@ -59,7 +59,7 @@ class S3StorageFactoryShould {
         val data = "Hello world!"
 
         storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
-        val metadata = storage.getData(coords, null)!!.metadata
+        val metadata = storage.getData(coords)!!.metadata
         assertThat(metadata.contentLength, equalTo(12L))
         assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(metadata.lastModified, greaterThan(Instant.now().minus(5, ChronoUnit.MINUTES)))
