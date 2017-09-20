@@ -5,7 +5,6 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.howl.storage.InputStreamWithContentType
 import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
@@ -19,8 +18,12 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
@@ -43,7 +46,7 @@ class HowlResourceShould {
         whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            Storage.PutResult(55)
+            true
         }
 
         request("foo/managed/bar/thing").put(Entity.text(data))
@@ -61,7 +64,7 @@ class HowlResourceShould {
         whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            Storage.PutResult(55)
+            true
         }
 
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
@@ -72,8 +75,8 @@ class HowlResourceShould {
     }
 
     @Test
-    fun throw_if_storage_returns_null() {
-        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(null)
+    fun throw_if_storage_returns_false() {
+        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(false)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         assertThrows<NotFoundException> {
@@ -84,7 +87,7 @@ class HowlResourceShould {
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
-        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
+        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         request("test/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
@@ -102,16 +105,41 @@ class HowlResourceShould {
         assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
     }
 
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun return_headers_on_head() {
+        val instant = Instant.now()
+        whenever(storage.getMetadata(any())).thenReturn(
+            Storage.StorageMetadata(
+                instant,
+                MediaType.TEXT_PLAIN,
+                3
+            )
+        )
+
+        val response = request("foo/unmanaged/wat").head()
+        val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
+        assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
+        assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
+        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
+    }
+
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
-        whenever(storage.getData(any(), anyOrNull())).thenReturn(
-            InputStreamWithContentType(MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+        whenever(storage.getData(any())).thenReturn(
+            Storage.StorageResult(
+                Storage.StorageMetadata(
+                    Instant.now(),
+                    MediaType.TEXT_PLAIN,
+                    3),
+                ByteArrayInputStream(data)
+            )
         )
 
         val response = request(path).get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(storage).getData(eq(expectedCoords), eq(null))
+        verify(storage).getData(eq(expectedCoords))
         assertThat(responseEntity, equalTo(data))
     }
 

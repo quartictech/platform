@@ -1,6 +1,7 @@
 package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
+import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
@@ -37,8 +38,24 @@ class NotifierShould {
         on { name } doReturn "noob co"
     }
 
-    private val buildUri = URI.create("http://noobhole/#/pipeline/100")
+    private val buildUri = URI.create("http://noobhole/build/100")
 
+    @Test
+    fun send_pending_on_queue() {
+        notifier.notifyQueue(trigger)
+        verify(github).sendStatusAsync(
+            owner = "noobing",
+            repo = "noob",
+            sha = trigger.commit,
+            status = StatusCreate(
+                "pending",
+                targetUrl = null,
+                description = Notifier.QUEUE_MESSAGE,
+                context = "quartic"
+            ),
+            accessToken = accessToken
+        )
+    }
 
     @Test
     fun send_pending_on_start() {
@@ -63,8 +80,6 @@ class NotifierShould {
         verifyZeroInteractions(github)
     }
 
-
-
     @Test
     fun send_success_on_success() {
         notifier.notifyComplete(trigger, customer, 100, Success("Hello there"))
@@ -72,7 +87,7 @@ class NotifierShould {
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 succeeded",
-                titleLink = URI.create("http://noobhole/#/pipeline/100"),
+                titleLink = URI.create("http://noobhole/build/100"),
                 text = "Hello there",
                 fields = listOf(
                     HeyField("Branch", "develop", true),
@@ -104,7 +119,7 @@ class NotifierShould {
         verify(hey).notifyAsync(HeyNotification(listOf(
             HeyAttachment(
                 title = "Build #100 failed",
-                titleLink = URI.create("http://noobhole/#/pipeline/100"),
+                titleLink = URI.create("http://noobhole/build/100"),
                 text = "Oh dear",
                 fields = listOf(
                     HeyField("Branch", "develop", true),
@@ -127,5 +142,13 @@ class NotifierShould {
             ),
             accessToken = accessToken
         )
+    }
+
+    @Test
+    fun not_throw_if_github_auth_fails() {
+        whenever(github.accessTokenAsync(any())).thenReturn(exceptionalFuture())
+
+        notifier.notifyStart(trigger)
+        // Not expecting to throw
     }
 }

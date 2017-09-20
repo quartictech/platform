@@ -43,8 +43,7 @@ class SequencerImpl(
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             val build = insertBuild(customer.id, trigger)
             insert(TriggerReceived(trigger.toDatabaseModel()))
-            notifier.notifyStart(trigger)
-
+            notifier.notifyQueue(trigger)
             val completionEvent = executeInContainer(block)
             insert(completionEvent)
             notifyComplete(build, completionEvent)
@@ -53,6 +52,7 @@ class SequencerImpl(
         private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
             qube.createContainer().use { container ->
                 insert(ContainerAcquired(container.id, container.hostname))
+                notifier.notifyStart(trigger)
                 block(SequenceBuilderImpl(container))
             }
             BUILD_SUCCEEDED

@@ -31,6 +31,6 @@ pre.bash {
   margin-top: 10px;
   background-color: #202B33;
   color: white;
-  font-size: medium ;
+  font-size: medium;
+  overflow: auto;
 }
-

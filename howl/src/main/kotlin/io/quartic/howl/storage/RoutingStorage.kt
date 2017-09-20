@@ -1,5 +1,6 @@
 package io.quartic.howl.storage
 
+import io.quartic.common.logging.logger
 import java.io.InputStream
 
 class RoutingStorage(
@@ -7,6 +8,9 @@ class RoutingStorage(
     s3Factory: S3StorageFactory,
     configs: Map<String, StorageConfig>
 ) : Storage {
+
+    private val LOG by logger()
+
     private val dests = configs.mapValues {
         val config = it.value
         when (config) {
@@ -17,9 +21,18 @@ class RoutingStorage(
         }
     }
 
-    override fun getData(coords: StorageCoords, version: Long?)
-            = dests[coords.targetNamespace]?.getData(coords, version)
+    override fun getData(coords: StorageCoords) = dests[coords.targetNamespace]?.getData(coords)
 
-    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream)
-            = dests[coords.targetNamespace]?.putData(coords, contentLength, contentType, inputStream)
+    override fun getMetadata(coords: StorageCoords) = dests[coords.targetNamespace]?.getMetadata(coords)
+
+    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) =
+        dest(coords)?.putData(coords, contentLength, contentType, inputStream) ?: false
+
+    private fun dest(coords: StorageCoords): Storage? {
+        val dest = dests[coords.targetNamespace]
+        if (dest == null) {
+            LOG.warn("Unknown namespace '${coords.targetNamespace}'")
+        }
+        return dest
+    }
 }

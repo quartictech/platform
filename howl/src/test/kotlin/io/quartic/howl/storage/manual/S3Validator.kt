@@ -1,8 +1,9 @@
-package io.quartic.howl.storage
+package io.quartic.howl.storage.manual
 
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.howl.storage.S3StorageFactory
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.S3StorageFactory.Config
 import org.hamcrest.Matchers.equalTo
@@ -24,9 +25,9 @@ fun main(args: Array<String>) {
     val data = "Hello world!"
 
     storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
-    storage.getData(coords, null).use {
+    storage.getData(coords).use {
         it!!
-        assertThat(it.contentType, equalTo(MediaType.TEXT_PLAIN))
+        assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(it.inputStream.readTextAndClose(), equalTo(data))
     }
 }

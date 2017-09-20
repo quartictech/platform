@@ -10,6 +10,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.home.model.CreateDatasetRequest
 import io.quartic.home.resource.HomeResource
 import io.quartic.howl.api.HowlService
 import io.quartic.registry.api.RegistryServiceClient
@@ -62,11 +63,11 @@ class HomeResourceShould {
     }
 
     @Test
-    fun create_dataset_if_namespace_authorised() {
+    fun create_dataset() {
         whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
         whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
 
-        resource.createDataset(arlo, foo, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
+        resource.createDataset(arlo, CreateDatasetRequest(mock(), "yeah"))
 
         verify(catalogue).registerDataset(eq(foo), any())
 
@@ -74,40 +75,15 @@ class HomeResourceShould {
     }
 
     @Test
-    fun not_create_dataset_and_respond_with_404_if_namespace_not_authorised() {
-        assertThrows<NotFoundException> {
-            resource.createDataset(arlo, bar, CreateStaticDatasetRequest(mock(), "yeah", FileType.RAW))
-        }
-
-        verifyNoMoreInteractions(catalogue)
-    }
-
-    @Test
     fun delete_dataset_if_namespace_authorised_and_dataset_exists() {
-        resource.deleteDataset(arlo, foo, DatasetId("a"))
+        resource.deleteDataset(arlo, DatasetId("a"))
         verify(catalogue).deleteDataset(foo, DatasetId("a"))
-    }
-
-    @Test
-    fun not_delete_dataset_and_respond_with_404_if_namespace_not_authorised() {
-        assertThrows<NotFoundException> {
-            resource.deleteDataset(arlo, foo, DatasetId("d"))   // In unauthorised namespace
-        }
-
-        verify(catalogue, never()).deleteDataset(any(), any())
-    }
-
-    @Test
-    fun respond_with_404_if_deletion_target_namespace_not_present() {
-        assertThrows<NotFoundException> {
-            resource.deleteDataset(arlo, DatasetNamespace("made-up"), DatasetId("a"))
-        }
     }
 
     @Test
     fun respond_with_404_if_deletion_target_id_not_present() {
         assertThrows<NotFoundException> {
-            resource.deleteDataset(arlo, foo, DatasetId("made-up"))
+            resource.deleteDataset(arlo, DatasetId("made-up"))
         }
     }
 

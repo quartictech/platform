@@ -1,7 +1,7 @@
 import { Asset, Job, Dataset, DatasetInfo, DatasetName, SessionInfo, Insight } from "../models";
 import { ManagedResource } from "../api-management";
 
-export const apiRootUrl = `${location.origin}${location.pathname}api`;
+export const apiRootUrl = `${location.origin}/api`;
 
 const checkStatus = (response) => {
   if (response.status >= 200 && response.status < 300) {
@@ -13,11 +13,20 @@ const checkStatus = (response) => {
 // NOTE: we may  want to switch representations to seconds since the epoch here for better Java compatibility
 const dateInferringReviver = (key, value) => (key.toLowerCase().endsWith("timestamp") ? new Date(value) : value);
 
-const fetchUtil = <T>(url, options?) => fetch(
-  `${apiRootUrl}${url}`, Object.assign({}, options, { credentials: "same-origin" }))
-  .then(checkStatus)
-  .then((response: Response) => response.text())
-  .then<T>(r => JSON.parse(r, dateInferringReviver));
+const fetchUtil = <T>(url, options?) => {
+  const headers = {
+    "Accept": "application/json",
+  };
+  const newOptions = Object.assign({}, options, {
+    credentials: "same-origin",
+    headers,
+  });
+  return fetch(
+    `${apiRootUrl}${url}`, newOptions)
+    .then(checkStatus)
+    .then((response: Response) => response.text())
+    .then<T>(r => JSON.parse(r, dateInferringReviver));
+};
 
 const searchableResource = <T>(name: string) => ({
   name,
