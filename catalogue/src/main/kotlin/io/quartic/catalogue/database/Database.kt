@@ -1,9 +1,9 @@
-package io.quartic.catalogue.postgres
+package io.quartic.catalogue.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.postgres.Database.ConfigColumnMapper
-import io.quartic.catalogue.postgres.Database.DatasetRowMapper
+import io.quartic.catalogue.database.Database.ConfigColumnMapper
+import io.quartic.catalogue.database.Database.DatasetRowMapper
 import io.quartic.common.db.BindJson
 import io.quartic.common.serdes.OBJECT_MAPPER
 import org.jdbi.v3.core.mapper.ColumnMapper
@@ -23,7 +23,7 @@ interface Database {
     data class CoordinatesAndConfig(
         val namespace: String,
         val id: String,
-        val config: DatasetConfig?
+        val config: DatasetConfig
     )
 
     class DatasetRowMapper : RowMapper<DatasetConfig> {

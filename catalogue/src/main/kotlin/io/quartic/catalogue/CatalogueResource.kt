@@ -6,9 +6,11 @@ import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
+import io.quartic.catalogue.database.Database
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.uid.UidGenerator
+import io.quartic.common.uid.randomGenerator
 import java.time.Clock
 import javax.websocket.CloseReason
 import javax.websocket.Endpoint
@@ -19,9 +21,9 @@ import javax.ws.rs.NotFoundException
 
 // TODO - all this synchronisation is really lame
 class CatalogueResource(
-        private val storageBackend: StorageBackend,
-        private val didGenerator: UidGenerator<DatasetId>,
-        private val clock: Clock
+    private val database: Database,
+    private val didGenerator: UidGenerator<DatasetId> = randomGenerator(::DatasetId),
+    private val clock: Clock = Clock.systemUTC()
 ) : Endpoint(), CatalogueService {
     private val LOG by logger()
     private val sessions = mutableSetOf<Session>()    // TODO: extend ResourceManagingEndpoint instead
@@ -38,34 +40,43 @@ class CatalogueResource(
         }
 
         // TODO: basic validation
-        storageBackend[coords] = withRegisteredTimestamp(config)
+        database.insertDataset(
+            namespace = namespace.namespace,
+            id = id.uid,
+            config = withRegisteredTimestamp(config)
+        )
         updateClients()
         return coords
     }
 
-    private fun withRegisteredTimestamp(config: DatasetConfig): DatasetConfig
-            = config.copy(metadata = config.metadata.copy(registered = clock.instant()))
+    private fun withRegisteredTimestamp(config: DatasetConfig) =
+        config.copy(metadata = config.metadata.copy(registered = clock.instant()))
 
     @Synchronized
-    override fun getDatasets(): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
-        return storageBackend.getAll()
-                .entries
-                .groupBy { it.key.namespace }
-                .mapValues { it.value.associateBy({ it.key.id }, { it.value }) }
-    }
+    override fun getDatasets(): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> =
+        database.getDatasets()
+            .groupBy { DatasetNamespace(it.namespace) }
+            .mapValues {
+                it.value.associateBy(
+                    { DatasetId(it.id) },
+                    { it.config }
+                )
+            }
 
     @Synchronized
-    override fun getDataset(namespace: DatasetNamespace, id: DatasetId): DatasetConfig {
-        val coords = DatasetCoordinates(namespace, id)
-        throwIfDatasetNotFound(coords)
-        return storageBackend[coords]!!
-    }
+    override fun getDataset(namespace: DatasetNamespace, id: DatasetId) =
+        database.getDataset(namespace.namespace, id.uid)
+            ?: throw NotFoundException("No dataset: ${DatasetCoordinates(namespace, id)}")
 
     @Synchronized
     override fun deleteDataset(namespace: DatasetNamespace, id: DatasetId) {
-        val coords = DatasetCoordinates(namespace, id)
-        throwIfDatasetNotFound(coords)
-        storageBackend.remove(coords)
+        getDataset(namespace, id)   // In order to cause exception if dataset doesn't exist
+
+        database.deleteDataset(
+            namespace = namespace.namespace,
+            id = id.uid
+        )
+
         updateClients()
     }
 
@@ -92,13 +103,6 @@ class CatalogueResource(
             session.asyncRemote.sendText(OBJECT_MAPPER.writeValueAsString(datasets))
         } catch (e: JsonProcessingException) {
             LOG.error("Error producing JSON", e)
-        }
-
-    }
-
-    private fun throwIfDatasetNotFound(coords: DatasetCoordinates) {
-        if (coords !in storageBackend) {
-            throw NotFoundException("No dataset: " + coords)
         }
     }
 }
