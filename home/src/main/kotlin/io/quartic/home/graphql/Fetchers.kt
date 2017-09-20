@@ -50,22 +50,25 @@ class EventsFetcher: Fetcher<List<BuildEvent>>() {
 
 fun ApiBuildEvent.toGraphQL() = when (this) {
     is ApiBuildEvent.Log -> BuildEvent.Log(
+        this.id,
         this.phaseId.toString(),
         this.stream,
         this.message,
         this.time
     )
     is ApiBuildEvent.PhaseStarted -> BuildEvent.PhaseStarted(
+        this.id,
         this.phaseId.toString(),
         this.description,
         this.time
     )
     is ApiBuildEvent.PhaseCompleted -> BuildEvent.PhaseCompleted(
+        this.id,
         this.phaseId.toString(),
         this.time
     )
     else ->
-        BuildEvent.Other(this.time.epochSecond)
+        BuildEvent.Other(this.id, this.time.epochSecond)
 }
 
 class UserFetcher: Fetcher<User>() {

@@ -1,5 +1,5 @@
 namespaces:
-  production:
+  noobhole:
     type: local
 
 url:
