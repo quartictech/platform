@@ -27,7 +27,7 @@ fun main(args: Array<String>) {
     storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
     storage.getData(coords, null).use {
         it!!
-        assertThat(it.contentType, equalTo(MediaType.TEXT_PLAIN))
+        assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(it.inputStream.readTextAndClose(), equalTo(data))
     }
 }

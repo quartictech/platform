@@ -1,21 +1,22 @@
 package io.quartic.howl
 
-import io.quartic.common.logging.logger
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.howl.storage.Storage
+import io.quartic.howl.storage.Storage.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.Context
+import javax.ws.rs.core.*
 import javax.ws.rs.core.HttpHeaders.CONTENT_TYPE
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.StreamingOutput
+import javax.ws.rs.core.HttpHeaders.LAST_MODIFIED
+import javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH
 
 @Path("/{target-namespace}")
 class HowlResource(
@@ -28,6 +29,13 @@ class HowlResource(
         @PathParam("target-namespace") targetNamespace: String,
         @PathParam("key") key: String
     ) = downloadFile(Unmanaged(targetNamespace, key))
+
+    @HEAD
+    @Path("/unmanaged/{key}")
+    fun headUnmanaged(
+        @PathParam("target-namespace") targetNamespace: String,
+        @PathParam("key") key: String
+    ) = headFile(Unmanaged(targetNamespace, key))
 
     @Path("/managed/{identity-namespace}")
     fun managedResource(
@@ -57,6 +65,10 @@ class HowlResource(
         @Path("/{key}")
         fun downloadFile(@PathParam("key") key: String) = downloadFile(Managed(targetNamespace, identityNamespace, key))
 
+        @HEAD
+        @Path("/{key}")
+        fun headFile(@PathParam("key") key: String) = headFile(Managed(targetNamespace, identityNamespace, key))
+
         private fun uploadFileOrThrow(
             identityNamespace: String,
             key: String,
@@ -69,14 +81,29 @@ class HowlResource(
         ) ?: throw NotFoundException("Storage backend could not write file")
     }
 
+
     private fun downloadFile(coords: StorageCoords): Response {
-        val (contentType, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
-        return Response.ok()
-            .header(CONTENT_TYPE, contentType)
+        val (metadata, inputStream) = storage.getData(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        return metadataHeaders(metadata, Response.ok())
             .entity(StreamingOutput {
                 inputStream.use { istream -> IOUtils.copy(istream, it) }
             })
             .build()
     }
+
+    private fun headFile(coords: StorageCoords): Response {
+        val metadata = storage.getMetadata(coords, null) ?: throw NotFoundException()  // TODO: provide a useful message
+        return metadataHeaders(metadata, Response.ok())
+            .build()
+    }
+
+    private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
+        responseBuilder
+            .header(CONTENT_TYPE, metadata.contentType)
+            .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+                .format(metadata.lastModified))
+            .header(CONTENT_LENGTH, metadata.contentLength)
+
+
 
 }
