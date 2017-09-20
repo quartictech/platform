@@ -4,8 +4,6 @@ jobs:
   build:
     docker:
       - image: quartic/uber-builder:103
-        environment:
-          CACHE_KEY_PREFIX: platform-v5
 
     working_directory: ~/platform
 
@@ -15,8 +13,8 @@ jobs:
       - restore_cache:
           keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
-            - {{ .Environment.CACHE_KEY_PREFIX }}-{{ .Branch }}-gradle
-            - {{ .Environment.CACHE_KEY_PREFIX }}-develop-gradle
+            - platform-v5-{{ .Branch }}-gradle
+            - platform-v5-develop-gradle
 
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
@@ -28,7 +26,7 @@ jobs:
           command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > ~/gradle.txt
 
       - save_cache:
-          key: {{ .Environment.CACHE_KEY_PREFIX }}-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
+          key: platform-v5-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
           paths:
             - ~/.gradle
 
