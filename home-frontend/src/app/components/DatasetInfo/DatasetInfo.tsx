@@ -10,11 +10,15 @@ import {
   Intent,
   Dialog,
   Classes,
+  Tooltip,
+  Position,
 } from "@blueprintjs/core";
 
 import { IDataset, IDatasetCoords } from "../../models";
 import _ = require("underscore");
 import { withRouter, InjectedRouter } from "react-router";
+
+import * as CopyToClipboard from "react-copy-to-clipboard";
 
 interface IDatasetInfoProps {
   router?: InjectedRouter;
@@ -48,7 +52,18 @@ class DatasetInfoInner extends React.Component<IDatasetInfoProps, IDatasetInfoSt
             onClick={() => this.setState({ isDeleteDialogOpen: true })}
           />
         </h3>
-        <h5 className="pt-monospace-text">{this.props.coords.namespace}::{this.props.coords.id}</h5>
+      <Tooltip
+        content="Use the locator in your pipeline code. Click to copy."
+        position={Position.RIGHT}
+        intent={Intent.PRIMARY}
+        useSmartPositioning={true}
+      >
+        <CopyToClipboard text={this.props.coords.id}>
+          <code onClick={(e) => {e.stopPropagation();}}>
+            {this.props.coords.id}
+          </code>
+        </CopyToClipboard>
+      </Tooltip>
         <Tabs>
           <TabList>
             <Tab>Metadata</Tab>

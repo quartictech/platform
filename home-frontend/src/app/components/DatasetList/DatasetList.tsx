@@ -44,18 +44,18 @@ const DatasetRow = (props: IDatasetRowProps) => (
       {maybeDescription(props.dataset.metadata)}
     </td>
     <td style={{ wordWrap: "break-word" }}>
-      <CopyToClipboard text={props.id}>
-            <Tooltip
-              content="Use the locator in your pipeline code. Click to copy."
-              position={Position.RIGHT}
-              intent={Intent.PRIMARY}
-              useSmartPositioning={true}
-            >
-              <code onClick={(e) => {e.stopPropagation();}}>
-                {props.id}
-              </code>
-            </Tooltip>
-      </CopyToClipboard>
+      <Tooltip
+        content="Use the locator in your pipeline code. Click to copy."
+        position={Position.RIGHT}
+        intent={Intent.PRIMARY}
+        useSmartPositioning={true}
+      >
+        <CopyToClipboard text={props.id}>
+          <code onClick={(e) => {e.stopPropagation();}}>
+            {props.id}
+          </code>
+        </CopyToClipboard>
+      </Tooltip>
     </td>
   </tr>
 );
