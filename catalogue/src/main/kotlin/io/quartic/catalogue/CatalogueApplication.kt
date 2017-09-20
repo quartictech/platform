@@ -20,7 +20,7 @@ class CatalogueApplication : ApplicationBase<CatalogueConfiguration>() {
     }
 
     public override fun runApplication(configuration: CatalogueConfiguration, environment: Environment) {
-        val storageBackend = configuration.backend.build()
+        val storageBackend = configuration.backend.build(environment, configuration.secretsCodec)
 
         CloudPathMigration().migrate(storageBackend)
 
