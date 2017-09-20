@@ -5,7 +5,7 @@ import { gql, graphql } from "react-apollo";
 
 import * as _ from "underscore";
 
-import { Button, Collapse } from "@blueprintjs/core";
+import { Button, Collapse, Colors } from "@blueprintjs/core";
 
 import * as classNames from "classnames";
 
@@ -37,19 +37,19 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   private renderLogs(events) {
-    const eventClassName = (event) => {
+    const eventStyle: (event: BuildEvent) => React.CSSProperties = (event) => {
       switch (event.stream) {
-        case "stdout": return s.logStdout;
-        case "stderr": return s.logStderr;
-        case "progress": return s.logProgress;
-        default: return s.logStdout;
+        case "stdout": return { color: "white" };
+        case "stderr": return { color: Colors.RED5 };
+        case "progress": return { color: Colors.BLUE5, fontWeight: "bold" };
+        default: return { color: "white" };
       }
     };
 
     return events.map(event => (
       <div>
-        <span className={s.logTime}>{this.formatTime(event.time)}</span>&nbsp;
-        <span className={eventClassName(event)}>{event.message}</span>
+        <span style={{ color: "gray" }}>{this.formatTime(event.time)}</span>&nbsp;
+        <span style={eventStyle(event)}>{event.message}</span>
       </div>
     ));
   }

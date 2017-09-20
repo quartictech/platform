@@ -36,7 +36,7 @@ networkInterface.useAfter([{
 }]);
 
 // TODO: It would be great to use the real schema here
-export const fragmentMatcher = new IntrospectionFragmentMatcher({
+const fragmentMatcher = new IntrospectionFragmentMatcher({
   introspectionQueryResultData: {
     __schema: {
       types: [
