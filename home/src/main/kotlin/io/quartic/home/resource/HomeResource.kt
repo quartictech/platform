@@ -3,7 +3,6 @@ package io.quartic.home.resource
 import io.dropwizard.auth.Auth
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
-import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
 import io.quartic.catalogue.api.model.DatasetNamespace
@@ -11,8 +10,7 @@ import io.quartic.common.auth.User
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.home.CreateDatasetRequest
-import io.quartic.home.CreateStaticDatasetRequest
+import io.quartic.home.model.CreateDatasetRequest
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
@@ -36,9 +34,6 @@ class HomeResource(
     private val evalTrigger: EvalTriggerServiceClient,
     private val registry: RegistryServiceClient
 ) {
-    // TODO - frontend will need to cope with DatasetNamespace in request paths and GET /datasets response
-
-    // TODO - how does frontend know what namespace to use for dataset creation?
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,74 +59,72 @@ class HomeResource(
     @GET
     @Path("/dag/{build}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(@Auth user: User, @PathParam("build") build: Long) = evalQuery.getDagAsync(user.customerId!!, build)
+    fun getDag(
+        @Auth user: User,
+        @PathParam("build") build: Long
+    ) = evalQuery.getDagAsync(user.customerId!!, build)
         .wrapNotFound("DAG", build)
 
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getDatasets(@Auth user: User): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
-        if (user.customerId == null) {
-            return emptyMap()
-        } else {
-            val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
-            return catalogue.getDatasets().filterKeys { namespace -> customer.namespace == namespace.namespace }
-        }
+    fun getDatasets(
+        @Auth user: User
+    ): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
+        val namespace = lookupNamespace(user)
+        return catalogue.getDatasets().filterKeys { namespace.namespace == it.namespace }
     }
 
     @DELETE
-    @Path("/datasets/{namespace}/{id}")
+    @Path("/datasets/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun deleteDataset(
         @Auth user: User,
-        @PathParam("namespace") namespace: DatasetNamespace,
         @PathParam("id") id: DatasetId
     ) {
         // Note there's a potential race-condition here - another catalogue client could have manipulated the
-        // dataset in-between these two statements.  It shouldn't matter - we will never delete a dataset not in an
-        // authorised namespace.
-        throwIfDatasetNotPresentOrNotAllowed(user, DatasetCoordinates(namespace, id))
+        // dataset in-between the two catalogue calls.
+        val namespace = lookupNamespace(user)
+        val datasets = getDatasets(user)[namespace] ?: emptyMap()
+        if (id !in datasets) {
+            throw notFoundException("Dataset", id.uid)
+        }
         catalogue.deleteDataset(namespace, id)
     }
 
     @POST
-    @Path("/datasets/{namespace}")
+    @Path("/datasets")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun createDataset(
         @Auth user: User,
-        @PathParam("namespace") namespace: DatasetNamespace,
         request: CreateDatasetRequest
     ): DatasetId {
-        throwIfNamespaceNotAllowed(user, namespace)
-        val datasetConfig = when (request) {
-            is CreateStaticDatasetRequest -> DatasetConfig(
-                request.metadata,
-                CloudDatasetLocator(
-                    "/${namespace}/${namespace}/${request.fileName}",
-                    false,
-                    DEFAULT_MIME_TYPE
-                )
+        val namespace = lookupNamespace(user)
+        val datasetConfig = DatasetConfig(
+            request.metadata,
+            CloudDatasetLocator(
+                "/${namespace}/${namespace}/${request.fileName}",
+                false,
+                DEFAULT_MIME_TYPE
             )
-            else -> throw BadRequestException("Unknown request type '${request.javaClass.simpleName}'")
-        }
-
+        )
         return catalogue.registerDataset(namespace, datasetConfig).id
     }
 
     @POST
-    @Path("/file/{namespace}")
+    @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
     fun uploadFile(
         @Auth user: User,
-        @PathParam("namespace") namespace: DatasetNamespace,
         @Context request: HttpServletRequest
     ): HowlStorageId {
+        val namespace = lookupNamespace(user)
         return howl.uploadAnonymousFile(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
             try {
                 copy(request.inputStream, outputStream)
             } catch (e: Exception) {
-                throw RuntimeException("Exception while uploading file: " + e)
+                throw RuntimeException("Exception while uploading file", e)
             }
         }
     }
@@ -149,21 +142,10 @@ class HomeResource(
 
     private fun notFoundException(type: String, name: Any) = NotFoundException("$type '$name' not found")
 
-    private fun throwIfDatasetNotPresentOrNotAllowed(user: User, coords: DatasetCoordinates) {
-        val datasets = getDatasets(user)    // These will already be filtered to those that the user is authorised for
-
-        val datasetsInNamespace = datasets[coords.namespace]
-            ?: throw notFoundException("Namespace", coords.namespace.namespace)
-        if (!datasetsInNamespace.contains(coords.id)) {
-            throw notFoundException("Dataset", coords.id.uid)
-        }
-    }
-
-    private fun throwIfNamespaceNotAllowed(user: User, namespace: DatasetNamespace) {
+    private fun lookupNamespace(user: User): DatasetNamespace {
+        // TODO - handle failure
         val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
-        if (customer.namespace != namespace.namespace) {
-            throw notFoundException("Namespace", namespace.namespace) // 404 instead of 403 to prevent discovery
-        }
+        return DatasetNamespace(customer.namespace)
     }
 
     companion object {

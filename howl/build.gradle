@@ -23,5 +23,5 @@ dependencies {
 
     testCompile project(":common-test")
     testCompile libraries.dropwizard.testing
-    testCompile "org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.25"
+    testCompile libraries.jerseyTestFrameworkProviderGrizzly
 }
