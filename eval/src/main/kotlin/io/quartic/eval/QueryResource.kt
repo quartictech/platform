@@ -4,10 +4,13 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.LogMessageReceived
+import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.PhaseStarted
+import io.quartic.eval.database.model.toApiModel
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -23,7 +26,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
 
     override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
         database.getEventsForBuild(customerId, buildNumber)
-            .map { println(it); it.toApi() }
+            .map { it.toApi() }
 
     private fun Database.EventRow.toApi() = when (this.payload) {
         is LogMessageReceived -> ApiBuildEvent.Log(

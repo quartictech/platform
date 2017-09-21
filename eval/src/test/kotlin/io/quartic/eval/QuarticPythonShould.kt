@@ -10,6 +10,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Paths
+import io.quartic.eval.EvalApplication.Companion.QUARTIC_PYTHON_VERSION
 
 class QuarticPythonShould {
     companion object {
@@ -17,7 +18,7 @@ class QuarticPythonShould {
         set -e
         python3 -m venv .env
         source .env/bin/activate
-        pip install git+git://github.com/quartictech/quartic-python.git@${EvalApplication.QUARTIC_PYTHON_VERSION}
+        pip install git+git://github.com/quartictech/quartic-python.git@${QUARTIC_PYTHON_VERSION}
         pip install requests datadiff
         """
 

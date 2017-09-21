@@ -7,3 +7,5 @@ export function assign(target: any, ...sources): any {
 
 export const QUARTIC_XSRF = "quartic-xsrf";
 export const QUARTIC_XSRF_HEADER = "X-XSRF-Token";
+
+export * from "./formatting";

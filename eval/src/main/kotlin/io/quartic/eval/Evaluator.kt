@@ -53,13 +53,13 @@ class Evaluator(
             try {
                 Dag.fromRaw(nodes)
             } catch (e: Exception) {
+                LOG.error("Exception while validating DAG:", e)
                 null
             }
         },
         { hostname -> QuartyProxy(hostname) }
     )
 
-    private val LOG by logger()
 
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
@@ -151,6 +151,7 @@ class Evaluator(
     private fun parseRawPipeline(raw: Any?) = try {
         OBJECT_MAPPER.convertValue<Pipeline>(raw!!).nodes.map { it.toDatabaseModel() }
     } catch (e: Exception) {
+        LOG.error("Error parsing Quarty response: ${raw}")
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
 
@@ -182,4 +183,8 @@ class Evaluator(
         block = { await() },
         onThrow = { throw EvaluatorException("Error while ${action}", it) }
     )
+
+    companion object {
+        private val LOG by logger()
+    }
 }

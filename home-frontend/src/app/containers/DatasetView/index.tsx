@@ -1,4 +1,5 @@
 import * as React from "react";
+const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 
 import { IDatasetCoords, DatasetMap } from "../../models";
@@ -18,21 +19,32 @@ interface IProps {
 }
 
 class DatasetView extends React.Component<IProps, {}> {
-
   componentDidMount() {
     this.props.fetchDatasets();
   }
 
-  render() {
-    return (
-      <div className={s.center}>
-        <DatasetInfo
-          coords={this.props.params}
-          dataset={this.props.datasets[this.props.params.namespace][this.props.params.id]}
-          deleteClick={this.props.deleteDataset}
-        />
-      </div>
+  componentWillReceiveProps(newProps) {
+    if (newProps.params.namespace !== this.props.params.namespace ||
+        newProps.params.id !== this.props.params.id) {
+      this.props.fetchDatasets();
+    }
+  }
 
+  render() {
+    if (!(this.props.params.namespace in this.props.datasets)) {
+      return null;
+    }
+    const dataset = this.props.datasets[this.props.params.namespace][this.props.params.id];
+    return (
+      <DocumentTitle title={`Quartic - ${dataset.metadata.name}`}>
+        <div className={s.center}>
+          <DatasetInfo
+            coords={this.props.params}
+            dataset={dataset}
+            deleteClick={this.props.deleteDataset}
+          />
+        </div>
+      </DocumentTitle>
     );
   }
 }

@@ -185,13 +185,14 @@ class SequencerImplShould {
     }
 
     @Test
-    fun send_start_notification_before_any_real_workon_success() = runBlocking {
+    fun send_start_notifications_before_any_real_workon_success() = runBlocking {
         sequencer.sequence(details, customer) {}    // Do nothing
 
         inOrder(notifier, qube) {
             runBlocking {
-                verify(notifier).notifyStart(details)
+                verify(notifier).notifyQueue(details)
                 verify(qube).createContainer()
+                verify(notifier).notifyStart(details)
             }
         }
     }

@@ -5,9 +5,10 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlStorageId
-import io.quartic.howl.storage.InputStreamWithContentType
 import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
+import io.quartic.howl.storage.StorageCoords.Managed
+import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
 import org.hamcrest.CoreMatchers.equalTo
@@ -17,8 +18,12 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
@@ -28,117 +33,115 @@ class HowlResourceShould {
     @Rule
     @JvmField
     val resources = ResourceTestRule.builder()
-            .addResource(HowlResource(storage, idGen))
-            // Needed for injecting HttpServletRequest with @Context to work in the resource
-            .setTestContainerFactory(GrizzlyWebTestContainerFactory())
-            .build()
+        .addResource(HowlResource(storage, idGen))
+        // Needed for injecting HttpServletRequest with @Context to work in the resource
+        .setTestContainerFactory(GrizzlyWebTestContainerFactory())
+        .build()
 
     @Test
-    fun store_file_on_put_with_2d_coords() {
-        assertPutBehavesCorrectly("/foo/thing", StorageCoords("foo", "foo", "thing"))
-    }
-
-    @Test
-    fun store_file_on_put_with_3d_coords() {
-        assertPutBehavesCorrectly("/foo/bar/thing", StorageCoords("foo", "bar", "thing"))
-    }
-
-    private fun assertPutBehavesCorrectly(requestPath: String, expectedCoords: StorageCoords) {
+    fun store_file_on_put() {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
         whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            Storage.PutResult(55)
+            true
         }
 
-        resources.jerseyTest.target(requestPath)
-                .request()
-                .put(Entity.text(data))
+        request("foo/managed/bar/thing").put(Entity.text(data))
 
-        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putData(eq(Managed("foo", "bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
-    fun store_file_on_post_with_2d_coords() {
+    fun store_file_on_post() {
         whenever(idGen.get()).thenReturn(HowlStorageId("42"))
-        assertPostBehavesCorrectly("/foo", StorageCoords("foo", "foo", "42"), HowlStorageId("42"))
-    }
-
-    @Test
-    fun store_file_on_post_with_3d_coords() {
-        whenever(idGen.get()).thenReturn(HowlStorageId("42"))
-        assertPostBehavesCorrectly("/foo/bar", StorageCoords("foo", "bar", "42"), HowlStorageId("42"))
-    }
-
-    private fun assertPostBehavesCorrectly(requestPath: String, expectedCoords: StorageCoords, expectedId: HowlStorageId) {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
         whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            Storage.PutResult(55)
+            true
         }
 
-        val howlStorageId = resources.jerseyTest.target(requestPath)
-                .request()
-                .post(Entity.text(data), HowlStorageId::class.java)
+        val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
 
-        assertThat(howlStorageId, equalTo(expectedId))
-        verify(storage).putData(eq(expectedCoords), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        assertThat(howlStorageId, equalTo(HowlStorageId("42")))
+        verify(storage).putData(eq(Managed("foo", "bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
-    fun throw_if_storage_returns_null() {
-        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(null)
+    fun throw_if_storage_returns_false() {
+        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(false)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         assertThrows<NotFoundException> {
-            resources.jerseyTest.target("/foo/thing")
-                    .request()
-                    .post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
+            request("foo/managed/thing").post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
         }
     }
 
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
-        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(Storage.PutResult(55))
+        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
-        resources.jerseyTest.target("/test")
-                .request()
-                .post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
+        request("test/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putData(eq(StorageCoords("test", "test", "69")), eq(-1), eq(null), any())
+        verify(storage).putData(eq(Managed("test", "thing", "69")), eq(-1), eq(null), any())
     }
 
     @Test
-    fun return_file_on_get_with_2d_coords() {
-        assertGetBehavesCorrectly("/foo/thing", StorageCoords("foo", "foo", "thing"))
+    fun return_unmanaged_file_on_get() {
+        assertGetBehavesCorrectly("foo/unmanaged/thing", Unmanaged("foo", "thing"))
     }
 
     @Test
-    fun return_file_on_get_with_3d_coords() {
-        assertGetBehavesCorrectly("/foo/bar/thing", StorageCoords("foo", "bar", "thing"))
+    fun return_managed_file_on_get() {
+        assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
     }
 
-    private fun assertGetBehavesCorrectly(requestPath: String, expectedCoords: StorageCoords) {
-        val data = "wat".toByteArray()
-        whenever(storage.getData(any(), anyOrNull())).thenReturn(
-                InputStreamWithContentType(MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun return_headers_on_head() {
+        val instant = Instant.now()
+        whenever(storage.getMetadata(any())).thenReturn(
+            Storage.StorageMetadata(
+                instant,
+                MediaType.TEXT_PLAIN,
+                3
+            )
         )
 
-        val response = resources.jerseyTest.target(requestPath)
-                .request()
-                .get()
+        val response = request("foo/unmanaged/wat").head()
+        val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
+        assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
+        assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
+        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
+    }
+
+    private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
+        val data = "wat".toByteArray()
+        whenever(storage.getData(any())).thenReturn(
+            Storage.StorageResult(
+                Storage.StorageMetadata(
+                    Instant.now(),
+                    MediaType.TEXT_PLAIN,
+                    3),
+                ByteArrayInputStream(data)
+            )
+        )
+
+        val response = request(path).get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(storage).getData(eq(expectedCoords), eq(null))
+        verify(storage).getData(eq(expectedCoords))
         assertThat(responseEntity, equalTo(data))
     }
+
+    private fun request(path: String) = resources.jerseyTest.target(path).request()
 }

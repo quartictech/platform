@@ -1,4 +1,4 @@
-FROM {{docker_base_image}}
+FROM openjdk:8u131-jre-alpine
 
 # See https://github.com/gliderlabs/docker-alpine/issues/279#issuecomment-300859312
 RUN echo http://nl.alpinelinux.org/alpine/v3.6/main > /etc/apk/repositories; \

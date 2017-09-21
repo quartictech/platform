@@ -8,7 +8,6 @@ apply plugin: KotlinPlugin
 
 dependencies {
     compile libraries.guava
-    compile libraries.rxjava
     compile libraries.websocket
     compile libraries.coroutines
     compile libraries.tyrus.client

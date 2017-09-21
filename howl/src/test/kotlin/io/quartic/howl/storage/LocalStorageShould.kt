@@ -1,6 +1,7 @@
 package io.quartic.howl.storage
 
 import io.quartic.howl.storage.LocalStorage.Config
+import io.quartic.howl.storage.StorageCoords.Managed
 import org.apache.commons.io.IOUtils
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -22,7 +23,7 @@ class LocalStorageShould {
     fun store_data_and_return_it() {
         val data = "data".toByteArray()
         storeData("wat", data)
-        val readData = getData("wat", null)
+        val readData = getData("wat")
 
         assertThat(readData, equalTo(data))
     }
@@ -34,7 +35,7 @@ class LocalStorageShould {
         val data2 = "data2".toByteArray()
         storeData("wat", data2)
 
-        assertThat(getData("wat", null), equalTo(data2))
+        assertThat(getData("wat"), equalTo(data2))
     }
 
     @Test
@@ -42,23 +43,15 @@ class LocalStorageShould {
         storeData("wat", "data".toByteArray())
         storeData("wat2", "data2".toByteArray())
 
-        assertThat(getData("wat", null), equalTo("data".toByteArray()))
-        assertThat(getData("wat2", null), equalTo("data2".toByteArray()))
-    }
-
-    @Test
-    fun overwrites_create_new_versions() {
-        val version = storeData("leet", "data".toByteArray())
-        val version2 = storeData("leet", "data2".toByteArray())
-
-        assertThat(version != version2, equalTo(true))
+        assertThat(getData("wat"), equalTo("data".toByteArray()))
+        assertThat(getData("wat2"), equalTo("data2".toByteArray()))
     }
 
     private fun storeData(objectName: String, data: ByteArray)
-            = storage.putData(StorageCoords("foo", "bar", objectName), null, MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
+        = storage.putData(Managed("foo", "bar", objectName), null, MediaType.TEXT_PLAIN, ByteArrayInputStream(data))
 
-    private fun getData(objectName: String, version: Long?): ByteArray? {
-        val inputStreamWithContentType = storage.getData(StorageCoords("foo", "bar", objectName), version)
+    private fun getData(objectName: String): ByteArray? {
+        val inputStreamWithContentType = storage.getData(Managed("foo", "bar", objectName))
         return if (inputStreamWithContentType != null) {
             val outputStream = ByteArrayOutputStream()
             IOUtils.copy(inputStreamWithContentType.inputStream, outputStream)

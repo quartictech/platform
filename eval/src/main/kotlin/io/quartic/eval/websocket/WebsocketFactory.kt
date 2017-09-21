@@ -15,7 +15,7 @@ class WebsocketFactory : AutoCloseable {
         }
     }
 
-    private val httpClient = Vertx.vertx().createHttpClient()
+    private val httpClient = vertx.createHttpClient()
 
     override fun close() {
         httpClient.close()
@@ -36,5 +36,9 @@ class WebsocketFactory : AutoCloseable {
             },
             { failureHandler(it) }
         )
+    }
+
+    companion object {
+        private val vertx by lazy { Vertx.vertx() }
     }
 }

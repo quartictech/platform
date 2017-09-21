@@ -3,7 +3,6 @@ package io.quartic.eval
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.common.secrets.SecretsCodec
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.qube.QubeProxy
@@ -74,12 +73,12 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             EvalApplication::class.java,
             config.database,
             environment,
-            SecretsCodec(config.masterKeyBase64)
+            config.secretsCodec
         ).dao<Database>()
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
 
-        const val QUARTIC_PYTHON_VERSION = "0.2.0"
+        public const val QUARTIC_PYTHON_VERSION = "0.2.0"
     }
 }

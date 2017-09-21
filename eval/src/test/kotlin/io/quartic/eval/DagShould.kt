@@ -49,6 +49,24 @@ class DagShould {
     }
 
     @Test
+    fun detect_unproduced_datasets() {
+        val a = Raw("111", mock(), mock(),
+            dataset("C")
+        ) as Node
+        val b1 = Step("222", mock(),
+            listOf(dataset("A")),
+            dataset("B")
+        ) as Node
+
+        val nodes = listOf(a, b1)
+
+        assertThrows<IllegalArgumentException> {
+            Dag.fromRaw(nodes)
+        }
+    }
+
+
+    @Test
     fun generate_correct_edges() {
         val a = Raw("111", mock(), mock(),
             dataset("A")

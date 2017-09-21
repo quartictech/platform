@@ -13,7 +13,7 @@ interface IFile {
 }
 
 interface INewDatasetProps {
-  createDataset: (namespace: string, metadata: IDatasetMetadata, files: IFiles) => any;
+  createDataset: (metadata: IDatasetMetadata, files: IFiles) => any;
   visible: boolean;
   closeNewDatasetClick: any;
 }
@@ -21,7 +21,6 @@ interface INewDatasetProps {
 // NOTE: These are optional to make setState easier to call
 interface IState {
   files?: IFile[];
-  namespace: string;
   name?: string;
   description?: string;
 }
@@ -47,14 +46,12 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
   constructor() {
     super();
     this.state = {
-      namespace: "production",
       name: "",
       description: "",
       files: [],
     };
 
     this.toggleDialog = this.toggleDialog.bind(this);
-    this.onChangeNamespace = this.onChangeNamespace.bind(this);
     this.onChangeName = this.onChangeName.bind(this);
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onDrop = this.onDrop.bind(this);
@@ -63,7 +60,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   public onSave() {
     this.props.createDataset(
-      this.state.namespace,
       {
         name: this.state.name,
         description: this.state.description,
@@ -71,17 +67,12 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
       },
       {
         files: this.state.files,
-        fileType: "RAW",
       },
     );
   }
 
   onDrop(files) {
     this.setState({ files });
-  }
-
-  onChangeNamespace(e) {
-    this.setState({ namespace: e.target.value });
   }
 
   onChangeName(e) {
@@ -94,10 +85,6 @@ export class NewDataset extends React.Component<INewDatasetProps, IState> {
 
   toggleDialog() {
     this.props.closeNewDatasetClick();
-  }
-
-  isNamespaceValid() {
-    return this.state.namespace.length !== 0;
   }
 
   isNameValid() {

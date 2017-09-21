@@ -25,7 +25,6 @@ datetime
 frontend
 config
 VCS
-Github
 metadata
 Metadata
 versioned
@@ -34,3 +33,6 @@ timestamps
 QLI
 repo
 virtualenv
+UI
+GitHub
+IDE
