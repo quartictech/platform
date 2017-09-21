@@ -6,6 +6,7 @@ import {
   Tooltip,
   Position,
   Icon,
+  IconClasses,
   InputGroup,
 } from "@blueprintjs/core";
 import { IDataset, IDatasetMetadata, DatasetMap } from "../../models";
@@ -83,12 +84,12 @@ class DatasetListInner extends React.Component<IDatasetListProps, IDatasetListSt
 
   noDatasets = () => (
     <div>
-      <div className={classNames("pt-non-ideal-state", s.noItems)}>
-        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-lightbulb"/>
+      <div className={classNames(Classes.NON_IDEAL_STATE, s.noItems)}>
+        <div className={classNames(Classes.NON_IDEAL_STATE_VISUAL, Classes.NON_IDEAL_STATE_ICON)}>
+          <span className={classNames(Classes.ICON, IconClasses.LIGHTBULB)}/>
         </div>
-        <h4 className="pt-non-ideal-state-title">You haven't created any datasets.</h4>
-        <div className="pt-non-ideal-state-description">
+        <h4 className={Classes.NON_IDEAL_STATE_TITLE}>You haven't created any datasets.</h4>
+        <div className={Classes.NON_IDEAL_STATE_DESCRIPTION}>
           Run a build or <a onClick={this.props.showNewDatasetModal}> upload a file</a> to get started.
         </div>
       </div>
