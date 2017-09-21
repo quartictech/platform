@@ -6,6 +6,7 @@ import {
   Tooltip,
   Position,
   Icon,
+  InputGroup,
 } from "@blueprintjs/core";
 import { IDataset, IDatasetMetadata, DatasetMap } from "../../models";
 import * as classNames from "classnames";
@@ -161,10 +162,10 @@ class DatasetListInner extends React.Component<IDatasetListProps, IDatasetListSt
             intent={Intent.PRIMARY}
             onClick={this.props.showNewDatasetModal}
           />
-          <input
-            className={classNames("pt-input", s.searchBox)}
+          <InputGroup
+            leftIconName="search"
+            className={classNames(Classes.ROUND, s.searchBox)}
             placeholder="Search datasets..."
-            type="text"
             onChange={e => this.onSearch(e)}
           />
           {this.datasetsTable()}
