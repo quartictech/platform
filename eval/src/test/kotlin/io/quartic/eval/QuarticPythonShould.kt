@@ -10,10 +10,10 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Paths
+import io.quartic.eval.EvalApplication.Companion.QUARTIC_PYTHON_VERSION
 
 class QuarticPythonShould {
     companion object {
-        const val QUARTIC_PYTHON_VERSION = "0.2.0"
         const val SCRIPT = """
         set -e
         python3 -m venv .env
