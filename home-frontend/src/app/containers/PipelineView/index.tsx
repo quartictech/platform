@@ -2,7 +2,8 @@ import * as React from "react";
 const DocumentTitle = require("react-document-title");  // tslint:disable-line:variable-name
 import { connect } from "react-redux";
 import { Link } from "react-router";
-import { Classes, Spinner } from "@blueprintjs/core";
+import { Classes, IconClasses, Spinner } from "@blueprintjs/core";
+import * as classNames from "classnames";
 import * as cytoscape from "cytoscape";
 import * as cytoscapeDagre from "cytoscape-dagre";
 cytoscapeDagre(cytoscape);
@@ -57,12 +58,12 @@ class PipelineView extends React.Component<IProps, {}> {
       `There are no valid DAGs yet for this project.`;
 
     return (
-      <div className="pt-non-ideal-state">
-        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-warning-sign" />
+      <div className={Classes.NON_IDEAL_STATE}>
+        <div className={classNames(Classes.NON_IDEAL_STATE_VISUAL, Classes.NON_IDEAL_STATE_ICON)}>
+          <span className={classNames(Classes.ICON, IconClasses.WARNING_SIGN)}/>
         </div>
-        <h4 className="pt-non-ideal-state-title">{message}</h4>
-        <div className="pt-non-ideal-state-description">
+        <h4 className={Classes.NON_IDEAL_STATE_TITLE}>{message}</h4>
+        <div className={Classes.NON_IDEAL_STATE_DESCRIPTION}>
           Fix your DAG or view the <Link to="/pipeline/">latest version</Link>.
         </div>
       </div>

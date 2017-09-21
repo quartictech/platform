@@ -7,7 +7,7 @@ import * as classNames from "classnames";
 
 import * as moment from "moment";
 
-import { Button, Spinner, Classes, Intent } from "@blueprintjs/core";
+import { Button, Spinner, IconClasses, Classes, Intent } from "@blueprintjs/core";
 
 import { gql, graphql } from "react-apollo";
 import { createStructuredSelector } from "reselect";
@@ -94,12 +94,12 @@ class HomeView extends React.Component<IProps, {}> {
 
   renderNoItems = () => (
     <div>
-      <div className={classNames("pt-non-ideal-state", s.noItems)}>
-        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-lightbulb"/>
+      <div className={classNames(Classes.NON_IDEAL_STATE, s.noItems)}>
+        <div className={classNames(Classes.NON_IDEAL_STATE_VISUAL, Classes.NON_IDEAL_STATE_ICON)}>
+          <span className={classNames(Classes.ICON, IconClasses.LIGHTBULB)}/>
         </div>
-        <h4 className="pt-non-ideal-state-title">You haven't run any builds yet.</h4>
-        <div className="pt-non-ideal-state-description">
+        <h4 className={Classes.NON_IDEAL_STATE_TITLE}>You haven't run any builds yet.</h4>
+        <div className={Classes.NON_IDEAL_STATE_DESCRIPTION}>
           Push your code or
               <a onClick={() => this.props.buildPipeline()}>
               &nbsp;manually trigger&nbsp;
