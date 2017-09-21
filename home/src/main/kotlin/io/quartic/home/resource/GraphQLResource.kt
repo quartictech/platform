@@ -1,6 +1,8 @@
 package io.quartic.home.resource
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import graphql.ErrorType
+import graphql.ExceptionWhileDataFetching
 import graphql.GraphQL
 import graphql.GraphQLError
 import graphql.annotations.GraphQLAnnotations
@@ -56,6 +58,22 @@ class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHub) {
             LOG.error("Errors: {}", executionResult.errors)
         }
 
-        return Result(executionResult.getData(), executionResult.errors)
+        return Result(executionResult.getData(), sanitiseErrors(executionResult.errors))
+    }
+
+    private fun sanitiseErrors(unsanitised: List<GraphQLError>): List<GraphQLError> {
+        return unsanitised
+            .map { error ->
+                if (error is ExceptionWhileDataFetching) {
+                    object : GraphQLError {
+                        override fun getErrorType() = ErrorType.DataFetchingException
+                        override fun getLocations() = null
+                        override fun getMessage() = "Internal server error"
+                    }
+                } else {
+                    error
+
+                }
+            }
     }
 }

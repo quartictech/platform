@@ -25,8 +25,7 @@ class FrontendPlugin : Plugin<Project> {
             extensions.create(EXTENSION, FrontendExtension::class.java)
 
             val packageJson = createPackageJsonGenerationTask()
-            val installYarn = createInstallYarnTask()
-            val installDeps = createInstallDependenciesTask(installYarn, packageJson)
+            val installDeps = createInstallDependenciesTask(packageJson)
             val bundle = createBundleTask(installDeps)
             configureDockerPlugin(bundle)
             createRunTask(installDeps)
@@ -48,23 +47,10 @@ class FrontendPlugin : Plugin<Project> {
         packageJson = file("package.json")
     }
 
-    private fun Project.createInstallYarnTask() = task<Exec>(
-        INSTALL_YARN,
-        "Installs local Yarn."
-    ) {
-        inputs.property("version", YARN_VERSION)
-
-        outputs.dir(yarnDir)
-        outputs.cacheIf { true }
-
-        commandLine = listOf("npm", "install", "--global", "--no-save", "--prefix", yarnDir, "yarn@$YARN_VERSION")
-    }
-
-    private fun Project.createInstallDependenciesTask(installYarn: Task, packageJson: Task) = task<Exec>(
+    private fun Project.createInstallDependenciesTask(packageJson: Task) = task<Exec>(
         INSTALL_DEPENDENCIES,
         "Installs node_modules dependencies."
     ) {
-        inputs.files(installYarn.outputs)
         inputs.files(packageJson.outputs)
         inputs.file(project.file("yarn.lock"))
 
@@ -75,7 +61,7 @@ class FrontendPlugin : Plugin<Project> {
         // --mutex network -> In a perfect world, we'd just put this in .yarnrc.
         // However, see this: https://github.com/mapbox/mapbox-gl-js/issues/4885
         commandLine = listOf(
-            yarnExecutable,
+            "yarn",
             "--mutex", "network",
             "--non-interactive"
         ) + if (System.getenv().containsKey("CI")) listOf("--frozen-lockfile") else emptyList()
@@ -201,25 +187,20 @@ class FrontendPlugin : Plugin<Project> {
 
     private val Project.ext get() = extensions.getByType(FrontendExtension::class.java)
 
-    private val Project.yarnDir get() = File(buildDir, "yarn")
     private val Project.lintDir get() = File(buildDir, "lint")
     private val Project.nodeModulesDir get() = file("node_modules")
     private val Project.srcDir get() = file("src")
     private val Project.configDir get() = file("config")
 
     // TODO - switch to symlinks in .bin once Gradle build cache supports symlinks
-    private val Project.yarnExecutable get() = File(yarnDir, "lib/node_modules/yarn/bin/yarn.js")
     private val Project.tsNodeExecutable get() = File(nodeModulesDir, "ts-node/dist/bin.js")
     private val Project.webpackExecutable get() = File(nodeModulesDir, "webpack/bin/webpack.js")
 
 
     companion object {
-        val YARN_VERSION = "1.0.1"
-
         val GROUP = "Frontend"
         val EXTENSION = "frontend"
 
-        val INSTALL_YARN = "installYarn"
         val CREATE_PACKAGE_JSON = "createPackageJson"
         val INSTALL_DEPENDENCIES = "installDependencies"
         val BUNDLE = "bundle"
