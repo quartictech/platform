@@ -87,7 +87,7 @@ class SequencerImpl(
         private fun transformResult(result: PhaseResult<*>) = when (result) {
             is PhaseResult.Success -> Result.Success()
             is PhaseResult.SuccessWithArtifact -> Result.Success(result.artifact)
-            is PhaseResult.InternalError -> Result.InternalError(result.throwable)
+            is PhaseResult.InternalError -> INTERNAL_ERROR
             is PhaseResult.UserError -> Result.UserError(result.detail)
         }
 

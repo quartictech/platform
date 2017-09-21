@@ -82,7 +82,7 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
     )
     sealed class Result {
         data class Success(val artifact: V2.Artifact? = null) : Result()
-        data class InternalError(val throwable: Throwable) : Result()
+        class InternalError : Result()
         data class UserError(val detail: Any?) : Result()
     }
 }
@@ -110,6 +110,7 @@ typealias LogMessageReceived = CurrentLogMessageReceived
 // To make testing easier given one can't have zero-arg data classes
 val BUILD_CANCELLED = BuildCancelled()
 val BUILD_SUCCEEDED = BuildSucceeded()
+val INTERNAL_ERROR = InternalError()
 
 fun Pipeline.Node.toDatabaseModel() = when (this) {
     is Pipeline.Node.Step -> V2.Node.Step(

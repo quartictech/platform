@@ -8,7 +8,6 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact
 import io.quartic.eval.qube.QubeProxy
@@ -121,7 +120,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any())
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, INTERNAL_ERROR)), any(), any())
     }
 
     @Test
@@ -140,7 +139,7 @@ class SequencerImplShould {
         }
 
         val phaseId = uuid(103)
-        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, InternalError(exception))), any(), any())
+        verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, INTERNAL_ERROR)), any(), any())
     }
 
     @Test
