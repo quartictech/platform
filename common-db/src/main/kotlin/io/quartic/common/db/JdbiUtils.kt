@@ -19,17 +19,23 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.Type
 import java.sql.ResultSet
 
-fun <T : SqlStatement<*>> T.bindJson(name: String, o: Any): T {
+fun <T : SqlStatement<*>> T.bindJson(name: String, o: Any?): T {
     val pgObject = PGobject()
     pgObject.type = "jsonb"
-    pgObject.value = OBJECT_MAPPER.writeValueAsString(o)
+    pgObject.value = if (o != null) OBJECT_MAPPER.writeValueAsString(o) else null
     this.bind(name, pgObject)
     return this
 }
 
 class BindJsonFactory : SqlStatementCustomizerFactory {
-    override fun createForParameter(annotation: Annotation?, sqlObjectType: Class<*>?, method: Method?, param: Parameter?,
-                                    index: Int, paramType: Type?): SqlStatementParameterCustomizer {
+    override fun createForParameter(
+        annotation: Annotation?,
+        sqlObjectType: Class<*>?,
+        method: Method?,
+        param: Parameter?,
+        index: Int,
+        paramType: Type?
+    ): SqlStatementParameterCustomizer {
         return SqlStatementParameterCustomizer { stmt, arg ->
             stmt!!.bindJson((annotation as BindJson).name, arg)
         }
