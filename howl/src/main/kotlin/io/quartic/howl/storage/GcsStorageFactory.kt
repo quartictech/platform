@@ -59,7 +59,7 @@ class GcsStorageFactory {
 
             StorageMetadata(
                 Instant.ofEpochMilli(response.updated.value),
-                response.contentType,
+                response.contentType ?: DEFAULT_MIME_TYPE,
                 response.size.toLong()
             )
         }
@@ -85,6 +85,10 @@ class GcsStorageFactory {
                  null
              }
         }
+    }
+
+    companion object {
+        const val DEFAULT_MIME_TYPE = "application/octet-stream"
     }
 }
 
