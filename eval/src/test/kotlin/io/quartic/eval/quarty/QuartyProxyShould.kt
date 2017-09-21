@@ -1,9 +1,7 @@
 package io.quartic.eval.quarty
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.*
+import io.quartic.common.test.TimingSensitive
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.utils.runAndExpectToTimeout
@@ -129,6 +127,7 @@ class QuartyProxyShould {
         }
     }
 
+    @TimingSensitive
     @Test
     fun close_on_close() {
         runOrTimeout {
@@ -136,9 +135,7 @@ class QuartyProxyShould {
             quarty.close()
         }
 
-        Thread.sleep(100)   // Gross
-
-        verify(client).close()
+        verify(client, timeout(1000)).close()
     }
 
     private suspend fun quartyIsConnected() = events.send(Connected())
