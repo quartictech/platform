@@ -23,8 +23,12 @@ class HeyApplication : ApplicationBase(HEY_DEV_PORT) {
                 client.post(443, "hooks.slack.com", "/services/${slackToken.veryUnsafe}")
                     .ssl(true)
                     .sendJson(message) { ar ->
-                        if (ar.succeeded() && ar.result().statusCode() in 200..299) {
-                            LOG.info("Message sent successfully")
+                        if (ar.succeeded()) {
+                            if (ar.result().statusCode() in 200..299) {
+                                LOG.info("Message sent successfully")
+                            } else {
+                                LOG.error("Message failed with status code: ${ar.result().statusCode()} (${ar.result().bodyAsString()})")
+                            }
                         } else {
                             LOG.error("Message failed: ${getRootCause(ar.cause()).message})")
                         }
