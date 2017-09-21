@@ -28,7 +28,6 @@ export class App extends React.Component<IProps, {}> {
       <div>
         <section className={s.App}>
           <Header
-            searchBoxChange={this.props.searchDatasets}
             onLogOutClick={this.props.logout}
             profile={this.props.data.profile}
           />
@@ -42,7 +41,6 @@ export class App extends React.Component<IProps, {}> {
 }
 
 const mapDispatchToProps = {
-  searchDatasets: actions.searchDatasets,
   logout: actions.userLogout,
 };
 
