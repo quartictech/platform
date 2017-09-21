@@ -24,7 +24,33 @@ To simply get started, we recommend doing one of the following:
 
 - upload some data from the frontend. This data will then be available via the data URL displayed on the dataset for use in your pipeline.
 
-- (more advanced) define a raw dataset.
+- (more advanced) define a raw dataset. This requires [configuring an S3 bucket](/configuring-s3) for the platform.
+Then you can reference a data file in the bucket using the `@raw` decorator as follows:
+
+```py
+from quartic.incubating import raw, FromBucket
+
+@raw
+def register() -> "<my_desired_dataset_id>":
+    return FromBucket("<the_data_file_in_S3>", name="<optional_name>", desc="<optional_description>")
+```
+
+Working through this piece by piece:
+
+```py
+from quartic.incubating import raw, FromBucket
+```
+
+imports the necessary modules from [Quartic-Python(https://github.com/quartictech/quartic-python) to register a `raw` dataset from a storage bucket. 
+Note that `quartic.incubating` means these are
+beta features currently. They will eventually be moved into `quartic` (similar to the inputs below).
+
+```py
+def register() -> "<my_desired_dataset_id>":
+    return FromBucket("<the_data_file_in_S3>", name="<optional_name>", desc="<optional_description>")
+```
+
+registers your dataset at the desired dataset ID. The dataset ID may then be used in subsequent steps described below.
 
 If you'd rather leave using your own data to a later stage, an example data source is provided when you first start the instance.
 
@@ -34,6 +60,8 @@ If you'd rather leave using your own data to a later stage, an example data sour
 The following defines a complete step in the pipeline:
 
 ```py
+from quartic import step, writer
+
 @step
 def run(input_dataset: "input_dataset_id") -> "output_dataset_id":
     input = input_dataset.reader().raw().read()
@@ -45,6 +73,12 @@ def run(input_dataset: "input_dataset_id") -> "output_dataset_id":
 ```
 
 Working through this piece by piece:
+
+```py
+from quartic import step, writer
+```
+
+import the necessary modules from [Quartic-Python](https://github.com/quartictech/quartic-python).
 
 ```py
 @step
