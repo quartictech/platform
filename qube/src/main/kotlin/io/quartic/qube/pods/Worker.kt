@@ -3,12 +3,12 @@ package io.quartic.qube.pods
 import io.fabric8.kubernetes.api.model.*
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
+import io.quartic.qube.Database
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Terminated
-import io.quartic.qube.api.model.ContainerState
-import io.quartic.qube.Database
 import io.quartic.qube.api.model.ContainerSpec
+import io.quartic.qube.api.model.ContainerState
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.channels.Channel
@@ -20,13 +20,13 @@ interface Worker {
     fun runAsync(create: QubeEvent.CreatePod): Job
 }
 class WorkerImpl(
-    val client: KubernetesClient,
-    val podTemplate: Pod,
-    val namespace: String,
-    val database: Database,
-    val timeoutSeconds: Long,
-    val deletePods: Boolean,
-    val uuidGen: () -> UUID = { UUID.randomUUID() }
+    private val client: KubernetesClient,
+    private val podTemplate: Pod,
+    private val namespace: String,
+    private val database: Database,
+    private val timeoutSeconds: Long,
+    private val deletePods: Boolean,
+    private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ): Worker {
     private val threadPool = newFixedThreadPoolContext(4, "Worker-Thread-Pool")
     private val LOG by logger()
@@ -117,6 +117,7 @@ class WorkerImpl(
             .withNamespace(namespace)
             .endMetadata()
             .editOrNewSpec()
+            .withNodeSelector(mapOf(NODE_POOL_LABEL_KEY to NODE_POOL_LABEL_VALUE))
             .withContainers(listOf())
 
         create.pod.containers.forEach { container ->
@@ -183,6 +184,9 @@ class WorkerImpl(
     }
 
     companion object {
+        const val NODE_POOL_LABEL_KEY = "cloud.google.com/gke-nodepool"
+        const val NODE_POOL_LABEL_VALUE = "worker"
+
         const val ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE = "All containers either finished with success or didn't terminate"
         const val SOME_CONTAINERS_FAILED = "Some containers terminated with non-zero exit status"
     }
