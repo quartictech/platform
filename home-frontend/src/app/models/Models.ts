@@ -53,8 +53,6 @@ export interface UiAction {
 }
 
 export interface Ui {
-  namespace: string;
-  searchString: string;
   activeModal: string;
 }
 

@@ -28,20 +28,6 @@ export function fetchDatasetsSuccess(data) {
   };
 }
 
-export function searchDatasets(search) {
-  return {
-    type: constants.SEARCH_DATASETS,
-    search: search.toLowerCase(),
-  };
-}
-
-export function selectNamespace(namespace) {
-  return {
-    type: constants.SELECT_NAMESPACE,
-    namespace,
-  };
-}
-
 export function createDataset(metadata: IDatasetMetadata, files: IFiles) {
   return {
     type: constants.CREATE_DATASET,
