@@ -44,5 +44,6 @@ jar {
 idea {
     module {
         excludeDirs += file(".env")
+        excludeDirs += file(".eggs")
     }
 }
