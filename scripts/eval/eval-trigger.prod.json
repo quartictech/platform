@@ -1,10 +1,10 @@
 {
 	"type": "whatever",
-	"deliveryId": "noob-1000",
-	"installationId": 40737,
-	"repoId": 99951423,
-	"repoName": "quartictech/playground",
-	"cloneUrl": "https://github.com/quartictech/playground.git",
+	"delivery_id": "noob-1000",
+	"installation_id": 40737,
+	"repo_id": 99951423,
+	"repo_name": "quartictech/playground",
+	"clone_url": "https://github.com/quartictech/playground.git",
 	"ref": "refs/heads/develop",
 	"commit": "b3ddaf47eab8e05627a0da7672c4e229b49175e9",
 	"timestamp": 100000

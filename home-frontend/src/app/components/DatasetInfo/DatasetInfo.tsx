@@ -16,6 +16,8 @@ import { IDataset, IDatasetCoords } from "../../models";
 import _ = require("underscore");
 import { withRouter, InjectedRouter } from "react-router";
 
+const s = require("./style.css");
+
 interface IDatasetInfoProps {
   router?: InjectedRouter;
   coords: IDatasetCoords;
@@ -48,7 +50,9 @@ class DatasetInfoInner extends React.Component<IDatasetInfoProps, IDatasetInfoSt
             onClick={() => this.setState({ isDeleteDialogOpen: true })}
           />
         </h3>
-        <h5 className="pt-monospace-text">{this.props.coords.namespace}::{this.props.coords.id}</h5>
+        <div className={s.locator}>
+          <code>{this.props.coords.namespace}::{this.props.coords.id}</code>
+        </div>
         <Tabs>
           <TabList>
             <Tab>Metadata</Tab>
