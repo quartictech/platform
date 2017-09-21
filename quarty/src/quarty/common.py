@@ -24,7 +24,7 @@ async def clone_with_retry(repo_url, root_path):
         log.info("Cloning repo: %s (attempt: %s / %s)", repo_url, i, GIT_CLONE_MAX_RETRIES)
         try:
             await run_subprocess_checked(["git", "clone", repo_url, root_path],
-                                        "Error while cloning code from respository: {}".format(repo_url))
+                                        "Error while cloning code from repository")
             return
         except QuartyException:
             log.warning("Clone failed. Sleeping for %s seconds.", GIT_CLONE_RETRY_DELAY_SECONDS)

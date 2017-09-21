@@ -26,16 +26,19 @@ class Notifier(
         data class Failure(override val message: String) : Event()
     }
 
-    fun notifyStart(trigger: BuildTrigger) {
-        if (trigger is GithubWebhook) {
-            sendGithubStatus(
-                trigger = trigger,
-                state = "pending",
-                targetUrl = null,
-                description = START_MESSAGE
-            )
-        }
-    }
+    fun notifyQueue(trigger: BuildTrigger) = maybeSendGithubStatus(
+        trigger = trigger,
+        state = "pending",
+        targetUrl = null,
+        description = QUEUE_MESSAGE
+    )
+
+    fun notifyStart(trigger: BuildTrigger) = maybeSendGithubStatus(
+        trigger = trigger,
+        state = "pending",
+        targetUrl = null,
+        description = START_MESSAGE
+    )
 
     fun notifyComplete(
         trigger: BuildTrigger,
@@ -64,37 +67,39 @@ class Notifier(
             )
         )))
 
+        maybeSendGithubStatus(
+            trigger = trigger,
+            state = when (event) {
+                is Event.Success -> "success"
+                is Event.Failure -> "failure"
+            },
+            targetUrl = buildUri,
+            description = when (event) {
+                is Event.Success -> SUCCESS_MESSAGE
+                is Event.Failure -> FAILURE_MESSAGE
+            }
+        )
+    }
+
+    private fun maybeSendGithubStatus(trigger: BuildTrigger, state: String, targetUrl: URI?, description: String) {
         if (trigger is GithubWebhook) {
-            sendGithubStatus(
-                trigger = trigger,
-                state = when (event) {
-                    is Event.Success -> "success"
-                    is Event.Failure -> "failure"
-                },
-                targetUrl = buildUri,
-                description = when (event) {
-                    is Event.Success -> SUCCESS_MESSAGE
-                    is Event.Failure -> FAILURE_MESSAGE
+            github.accessTokenAsync(trigger.installationId)
+                .thenAccept {
+                    github.sendStatusAsync(
+                        trigger.repoOwner,
+                        trigger.repoName,
+                        trigger.commit,
+                        StatusCreate(state, targetUrl, description, "quartic"),
+                        it
+                    )
                 }
-            )
+                .exceptionally { LOG.warn("Error notifying GitHub", getRootCause(it)); null }
         }
     }
 
-    private fun sendGithubStatus(trigger: GithubWebhook, state: String, targetUrl: URI?, description: String) =
-        github.accessTokenAsync(trigger.installationId)
-            .thenAccept {
-                github.sendStatusAsync(
-                    trigger.repoOwner,
-                    trigger.repoName,
-                    trigger.commit,
-                    StatusCreate(state, targetUrl, description, "quartic"),
-                    it
-                )
-            }
-            .exceptionally { LOG.warn("Error notifying GitHub", getRootCause(it)); null }
-
 
     companion object {
+        internal val QUEUE_MESSAGE = "Your pipeline is queued for validation with Quartic"
         internal val START_MESSAGE = "Quartic is validating your pipeline"
         internal val SUCCESS_MESSAGE = "Quartic successfully validated your pipeline"
         internal val FAILURE_MESSAGE = "Quartic found some problems with your pipeline"

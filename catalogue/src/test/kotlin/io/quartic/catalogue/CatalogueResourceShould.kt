@@ -2,6 +2,8 @@ package io.quartic.catalogue
 
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.catalogue.api.model.*
+import io.quartic.catalogue.database.Database
+import io.quartic.catalogue.database.Database.CoordinatesAndConfig
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.sequenceGenerator
@@ -18,9 +20,9 @@ import javax.ws.rs.BadRequestException
 
 class CatalogueResourceShould {
     private val clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
-    private val backend = mock<StorageBackend>()
+    private val database = mock<Database>()
     private val resource = CatalogueResource(
-            backend,
+            database,
             sequenceGenerator { uid: String -> DatasetId(uid) },
             clock
     )
@@ -31,8 +33,7 @@ class CatalogueResourceShould {
         val id = mock<DatasetId>()
         val config = mock<DatasetConfig>()
 
-        whenever(backend.contains(coords(namespace, id))).thenReturn(true)
-        whenever(backend[coords(namespace, id)]).thenReturn(config)
+        whenever(database.getDataset(namespace.namespace, id.uid)).thenReturn(config)
 
         assertThat(resource.getDataset(namespace, id), equalTo(config))
     }
@@ -41,13 +42,9 @@ class CatalogueResourceShould {
     fun get_all_datasets() {
         val datasets = loadsOfDatasets()
 
-        whenever(backend.getAll()).thenReturn(datasets)
+        whenever(database.getDatasets()).thenReturn(datasets)
 
-        assertThat(resource.getDatasets(), equalTo(
-                datasets.entries
-                        .groupBy { it.key.namespace }
-                        .mapValues { it.value.associateBy({ it.key.id }, { it.value }) }
-        ))
+        assertThat(resource.getDatasets(), equalTo(toMapOfMaps(datasets)))
     }
 
     @Test
@@ -64,7 +61,7 @@ class CatalogueResourceShould {
 
         val coords = resource.registerDataset(namespace, config)
 
-        verify(backend)[coords] = configWithTimestamp
+        verify(database).insertDataset(coords.namespace.namespace, coords.id.uid, configWithTimestamp)
     }
 
     @Test
@@ -75,7 +72,7 @@ class CatalogueResourceShould {
         val id = DatasetId("123")
         resource.registerOrUpdateDataset(namespace, id, config)
 
-        verify(backend)[coords(namespace, id)] = configWithTimestamp
+        verify(database).insertDataset(namespace.namespace, id.uid, configWithTimestamp)
     }
 
     @Test
@@ -83,7 +80,7 @@ class CatalogueResourceShould {
         val session = mock<Session>(defaultAnswer = RETURNS_DEEP_STUBS)
         val datasets = loadsOfDatasets()
 
-        whenever(backend.getAll()).thenReturn(datasets)
+        whenever(database.getDatasets()).thenReturn(datasets)
 
         resource.onOpen(session, mock())
 
@@ -95,18 +92,18 @@ class CatalogueResourceShould {
         val session = mock<Session>(defaultAnswer = RETURNS_DEEP_STUBS)
         val datasets = loadsOfDatasets()
 
-        whenever(backend.getAll())
-                .thenReturn(emptyMap<DatasetCoordinates, DatasetConfig>())
+        whenever(database.getDatasets())
+                .thenReturn(emptyList())
                 .thenReturn(datasets)
 
         resource.onOpen(session, mock())
         resource.registerDataset(namespace, config())
 
         verify(session.asyncRemote).sendText(serialize(toMapOfMaps(datasets)))
-        inOrder(backend) {
-            verify(backend).getAll()   // This happens on session open
-            verify(backend)[anyOrNull()] = anyOrNull()
-            verify(backend).getAll()   // We care that this happened *after* the put
+        inOrder(database) {
+            verify(database).getDatasets()   // This happens on session open
+            verify(database).insertDataset(any(), any(), any())
+            verify(database).getDatasets()   // We care that this happened *after* the put
         }
     }
 
@@ -122,25 +119,21 @@ class CatalogueResourceShould {
         verifyNoMoreInteractions(session.asyncRemote)
     }
 
-    private fun toMapOfMaps(map: Map<DatasetCoordinates, DatasetConfig>) = map.entries
-            .groupBy { it.key.namespace }
-            .mapValues { it.value.associateBy({ it.key.id }, { it.value }) }
-
-
+    private fun toMapOfMaps(list: List<CoordinatesAndConfig>) = list
+        .groupBy { DatasetNamespace(it.namespace) }
+        .mapValues { it.value.associateBy({ DatasetId(it.id) }, { it.config }) }
 
     private fun serialize(obj: Any) = OBJECT_MAPPER.writeValueAsString(obj)
 
     private fun config(instant: Instant? = null) = DatasetConfig(
-            DatasetMetadata("foo", "bar", "baz", instant),
-            DatasetLocator.GeoJsonDatasetLocator("blah"),
-            emptyMap<String, Any>()
+        DatasetMetadata("foo", "bar", "baz", instant),
+        DatasetLocator.GeoJsonDatasetLocator("blah"),
+        emptyMap<String, Any>()
     )
 
-    private fun coords(namespace: DatasetNamespace, id: DatasetId) = DatasetCoordinates(namespace, id)
-
-    private fun loadsOfDatasets(): Map<DatasetCoordinates, DatasetConfig> = mapOf(
-            coords(namespace, mock()) to mock(),
-            coords(namespace, mock()) to mock(),
-            coords(DatasetNamespace("bar"), mock()) to mock()  // Prove that multiple namespaces work ok
+    private fun loadsOfDatasets(): List<CoordinatesAndConfig> = listOf(
+        CoordinatesAndConfig(namespace.namespace, "alice", mock()),
+        CoordinatesAndConfig(namespace.namespace, "bob", mock()),
+        CoordinatesAndConfig("bar", "charlie", mock())  // Prove that multiple namespaces work ok
     )
 }
