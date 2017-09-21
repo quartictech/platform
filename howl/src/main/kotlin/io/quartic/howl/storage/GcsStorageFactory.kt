@@ -60,7 +60,8 @@ class GcsStorageFactory {
             StorageMetadata(
                 Instant.ofEpochMilli(response.updated.value),
                 response.contentType ?: DEFAULT_MIME_TYPE,
-                response.size.toLong()
+                // Probably OK for now!
+                response.getSize().toLong()
             )
         }
 
