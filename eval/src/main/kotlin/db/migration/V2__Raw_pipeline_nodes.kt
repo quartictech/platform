@@ -4,15 +4,15 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.Bucket
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
-import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.LexicalInfo
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Result.Success
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.jdbi.v3.core.Jdbi
 import java.sql.Connection
@@ -51,7 +51,7 @@ class V2__Raw_pipeline_nodes : JdbcMigration {
             }
     }
 
-    private fun transform(payload: V1) = PhaseCompleted(
+    private fun transform(payload: V1) = V2(
         phaseId = payload.phaseId,
         result = Success(
             EvaluationOutput(
