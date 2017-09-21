@@ -154,12 +154,7 @@ like `api.staging.quartic.io`.
 3. Enable the following permissions:
 
   - Commit statuses: **Read & write**
-  
-    - **Status**
-    
-  - Repository contents: **Read-only**
-  
-    - **Push**
+  - Repository contents: **Read-only** (and tick **Push**)
 
 4. Tick **Any account**.
 
