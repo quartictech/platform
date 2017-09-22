@@ -49,7 +49,8 @@ data class User(
     BuildEvent.Log::class,
     BuildEvent.Other::class,
     BuildEvent.PhaseStarted::class,
-    BuildEvent.PhaseCompleted::class
+    BuildEvent.PhaseCompleted::class,
+    BuildEvent.TriggerReceived::class
 ))
 interface BuildEvent {
     @GraphQLField
@@ -78,6 +79,21 @@ interface BuildEvent {
         private val time: Instant
     ): BuildEvent {
         override fun type() = "log"
+        override fun time() = time.epochSecond
+        override fun id() = id.toString()
+    }
+
+    @From<ApiBuildEvent.TriggerReceived>
+    data class TriggerReceived (
+        @get:GraphQLField
+        @get:GraphQLName("trigger_type")
+        val triggerType: String,
+
+        private val id: UUID,
+
+        private val time: Instant
+    ): BuildEvent {
+        override fun type() = "trigger_received"
         override fun time() = time.epochSecond
         override fun id() = id.toString()
     }

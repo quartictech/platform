@@ -83,7 +83,7 @@ interface Database {
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
-        SELECT * FROM event
+        SELECT event.* FROM event
             LEFT JOIN build ON build.id = event.build_id
             WHERE
                 build.customer_id = :customer_id AND

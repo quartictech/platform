@@ -13,6 +13,7 @@ import java.util.*
     JsonSubTypes.Type(ApiBuildEvent.Log::class, name = "log"),
     JsonSubTypes.Type(ApiBuildEvent.PhaseStarted::class, name = "phase_started"),
     JsonSubTypes.Type(ApiBuildEvent.PhaseCompleted::class, name = "phase_completed"),
+    JsonSubTypes.Type(ApiBuildEvent.TriggerReceived::class, name = "trigger_received"),
     JsonSubTypes.Type(ApiBuildEvent.Other::class, name = "other")
 )
 sealed class ApiBuildEvent {
@@ -20,7 +21,6 @@ sealed class ApiBuildEvent {
     abstract val time: Instant
 
     data class Log(
-        @JsonProperty("phase_id")
         val phaseId: UUID,
         val stream: String,
         val message: String,
@@ -29,7 +29,6 @@ sealed class ApiBuildEvent {
     ): ApiBuildEvent()
 
     data class PhaseStarted(
-        @JsonProperty("phase_id")
         val phaseId: UUID,
         val description: String,
         override val time: Instant,
@@ -37,8 +36,13 @@ sealed class ApiBuildEvent {
     ): ApiBuildEvent()
 
     data class PhaseCompleted(
-        @JsonProperty("phase_id")
         val phaseId: UUID,
+        override val time: Instant,
+        override val id: UUID
+    ): ApiBuildEvent()
+
+    data class TriggerReceived(
+        val type: String,
         override val time: Instant,
         override val id: UUID
     ): ApiBuildEvent()
