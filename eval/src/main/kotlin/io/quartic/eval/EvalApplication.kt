@@ -79,6 +79,6 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
 
-        const val QUARTIC_PYTHON_VERSION = "0.4.0"
+        const val QUARTIC_PYTHON_VERSION = "0.5.0"
     }
 }
