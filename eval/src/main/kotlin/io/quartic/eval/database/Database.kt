@@ -8,7 +8,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.Database.*
 import io.quartic.eval.database.model.BuildEvent
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Result.Success
+import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.PhaseCompleted
 import io.quartic.eval.database.model.TriggerReceived
 import org.jdbi.v3.core.mapper.ColumnMapper
