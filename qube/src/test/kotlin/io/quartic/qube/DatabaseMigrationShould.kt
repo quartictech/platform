@@ -11,20 +11,19 @@ import io.quartic.qube.api.model.ContainerSpec
 import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.api.model.PodSpec
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.MatcherAssert.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
-import org.postgresql.util.PGobject
 import java.time.Instant
 import java.util.*
 
 class DatabaseMigrationShould {
     @Test
     fun migrate_to_v2() {
-        val db = databaseVersion("1")
+        databaseVersion("1")
         val id = UUID.randomUUID()
         val clientId = UUID.randomUUID()
         DBI.open().createUpdate("""
@@ -51,7 +50,7 @@ class DatabaseMigrationShould {
         databaseVersion("2")
 
         val row = DBI.open().createQuery("SELECT containers FROM job")
-            .map { rs, ctx -> rs.getString("containers")}
+            .map { rs, _ -> rs.getString("containers")}
             .findOnly()
         val expected = mapOf("default" to ContainerState(1, "thing", "mess", "logs"))
         assertThat(OBJECT_MAPPER.readValue<Map<String, ContainerState>>(row as String), equalTo(expected))
