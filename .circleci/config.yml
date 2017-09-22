@@ -19,7 +19,7 @@ jobs:
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
           name: Run tests
-          command: ./gradlew build --build-cache --console=plain --profile
+          command: ./gradlew quarty:dist --build-cache --console=plain --profile
 
       - run:
           name: Calculate Gradle checksum file
