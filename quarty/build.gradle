@@ -10,7 +10,7 @@ def venvDir = file("${buildDir}/virtualenv")
 def pythonExecutable = file("${venvDir}/bin/python")
 def pipExecutable = file("${venvDir}/bin/pip")
 def distDir = file("${buildDir}/dist")
-def testDir = file("${buildDir}/test")
+def testResultsDir = file("${buildDir}/test-results")
 def lintDir = file("${buildDir}/lint")
 
 // We can't run pip separately because it also mutates contents of venvDir
@@ -66,10 +66,10 @@ task pythonTest(type: Exec) {
     inputs.dir          "src"
     inputs.dir          "tests"
 
-    outputs.dir         testDir
+    outputs.dir         testResultsDir
     outputs.cacheIf     { true }
 
-    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "test", "--addopts", "--junitxml=${testDir}/pytest.xml"
+    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "test", "--addopts", "--junitxml=${testResultsDir}/pytest.xml"
 }
 
 task lint(type: Exec) {
