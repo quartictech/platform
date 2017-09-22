@@ -6,12 +6,14 @@ plugins {
 }
 
 
-def venvDir = file("${buildDir}/virtualenv")
-def pythonExecutable = file("${venvDir}/bin/python")
-def pipExecutable = file("${venvDir}/bin/pip")
-def distDir = file("${buildDir}/dist")
-def testResultsDir = file("${buildDir}/test-results")
-def lintDir = file("${buildDir}/lint")
+ext.venvDir = file("${buildDir}/virtualenv")
+ext.distDir = file("${buildDir}/dist")
+ext.testResultsDir = file("${buildDir}/test-results")
+ext.lintDir = file("${buildDir}/lint")
+
+String fromVenv(String name) {
+    return file("${ext.venvDir}/bin/${name}")
+}
 
 // We can't run pip separately because it also mutates contents of venvDir
 task createVirtualenvAndInstallDeps(type: Exec) {
@@ -30,9 +32,16 @@ task createVirtualenvAndInstallDeps(type: Exec) {
 
     doLast {
         exec {
-            commandLine "pip-compile"
-            commandLine "pip-sync"
-            commandLine pipExecutable, "install", "-r", "requirements.txt"
+            commandLine fromVenv("pip"), "install", "pip-tools"
+        }
+        exec {
+            commandLine fromVenv("pip-compile")
+        }
+        exec {
+            commandLine fromVenv("pip-sync")
+        }
+        exec {
+            commandLine fromVenv("pip"), "install", "-r", "requirements.txt"
         }
     }
 }
@@ -51,7 +60,7 @@ task dist(type: Exec) {
     outputs.file        "${distDir}/quarty-${version}.tar.gz"
     outputs.cacheIf     { true }
 
-    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "sdist", "--dist-dir", distDir
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "sdist", "--dist-dir", distDir
 }
 
 // TODO - eliminate java plugin so we can define this as regular "test" task
@@ -69,7 +78,7 @@ task pythonTest(type: Exec) {
     outputs.dir         testResultsDir
     outputs.cacheIf     { true }
 
-    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "test", "--addopts", "--junitxml=${testResultsDir}/pytest.xml"
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "test", "--addopts", "--junitxml=${testResultsDir}/pytest.xml"
 }
 
 task lint(type: Exec) {
@@ -87,7 +96,7 @@ task lint(type: Exec) {
     outputs.dir         lintDir
     outputs.cacheIf     { true }
 
-    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "lint"
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "lint"
 
     // See https://stackoverflow.com/a/27053294/129570
     doFirst {
