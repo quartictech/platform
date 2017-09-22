@@ -82,6 +82,43 @@ class StorageFactoryShould {
         assertThat(metadata.lastModified, lessThan(Instant.now().plus(5, ChronoUnit.MINUTES)))
     }
 
+    @Test
+    fun overwrite_with_new_version() {
+        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val data = "Hello world!"
+
+        storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        val data2 = "Goodbye world!"
+        storage.putData(coords, null, MediaType.TEXT_PLAIN, data2.byteInputStream())
+
+        storage.getData(coords).use {
+            it!!
+            assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
+            assertThat(it.inputStream.readTextAndClose(), equalTo(data2))
+        }
+    }
+
+    @Test
+    fun writes_to_separate_coords_are_separate() {
+        val namespace = UUID.randomUUID().toString()
+        val coordsA = Managed("foo", namespace, "hello.txt")
+        val coordsB = Managed("foo", namespace,"hello2.txt")
+        val dataA = "Hello world!"
+        val dataB = "Goodbye world!"
+        storage.putData(coordsA, null, MediaType.TEXT_PLAIN, dataA.byteInputStream())
+        storage.putData(coordsB, null, MediaType.TEXT_PLAIN, dataB.byteInputStream())
+
+        storage.getData(coordsA).use {
+            it!!
+            assertThat(it.inputStream.readTextAndClose(), equalTo(dataA))
+        }
+
+        storage.getData(coordsB).use {
+            it!!
+            assertThat(it.inputStream.readTextAndClose(), equalTo(dataB))
+        }
+    }
+
     private fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8)
             = this.bufferedReader(charset).use { it.readText() }
 
