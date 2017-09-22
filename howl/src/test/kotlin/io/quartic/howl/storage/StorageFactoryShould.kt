@@ -3,11 +3,14 @@ package io.quartic.howl.storage
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.howl.storage.S3StorageFactory.Config
 import io.quartic.howl.storage.StorageCoords.Managed
 import org.hamcrest.Matchers.*
+import org.junit.AfterClass
 import org.junit.Assert.assertThat
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.time.Instant
@@ -15,7 +18,14 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.ws.rs.core.MediaType
 
-class S3StorageFactoryShould {
+@RunWith(Parameterized::class)
+class StorageFactoryShould {
+    @Parameterized.Parameter
+    lateinit var storage: Storage
+
+    // Needed to keep junit happy
+    @Parameterized.Parameter(1)
+    lateinit var name: String
 
     @Test
     fun get_data_that_was_put() {
@@ -70,14 +80,53 @@ class S3StorageFactoryShould {
             = this.bufferedReader(charset).use { it.readText() }
 
     companion object {
+        @Parameterized.Parameters(name = "type: {1}")
+        @JvmStatic
+        fun parameters() = listOf(arrayOf(gcs, "gcs"), arrayOf(s3, "s3"), arrayOf(local, "local"))
+
         private val codec = SecretsCodec(DEV_MASTER_KEY_BASE64)
 
-        private val storage = S3StorageFactory(codec)
-            .create(Config(
+        private val s3 = S3StorageFactory(codec)
+            .create(S3StorageFactory.Config(
                 "eu-west-1",
                 codec.encrypt(UnsafeSecret("test-howl")),
                 codec.encrypt(UnsafeSecret("arn:aws:iam::555071496850:role/Test-Bucket-Accessor")),
                 codec.encrypt(UnsafeSecret("696969"))
             ))
+
+        private val gcs = GcsStorageFactory().create(
+            GcsStorageFactory.Config("howl-test.quartic.io",
+                GcsStorageFactory.Credentials.ServiceAccountJsonKey(
+                    StorageFactoryShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
+                )
+            )
+        )
+
+        // Workaround for issue with Parameterized preceding @ClassRule
+        // See: https://github.com/junit-team/junit4/issues/671#issuecomment-17355601
+        private fun initStaticTemp(): TemporaryFolder {
+            try {
+                return object : TemporaryFolder() {
+                    init {
+                        before()
+                    }
+                }
+            } catch (t: Throwable) {
+                throw RuntimeException(t)
+            }
+
+        }
+
+        @AfterClass
+        @JvmStatic
+        @Throws(Exception::class)
+        fun cleanup() {
+            folder.delete()
+        }
+
+        @JvmField
+        var folder = initStaticTemp()
+
+        private val local = LocalStorage(LocalStorage.Config(folder.root.absolutePath))
     }
 }
