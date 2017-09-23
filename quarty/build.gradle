@@ -32,13 +32,7 @@ task createVirtualenvAndInstallDeps(type: Exec) {
 
     doLast {
         exec {
-            commandLine fromVenv("pip"), "install", "pip-tools"
-        }
-        exec {
-            commandLine fromVenv("pip-compile")
-        }
-        exec {
-            commandLine fromVenv("pip-sync")
+            commandLine "bash", "install.sh", "${venvDir}"
         }
     }
 }

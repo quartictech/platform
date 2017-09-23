@@ -1,2 +1,1 @@
 -e .[test]
-pkg-resources==0.0.0        # Workaround for https://github.com/jazzband/pip-tools/pull/555 (due in the next pip-tools release)
