@@ -1,8 +1,8 @@
 import tempfile
 import logging
 import json
-import aiohttp 
 from concurrent.futures import CancelledError
+import aiohttp
 import aiohttp.web
 from quarty.common import initialise_repo, install_requirements, evaluate_pipeline, execute_pipeline
 from quarty.utils import QuartyException, PipelineException
@@ -48,14 +48,14 @@ async def initialise(build_path, repo_url, repo_commit, ws):
     return config
 
 async def evaluate(config, build_path, ws):
-    result = await evaluate_pipeline(config['pipeline_directory'],
+    result = await evaluate_pipeline(config["pipeline_directory"],
                                      build_path,
                                      lambda l: log_message(ws, "stdout", l),
                                      lambda l: log_message(ws, "stderr", l))
     result_message(ws, result)
 
 async def execute(config, build_path, step, namespace, ws):
-    await execute_pipeline(config['pipeline_directory'],
+    await execute_pipeline(config["pipeline_directory"],
                            build_path,
                            step,
                            namespace,
@@ -106,7 +106,7 @@ async def websocket_handler(request):
         error_message(ws, e.args[0])
     except CancelledError:
         pass
-    except (QuartyException, Exception) as e:
+    except (QuartyException, Exception) as e:       # pylint: disable=broad-except
         log.exception("Something strange happened")
         error_message(ws, "Quarty exception: {}".format(e))
     finally:
@@ -114,5 +114,5 @@ async def websocket_handler(request):
         await ws.close()
     return ws
 app = aiohttp.web.Application()
-app.router.add_get('/', websocket_handler)
+app.router.add_get("/", websocket_handler)
 aiohttp.web.run_app(app, port=8080)
