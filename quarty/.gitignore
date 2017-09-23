@@ -10,4 +10,4 @@ dist/
 test-reports/
 .vscode/.*
 
-requirements.debian-workaround.txt
+requirements.workaround.txt

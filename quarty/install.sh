@@ -11,13 +11,12 @@ pip-compile
 
 # Workaround for https://github.com/jazzband/pip-tools/issues/204
 # (adapted from https://github.com/jazzband/pip-tools/issues/331#issuecomment-285825098)
-sed -i '' "s|-e file://$(pwd)|-e .|" requirements.txt
+sed "s|-e file://$(pwd)|-e .|" < requirements.txt > requirements.workaround.txt
 
 # Workaround for https://github.com/jazzband/pip-tools/pull/555 (due in the next pip-tools release)
 if [ -e /etc/debian_version ]; then
-    cp requirements.txt requirements.debian-workaround.txt
-    echo "pkg-resources==0.0.0" >> requirements.debian-workaround.txt
-    pip-sync requirements.debian-workaround.txt
+    echo "pkg-resources==0.0.0" >> requirements.workaround.txt.txt
+    pip-sync requirements.workaround.txt
 else
     pip-sync
 fi
