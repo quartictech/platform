@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#--------------------------------------------------------#
+# !!! This script is intended to be called by Gradle !!!
+#--------------------------------------------------------#
 
 VIRTUALENV_DIR=${1}
 source ${VIRTUALENV_DIR}/bin/activate

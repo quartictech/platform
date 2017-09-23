@@ -18,8 +18,8 @@ jobs:
 
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
-          name: Run tests
-          command: ./gradlew quarty:dist --build-cache --console=plain --profile
+          name: Run tests and build things
+          command: ./gradlew build --build-cache --console=plain --profile
 
       - run:
           name: Calculate Gradle checksum file
@@ -43,11 +43,11 @@ jobs:
       - store_artifacts:
           path: ~/platform/build/reports/profile
           destination: profile
-#
-#      - setup_remote_docker:
-#          reusable: true
-#
-#      - deploy:
-#          command: |
-#            gcloud-auth --with-docker
-#            ./gradlew dockerPush --parallel --console=plain
+
+      - setup_remote_docker:
+          reusable: true
+
+      - deploy:
+          command: |
+            gcloud-auth --with-docker
+            ./gradlew dockerPush --parallel --console=plain
