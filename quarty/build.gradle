@@ -40,9 +40,6 @@ task createVirtualenvAndInstallDeps(type: Exec) {
         exec {
             commandLine fromVenv("pip-sync")
         }
-        exec {
-            commandLine fromVenv("pip"), "install", "-r", "requirements.txt"
-        }
     }
 }
 
