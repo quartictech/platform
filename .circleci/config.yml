@@ -43,11 +43,11 @@ jobs:
       - store_artifacts:
           path: ~/platform/build/reports/profile
           destination: profile
-
-      - setup_remote_docker:
-          reusable: true
-
-      - deploy:
-          command: |
-            gcloud-auth --with-docker
-            ./gradlew dockerPush --parallel --console=plain
+#
+#      - setup_remote_docker:
+#          reusable: true
+#
+#      - deploy:
+#          command: |
+#            gcloud-auth --with-docker
+#            ./gradlew dockerPush --parallel --console=plain
