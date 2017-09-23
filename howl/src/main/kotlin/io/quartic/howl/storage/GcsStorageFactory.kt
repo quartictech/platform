@@ -32,13 +32,13 @@ class GcsStorageFactory {
     sealed class Credentials {
         abstract fun getCredential(transport: HttpTransport, jsonFactory: JsonFactory): GoogleCredential
 
-        data class ApplicationDefault(private val _dummy: Int) : Credentials() {
+        class ApplicationDefault : Credentials() {
             override fun getCredential(transport: HttpTransport, jsonFactory: JsonFactory): GoogleCredential =
                 GoogleCredential.getApplicationDefault(transport, jsonFactory)
         }
 
         // TODO: These should probably be encrypted if we're planning to use them for real
-        data class ServiceAccountJsonKey(private val jsonKey: String): Credentials() {
+        class ServiceAccountJsonKey(private val jsonKey: String): Credentials() {
             override fun getCredential(transport: HttpTransport, jsonFactory: JsonFactory): GoogleCredential =
                 GoogleCredential.fromStream(
                     ByteArrayInputStream(jsonKey.toByteArray()),
