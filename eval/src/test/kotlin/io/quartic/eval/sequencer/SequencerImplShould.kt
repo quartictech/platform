@@ -9,6 +9,7 @@ import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
@@ -217,7 +218,7 @@ class SequencerImplShould {
     @Test
     fun notify_on_user_error() = runBlocking {
         sequencer.sequence(details, customer) {
-            phase("No") { userError("Bad things occurred") }
+            phase("No") { userError(OtherException("Bad things occurred")) }
         }
 
         verify(notifier).notifyComplete(details, customer, 1234, Event.Failure("Bad things occurred"))
