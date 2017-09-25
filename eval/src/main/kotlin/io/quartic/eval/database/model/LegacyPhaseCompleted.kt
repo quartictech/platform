@@ -10,13 +10,40 @@ import java.util.*
 
 class LegacyPhaseCompleted private constructor() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(Type(V5::class, name = "phase_completed"))
+    data class V5(val phaseId: UUID, val result: Result) {
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+        @JsonSubTypes(
+            Type(V5.Result.Success::class, name = "success"),
+            Type(V5.Result.InternalError::class, name = "internal_error"),
+            Type(V5.Result.UserError::class, name = "user_error")
+        )
+        sealed class Result {
+            data class Success(val artifact: V2.Artifact? = null) : Result()
+            class InternalError : Result()
+            data class UserError(val info: UserErrorInfo): Result()
+        }
+
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+        @JsonSubTypes(
+            Type(V5.UserErrorInfo.InvalidDag::class, name = "invalid_dag"),
+            Type(V5.UserErrorInfo.OtherException::class, name = "other_exception")
+        )
+        sealed class UserErrorInfo {
+            data class InvalidDag(val error: String, val nodes: List<V2.Node>) : UserErrorInfo()
+            data class OtherException(val detail: Any?): UserErrorInfo()
+        }
+    }
+
+
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(Type(V4::class, name = "phase_completed"))
     data class V4(val phaseId: UUID, val result: Result) {
         @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
         @JsonSubTypes(
-            Type(Result.Success::class, name = "success"),
-            Type(Result.InternalError::class, name = "internal_error"),
-            Type(Result.UserError::class, name = "user_error")
+            Type(V4.Result.Success::class, name = "success"),
+            Type(V4.Result.InternalError::class, name = "internal_error"),
+            Type(V4.Result.UserError::class, name = "user_error")
         )
         sealed class Result {
             data class Success(val artifact: V2.Artifact? = null) : Result()
@@ -24,6 +51,7 @@ class LegacyPhaseCompleted private constructor() {
             data class UserError(val detail: Any?) : Result()
         }
     }
+
 
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(Type(V2::class, name = "phase_completed"))

@@ -6,13 +6,9 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.PhaseCompletedV5.Result
-import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo
-import io.quartic.eval.database.model.PhaseCompletedV5.Result.InternalError
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V4
+import io.quartic.eval.database.model.BUILD_SUCCEEDED
+import io.quartic.eval.database.model.BuildSucceeded
+import io.quartic.eval.database.model.LegacyPhaseCompleted.*
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
@@ -146,12 +142,9 @@ class DatabaseMigrationsShould {
 
         databaseVersion("4")
 
-        with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
+        with(OBJECT_MAPPER.readValue<V4>(getEventFields(eventId)["payload"].toString())) {
             @Suppress("UNCHECKED_CAST")
-            assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
-            this as PhaseCompleted
-            @Suppress("UNCHECKED_CAST")
-            assertThat(this.result, isA(InternalError::class.java) as Matcher<Result>)
+            assertThat(this.result, isA(V4.Result.InternalError::class.java) as Matcher<V4.Result>)
         }
         assertThatOtherEventsArentNuked(otherEventId)
     }
@@ -171,14 +164,11 @@ class DatabaseMigrationsShould {
         val otherEventId = insertOtherEvent()
         databaseVersion("5")
 
-        with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
+        with(OBJECT_MAPPER.readValue<V5>(getEventFields(eventId)["payload"].toString())) {
             @Suppress("UNCHECKED_CAST")
-            assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
-            this as PhaseCompleted
+            assertThat(this.result, isA(V5.Result.UserError::class.java) as Matcher<V5.Result>)
             @Suppress("UNCHECKED_CAST")
-            assertThat(this.result, isA(Result.UserError::class.java) as Matcher<Result>)
-            @Suppress("UNCHECKED_CAST")
-            assertThat((this.result as Result.UserError).info, isA(UserErrorInfo.OtherException::class.java) as Matcher<UserErrorInfo>)
+            assertThat((this.result as V5.Result.UserError).info, isA(V5.UserErrorInfo.OtherException::class.java) as Matcher<V5.UserErrorInfo>)
         }
         assertThatOtherEventsArentNuked(otherEventId)
     }

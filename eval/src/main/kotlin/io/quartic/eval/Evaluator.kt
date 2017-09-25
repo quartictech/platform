@@ -5,12 +5,13 @@ import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
-import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
@@ -34,7 +35,6 @@ import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
-import io.quartic.eval.Dag.DagResult
 
 // TODO - retries
 // TODO - timeouts
