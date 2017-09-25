@@ -83,7 +83,17 @@ data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildE
     sealed class Result {
         data class Success(val artifact: V2.Artifact? = null) : Result()
         class InternalError : Result()
-        data class UserError(val detail: Any?) : Result()
+        data class UserError(val info: UserErrorInfo): Result()
+    }
+
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(UserErrorInfo.InvalidDag::class, name = "invalid_dag"),
+        Type(UserErrorInfo.OtherException::class, name = "other_exception")
+    )
+    sealed class UserErrorInfo {
+        data class InvalidDag(val error: String, val nodes: List<V2.Node>) : UserErrorInfo()
+        data class OtherException(val detail: Any?): UserErrorInfo()
     }
 }
 

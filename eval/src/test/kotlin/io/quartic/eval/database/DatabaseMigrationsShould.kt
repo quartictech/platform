@@ -6,14 +6,13 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.BUILD_SUCCEEDED
-import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.BuildSucceeded
+import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
-import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V3
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
@@ -157,6 +156,33 @@ class DatabaseMigrationsShould {
         assertThatOtherEventsArentNuked(otherEventId)
     }
 
+    @Test
+    fun v5_migrate() {
+        val eventId = uuid(103)
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+        insertEvent(eventId, buildId, time,
+            V3(
+                phaseId = phaseId,
+                result = V3.Result.UserError("wat")
+            )
+        )
+        val otherEventId = insertOtherEvent()
+        databaseVersion("5")
+
+        with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
+            @Suppress("UNCHECKED_CAST")
+            assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
+            this as PhaseCompleted
+            @Suppress("UNCHECKED_CAST")
+            assertThat(this.result, isA(Result.UserError::class.java) as Matcher<Result>)
+            @Suppress("UNCHECKED_CAST")
+            assertThat((this.result as Result.UserError).info, isA(UserErrorInfo.OtherException::class.java) as Matcher<UserErrorInfo>)
+        }
+        assertThatOtherEventsArentNuked(otherEventId)
+    }
+
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
         assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
     }
@@ -170,7 +196,7 @@ class DatabaseMigrationsShould {
     }
 
     private fun insertOtherEvent(): UUID {
-        val eventIdSucceeded = uuid(999)
+        val eventIdSucceeded = UUID.randomUUID()
         insertEvent(eventIdSucceeded, UUID.randomUUID(), Instant.now(), BUILD_SUCCEEDED)
         return eventIdSucceeded
     }

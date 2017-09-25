@@ -9,6 +9,21 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import java.util.*
 
 class LegacyPhaseCompleted private constructor() {
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(Type(V3::class, name = "phase_completed"))
+    data class V3(val phaseId: UUID, val result: Result) {
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+        @JsonSubTypes(
+            Type(Result.Success::class, name = "success"),
+            Type(Result.InternalError::class, name = "internal_error"),
+            Type(Result.UserError::class, name = "user_error")
+        )
+        sealed class Result {
+            data class Success(val artifact: V2.Artifact? = null) : Result()
+            class InternalError : Result()
+            data class UserError(val detail: Any?) : Result()
+        }
+    }
 
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(Type(V2::class, name = "phase_completed"))

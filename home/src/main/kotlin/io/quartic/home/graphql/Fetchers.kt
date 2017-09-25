@@ -67,6 +67,11 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
         this.phaseId.toString(),
         this.time
     )
+    is ApiBuildEvent.TriggerReceived -> BuildEvent.TriggerReceived(
+        this.type,
+        this.id,
+        this.time
+    )
     else ->
         BuildEvent.Other(this.id, this.time.epochSecond)
 }
