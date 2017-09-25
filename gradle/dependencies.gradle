@@ -7,7 +7,6 @@ versions.dropwizard = "1.1.0"
 versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
 versions.feign = "9.5.0"
 versions.coroutines = "0.17"
-versions.tyrus = "1.13"
 versions.retrofit = "2.3.0"
 versions.vertx = "3.4.2"
 
@@ -32,13 +31,6 @@ libraries.dropwizard = [
     websockets: "com.liveperson:dropwizard-websockets:${versions.dropwizard}",
     metricsInfluxdb: "com.izettle:dropwizard-metrics-influxdb:1.1.8",
     testing: "io.dropwizard:dropwizard-testing:${versions.dropwizard}",
-]
-
-libraries.tyrus = [
-    client: "org.glassfish.tyrus:tyrus-client:${versions.tyrus}",
-    server: "org.glassfish.tyrus:tyrus-server:${versions.tyrus}",
-    containerClient: "org.glassfish.tyrus:tyrus-container-grizzly-client:${versions.tyrus}",
-    containerServer: "org.glassfish.tyrus:tyrus-container-grizzly-server:${versions.tyrus}",
 ]
 
 libraries.testCommon = [

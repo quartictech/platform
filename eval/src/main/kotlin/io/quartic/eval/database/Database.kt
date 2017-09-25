@@ -7,8 +7,8 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.Database.*
 import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import io.quartic.eval.database.model.TriggerReceived
 import org.jdbi.v3.core.mapper.ColumnMapper
@@ -83,7 +83,7 @@ interface Database {
     fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
-        SELECT * FROM event
+        SELECT event.* FROM event
             LEFT JOIN build ON build.id = event.build_id
             WHERE
                 build.customer_id = :customer_id AND

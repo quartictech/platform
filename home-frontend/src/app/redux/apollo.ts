@@ -47,6 +47,7 @@ const fragmentMatcher = new IntrospectionFragmentMatcher({
             { name: "Log" },
             { name: "PhaseStarted" },
             { name: "PhaseCompleted" },
+            { name: "TriggerReceived" },
             { name: "Other" },
           ],
         },
