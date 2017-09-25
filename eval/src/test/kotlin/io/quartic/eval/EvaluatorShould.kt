@@ -15,6 +15,9 @@ import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
 import io.quartic.eval.Dag.Companion.DagResult
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Owner
@@ -99,7 +102,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>(DagResult.Invalid("Dag is das noob", listOf()))))
+        assertThat(sequencer.results, hasItem(UserError<UserErrorInfo>(InvalidDag("Dag is das noob", listOf()))))
     }
 
     @Test
@@ -121,7 +124,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
+        assertThat(sequencer.results, hasItem(UserError<OtherException>(OtherException("badness"))))
     }
 
     @Test

@@ -6,14 +6,12 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.BUILD_SUCCEEDED
-import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.BuildSucceeded
+import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
-import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V3
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
@@ -153,6 +151,31 @@ class DatabaseMigrationsShould {
             this as PhaseCompleted
             @Suppress("UNCHECKED_CAST")
             assertThat(this.result, isA(InternalError::class.java) as Matcher<Result>)
+        }
+        assertThatOtherEventsArentNuked(otherEventId)
+    }
+
+    @Test
+    fun v5_migrate() {
+        databaseVersion("4")
+        val eventId = uuid(100)
+        val buildId = uuid(101)
+        val phaseId = uuid(102)
+        val time = Instant.now()
+        insertEvent(eventId, buildId, time,
+            V3(
+                phaseId = phaseId,
+                result = V3.Result.UserError("wat")
+            )
+        )
+        databaseVersion("5")
+        val otherEventId = insertOtherEvent()
+           with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
+            @Suppress("UNCHECKED_CAST")
+            assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
+            this as PhaseCompleted
+            @Suppress("UNCHECKED_CAST")
+            assertThat(this.result, isA(Result.UserError::class.java) as Matcher<Result>)
         }
         assertThatOtherEventsArentNuked(otherEventId)
     }

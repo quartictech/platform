@@ -9,6 +9,8 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
@@ -118,7 +120,7 @@ class Evaluator(
     ) = with(quarty.request(request) { stream, message -> runBlocking { log(stream, message) } }) {
         when(this) {
             is Result -> block(result)
-            is Error -> userError(detail)
+            is Error -> userError(OtherException(detail))
         }
     }
 
@@ -137,7 +139,7 @@ class Evaluator(
             is DagResult.Valid ->
                 successWithArtifact(EvaluationOutput(nodes), dag)
             is DagResult.Invalid ->
-                userError(dag)
+                userError(InvalidDag(dag.error, dag.nodes))
         }
     }
 
