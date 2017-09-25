@@ -22,13 +22,14 @@ class Qubicle(
     concurrentJobs: Int,
     jobTimeoutSeconds: Long,
     deletePods: Boolean,
-    database: Database
+    database: Database,
+    orchestratorState: OrchestratorState
 ) : AbstractVerticle() {
     private val LOG by logger()
     private val events = Channel<QubeEvent>(UNLIMITED)
 
     private val worker = WorkerImpl(client, podTemplate, namespace, database, jobTimeoutSeconds, deletePods)
-    private val orchestrator = Orchestrator(events, worker, concurrentJobs)
+    private val orchestrator = Orchestrator(events, worker, concurrentJobs, orchestratorState)
 
     private fun setupWebsocket(websocket: ServerWebSocket) {
         val clientUUID = UUID.randomUUID()

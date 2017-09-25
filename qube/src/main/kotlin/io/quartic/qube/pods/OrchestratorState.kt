@@ -4,7 +4,8 @@ import io.quartic.common.logging.logger
 import kotlinx.coroutines.experimental.Job
 import java.util.*
 
-class OrchestratorState {
+class OrchestratorState : OrchestratorStateQueryApi {
+
     private val LOG by logger()
     private val clients = mutableSetOf<UUID>()
     private val _runningPods = mutableMapOf<PodKey, Job>()
@@ -17,6 +18,8 @@ class OrchestratorState {
         _runningPods[key]?.cancel()
         _runningPods.remove(key)
     }
+
+
 
     fun cancelAll() {
         _runningPods.forEach { _, job -> job.cancel() }
@@ -47,4 +50,8 @@ class OrchestratorState {
             }
         }
     }
+
+    override fun getWaitingList(): Queue<QubeEvent.CreatePod> = waitingList
+    override fun getClients(): Set<UUID> = clients
+    override fun getRunningPods(): Set<PodKey> = runningPods.keys
 }

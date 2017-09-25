@@ -9,7 +9,7 @@ class Orchestrator(
     private val events: Channel<QubeEvent>,
     private val worker: Worker,
     private val concurrency: Int,
-    private val state: OrchestratorState = OrchestratorState()
+    private val state: OrchestratorState
 ) {
     private val LOG by logger()
 

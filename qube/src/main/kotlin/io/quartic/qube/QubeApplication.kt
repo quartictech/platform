@@ -6,7 +6,9 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.logging.logger
 import io.quartic.qube.pods.KubernetesClient
+import io.quartic.qube.pods.OrchestratorState
 import io.quartic.qube.pods.Qubicle
+import io.quartic.qube.resource.ApiResource
 import io.quartic.qube.resource.BackChannelResource
 import io.vertx.core.Vertx
 
@@ -21,6 +23,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
         )
 
         val jobStore = databaseBuilder.dao<Database>()
+        val orchestratorState = OrchestratorState()
 
         if (configuration.kubernetes.enable) {
             val client = KubernetesClient(DefaultKubernetesClient(), configuration.kubernetes.namespace)
@@ -36,7 +39,8 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
                     configuration.kubernetes.numConcurrentJobs,
                     configuration.kubernetes.jobTimeoutSeconds,
                     configuration.kubernetes.deletePods,
-                    jobStore
+                    jobStore,
+                    orchestratorState
                 )
             )
         } else {
@@ -45,6 +49,7 @@ class QubeApplication : ApplicationBase<QubeConfiguration>() {
 
         with (environment.jersey()) {
             register(BackChannelResource())
+            register(ApiResource(orchestratorState))
         }
 
     }
