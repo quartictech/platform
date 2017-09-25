@@ -17,7 +17,6 @@ dependencies {
     compile project(":common-application")
     compile project(":catalogue-api")
     compile project(":common-db")
-    compile libraries.dropwizard.websockets
 
     testCompile project(":common-test")
     testCompile libraries.embeddedPostgres
