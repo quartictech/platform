@@ -9,5 +9,6 @@ data class Customer(
     val githubInstallationId: Long,
     val name: String,
     val subdomain: String,
-    val namespace: String
+    val namespace: String,
+    val slackChannel: String? = null
 )

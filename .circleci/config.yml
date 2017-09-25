@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: quartic/uber-builder:103
+      - image: quartic/uber-builder:112
 
     working_directory: ~/platform
 
@@ -18,7 +18,7 @@ jobs:
 
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
-          name: Run tests
+          name: Run tests and build things
           command: ./gradlew build --build-cache --console=plain --profile
 
       - run:

@@ -11,6 +11,8 @@ import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
@@ -88,15 +90,21 @@ class SequencerImpl(
             is PhaseResult.Success -> Result.Success()
             is PhaseResult.SuccessWithArtifact -> Result.Success(result.artifact)
             is PhaseResult.InternalError -> INTERNAL_ERROR
-            is PhaseResult.UserError -> Result.UserError(result.detail)
+            is PhaseResult.UserError -> Result.UserError(result.info)
         }
 
         private fun <R> extractOutput(result: PhaseResult<R>) = when (result) {
             is PhaseResult.Success -> result.output
             is PhaseResult.SuccessWithArtifact -> result.output
             is PhaseResult.InternalError -> throw PhaseException("Internal error")
-            is PhaseResult.UserError -> throw PhaseException(result.detail.toString())
+            is PhaseResult.UserError -> throw PhaseException(
+                when (result.info) {
+                    is InvalidDag -> result.info.error
+                    is OtherException -> result.info.detail.toString()
+                }
+            )
         }
+
 
         private inner class PhaseBuilderImpl<R>(private val phaseId: UUID) : PhaseBuilder<R> {
             suspend override fun log(stream: String, message: String) {

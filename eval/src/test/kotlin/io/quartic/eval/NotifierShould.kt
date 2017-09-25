@@ -36,6 +36,7 @@ class NotifierShould {
     private val customer = mock<Customer> {
         on { subdomain } doReturn "noobhole"
         on { name } doReturn "noob co"
+        on { slackChannel } doReturn "#noobery"
     }
 
     private val buildUri = URI.create("http://noobhole/build/100")
@@ -84,19 +85,22 @@ class NotifierShould {
     fun send_success_on_success() {
         notifier.notifyComplete(trigger, customer, 100, Success("Hello there"))
 
-        verify(hey).notifyAsync(HeyNotification(listOf(
-            HeyAttachment(
-                title = "Build #100 succeeded",
-                titleLink = URI.create("http://noobhole/build/100"),
-                text = "Hello there",
-                fields = listOf(
-                    HeyField("Branch", "develop", true),
-                    HeyField("Customer", customer.name, true)
-                ),
-                timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = HeyColor.GOOD
+        verify(hey).notifyAsync(HeyNotification(
+            "#noobery",
+            listOf(
+                HeyAttachment(
+                    title = "Build #100 succeeded",
+                    titleLink = URI.create("http://noobhole/build/100"),
+                    text = "Hello there",
+                    fields = listOf(
+                        HeyField("Branch", "develop", true),
+                        HeyField("Customer", customer.name, true)
+                    ),
+                    timestamp = clock.instant().atOffset(ZoneOffset.UTC),
+                    color = HeyColor.GOOD
+                )
             )
-        )))
+        ))
 
         verify(github).sendStatusAsync(
             owner = "noobing",
@@ -116,19 +120,22 @@ class NotifierShould {
     fun send_error_on_failure() {
         notifier.notifyComplete(trigger, customer, 100, Failure("Oh dear"))
 
-        verify(hey).notifyAsync(HeyNotification(listOf(
-            HeyAttachment(
-                title = "Build #100 failed",
-                titleLink = URI.create("http://noobhole/build/100"),
-                text = "Oh dear",
-                fields = listOf(
-                    HeyField("Branch", "develop", true),
-                    HeyField("Customer", customer.name, true)
-                ),
-                timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = HeyColor.DANGER
+        verify(hey).notifyAsync(HeyNotification(
+            "#noobery",
+            listOf(
+                HeyAttachment(
+                    title = "Build #100 failed",
+                    titleLink = URI.create("http://noobhole/build/100"),
+                    text = "Oh dear",
+                    fields = listOf(
+                        HeyField("Branch", "develop", true),
+                        HeyField("Customer", customer.name, true)
+                    ),
+                    timestamp = clock.instant().atOffset(ZoneOffset.UTC),
+                    color = HeyColor.DANGER
+                )
             )
-        )))
+        ))
 
         verify(github).sendStatusAsync(
             owner = "noobing",
