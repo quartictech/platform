@@ -77,14 +77,22 @@ data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent(
     @JsonSubTypes(
         Type(Result.Success::class, name = "success"),
         Type(Result.InternalError::class, name = "internal_error"),
-        Type(Result.UserError::class, name = "user_error"),
-        Type(Result.Skipped::class, name = "skipped")
+        Type(Result.UserError::class, name = "user_error")
     )
     sealed class Result {
-        data class Success(val artifact: V2.Artifact? = null) : Result()
+        data class Success(val artifact: Artifact? = null) : Result()
         class InternalError : Result()
         data class UserError(val info: V5.UserErrorInfo): Result()
-        class Skipped: Result()
+    }
+
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(Artifact.EvaluationOutput::class, name = "evaluation_output"),
+        Type(Artifact.NodeExecution::class, name = "node_execution")
+    )
+    sealed class Artifact {
+        data class EvaluationOutput(val nodes: List<V2.Node>) : Artifact()
+        data class NodeExecution(val skipped: Boolean) : Artifact()
     }
 }
 

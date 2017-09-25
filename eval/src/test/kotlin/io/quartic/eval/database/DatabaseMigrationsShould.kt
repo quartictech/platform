@@ -6,19 +6,17 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.BUILD_SUCCEEDED
-import io.quartic.eval.database.model.BuildSucceeded
+import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.*
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
+import io.quartic.eval.database.model.PhaseCompletedV6.Result
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import org.flywaydb.core.api.MigrationVersion
-import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.isA
 import org.jdbi.v3.core.Jdbi
+import org.junit.*
 import org.junit.Assert.assertThat
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.FixMethodOrder
-import org.junit.Test
 import org.junit.runners.MethodSorters
 import java.sql.Timestamp
 import java.time.Instant
@@ -27,6 +25,12 @@ import java.util.*
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class DatabaseMigrationsShould {
     private val handle = DBI.open()
+
+    @After
+    fun after() {
+        DBI.open().createUpdate("DELETE FROM build").execute()
+        DBI.open().createUpdate("DELETE FROM event").execute()
+    }
 
     @Test
     fun v1_migrate() {
@@ -142,10 +146,8 @@ class DatabaseMigrationsShould {
 
         databaseVersion("4")
 
-        with(OBJECT_MAPPER.readValue<V4>(getEventFields(eventId)["payload"].toString())) {
-            @Suppress("UNCHECKED_CAST")
-            assertThat(this.result, isA(V4.Result.InternalError::class.java) as Matcher<V4.Result>)
-        }
+        @Suppress("UNCHECKED_CAST")
+        assertThat(readPayloadAs<V4>(eventId).result, isA(V4.Result.InternalError::class.java as Class<V4.Result>))
         assertThatOtherEventsArentNuked(otherEventId)
     }
 
@@ -164,23 +166,92 @@ class DatabaseMigrationsShould {
         val otherEventId = insertOtherEvent()
         databaseVersion("5")
 
-        with(OBJECT_MAPPER.readValue<V5>(getEventFields(eventId)["payload"].toString())) {
-            @Suppress("UNCHECKED_CAST")
-            assertThat(this.result, isA(V5.Result.UserError::class.java) as Matcher<V5.Result>)
-            @Suppress("UNCHECKED_CAST")
-            assertThat((this.result as V5.Result.UserError).info, isA(V5.UserErrorInfo.OtherException::class.java) as Matcher<V5.UserErrorInfo>)
-        }
+        assertThat(readPayloadAs<V5>(eventId).result, equalTo(
+            V5.Result.UserError(
+                V5.UserErrorInfo.OtherException(
+                    mapOf("detail" to "wat")  // This is wrong - TODO - fix in v7
+                )
+            ) as V5.Result)
+        )
         assertThatOtherEventsArentNuked(otherEventId)
     }
 
     @Test
-    fun v6_migrate() {
+    fun v6_migrate_execution_phases() {
+        databaseVersion("5")
+
+
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+
+        val eventIdStart = uuid(103)
+        val eventStart = insertEvent(eventIdStart, buildId, time,
+            PhaseStarted(
+                phaseId = phaseId,
+                description = "Executing step for dataset foo"
+            )
+        )
+        val eventIdLog = uuid(106)
+        val eventLog = insertEvent(eventIdLog, buildId, time,
+            LogMessageReceived(
+                phaseId = phaseId,
+                stream = "Yeah",
+                message = "Right on"
+            )
+        )
+        val eventIdComplete = uuid(107)
+        insertEvent(eventIdComplete, buildId, time,
+            V5(
+                phaseId = phaseId,
+                result = V5.Result.Success()
+            )
+        )
+
         databaseVersion("6")
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success(NodeExecution(skipped = false)) as Result))
+        // Check we didn't modify any other events
+        assertThat(readPayloadAs<PhaseStarted>(eventIdStart), equalTo(eventStart))
+        assertThat(readPayloadAs<LogMessageReceived>(eventIdLog), equalTo(eventLog))
     }
+
+    @Test
+    fun v6_not_affect_non_execution_phases() {
+        databaseVersion("5")
+
+        val eventIdStart = uuid(103)
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+        insertEvent(eventIdStart, buildId, time,
+            PhaseStarted(
+                phaseId = phaseId,
+                description = "Something else"
+            )
+        )
+        val eventIdComplete = uuid(106)
+        insertEvent(eventIdComplete, buildId, time,
+            V5(
+                phaseId = phaseId,
+                result = V5.Result.Success()
+            )
+        )
+
+        databaseVersion("6")
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success() as Result))
+    }
+
+    // TODO - Sparrow to write v7 to fix v5
+
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
         assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
     }
+
+    private inline fun <reified T : Any> readPayloadAs(eventId: UUID) =
+        OBJECT_MAPPER.readValue<T>(getEventFields(eventId)["payload"].toString())
 
     private fun getEventFields(eventId: UUID): Map<String, Any> {
         return handle.createQuery("""SELECT * FROM event WHERE id = :id""")
@@ -196,7 +267,7 @@ class DatabaseMigrationsShould {
         return eventIdSucceeded
     }
 
-    private fun insertEvent(eventId: UUID, buildId: UUID, time: Instant, payload: Any) {
+    private fun insertEvent(eventId: UUID, buildId: UUID, time: Instant, payload: Any): Any {
         handle.createUpdate("""
             INSERT INTO event (id, build_id, payload, time)
                 VALUES (:id, :build_id, :payload, :time)
@@ -206,6 +277,7 @@ class DatabaseMigrationsShould {
             .bindJson("payload", payload)
             .bind("time", time)
             .execute()
+        return payload
     }
 
     private fun databaseVersion(version: String): Database = DatabaseBuilder
