@@ -18,8 +18,7 @@ run {
     environment += [
         DEV_MODE: true,
         SLACK_TOKEN_ENCRYPTED: '1$fcf8a3c9e4598cc5cf3cf31e$6c8cb8f0b3ca9d5e4c3eeae05001d3fd63c13432f0d7b9dbe90cbbb48c4cd5a4208b5357b86795f00a052cb4$ecc769fb123a4ede8e0a294f4a04296a',
-        SLACK_USERNAME: "Quartic Hey",
-        SLACK_CHANNEL: "#test"
+        SLACK_USERNAME: "Quartic Hey"
     ]
 }
 

@@ -10,6 +10,6 @@ data class HeyConfiguration(
     val slackTokenEncrypted: EncryptedSecret,
     @JsonProperty("SLACK_USERNAME")
     val slackUsername: String,
-    @JsonProperty("SLACK_CHANNEL")
-    val slackChannel: String
+    @JsonProperty("DEFAULT_SLACK_CHANNEL")
+    val defaultSlackChannel: String
 )

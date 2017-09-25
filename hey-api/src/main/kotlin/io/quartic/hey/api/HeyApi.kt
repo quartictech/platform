@@ -9,6 +9,7 @@ import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
 
 data class HeyNotification(
+    val channel: String? = null,
     val attachments: List<HeyAttachment>
 )
 
