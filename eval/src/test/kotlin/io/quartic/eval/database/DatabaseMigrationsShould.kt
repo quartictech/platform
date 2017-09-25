@@ -157,7 +157,6 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v5_migrate() {
-        databaseVersion("4")
         val eventId = uuid(100)
         val buildId = uuid(101)
         val phaseId = uuid(102)
