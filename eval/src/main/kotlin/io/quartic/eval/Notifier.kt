@@ -47,25 +47,28 @@ class Notifier(
         event: Event) {
         val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/build/${buildNumber}")
 
-        client.notifyAsync(HeyNotification(listOf(
-            HeyAttachment(
-                title = when (event) {
-                    is Event.Success -> "Build #${buildNumber} succeeded"
-                    is Event.Failure -> "Build #${buildNumber} failed"
-                },
-                titleLink = buildUri,
-                text = event.message,
-                fields = listOf(
-                    HeyField("Branch", trigger.branch(), true),
-                    HeyField("Customer", customer.name, true)
-                ),
-                timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                color = when (event) {
-                    is Event.Success -> HeyColor.GOOD
-                    is Event.Failure -> HeyColor.DANGER
-                }
+        client.notifyAsync(HeyNotification(
+            customer.slackChannel,
+            listOf(
+                HeyAttachment(
+                    title = when (event) {
+                        is Event.Success -> "Build #${buildNumber} succeeded"
+                        is Event.Failure -> "Build #${buildNumber} failed"
+                    },
+                    titleLink = buildUri,
+                    text = event.message,
+                    fields = listOf(
+                        HeyField("Branch", trigger.branch(), true),
+                        HeyField("Customer", customer.name, true)
+                    ),
+                    timestamp = clock.instant().atOffset(ZoneOffset.UTC),
+                    color = when (event) {
+                        is Event.Success -> HeyColor.GOOD
+                        is Event.Failure -> HeyColor.DANGER
+                    }
+                )
             )
-        )))
+        ))
 
         maybeSendGithubStatus(
             trigger = trigger,
