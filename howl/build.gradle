@@ -19,7 +19,6 @@ dependencies {
     compile "com.amazonaws:aws-java-sdk-s3:1.11.150"
     compile "com.amazonaws:aws-java-sdk-sts:1.11.150"
     compile "com.google.apis:google-api-services-storage:v1-rev88-1.22.0"
-    compile libraries.dropwizard.websockets
 
     testCompile project(":common-test")
     testCompile libraries.dropwizard.testing
