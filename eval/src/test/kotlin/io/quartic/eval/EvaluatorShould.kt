@@ -102,7 +102,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<UserErrorInfo>(InvalidDag("Dag is das noob", listOf()))))
+        assertThat(sequencer.results, hasItem(UserError<Any>(InvalidDag("Dag is das noob", listOf()))))
     }
 
     @Test
@@ -124,7 +124,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<OtherException>(OtherException("badness"))))
+        assertThat(sequencer.results, hasItem(UserError<Any>(OtherException("badness"))))
     }
 
     @Test

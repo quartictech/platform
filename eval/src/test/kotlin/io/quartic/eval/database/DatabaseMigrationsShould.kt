@@ -8,6 +8,7 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
@@ -167,15 +168,17 @@ class DatabaseMigrationsShould {
                 result = V3.Result.UserError("wat")
             )
         )
+        val otherEventId = insertOtherEvent()
         databaseVersion("5")
 
-        val otherEventId = insertOtherEvent()
         with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
             @Suppress("UNCHECKED_CAST")
             assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
             this as PhaseCompleted
             @Suppress("UNCHECKED_CAST")
             assertThat(this.result, isA(Result.UserError::class.java) as Matcher<Result>)
+            @Suppress("UNCHECKED_CAST")
+            assertThat((this.result as Result.UserError).info, isA(UserErrorInfo.OtherException::class.java) as Matcher<UserErrorInfo>)
         }
         assertThatOtherEventsArentNuked(otherEventId)
     }

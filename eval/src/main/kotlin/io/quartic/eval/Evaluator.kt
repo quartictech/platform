@@ -94,8 +94,8 @@ class Evaluator(
                     }
 
                     // Only do this for manual launch
-                    if (triggerType == TriggerType.EXECUTE && dag is DagResult.Valid) {
-                        dag.dag
+                    if (triggerType == TriggerType.EXECUTE) {
+                        (dag as DagResult.Valid).dag
                             .forEach { node ->
                                 val action = when (node) {
                                     is Node.Step -> "Executing step"
