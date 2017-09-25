@@ -23,7 +23,8 @@ class V5__Structure_user_errors : JdbcMigration {
             SELECT *
                 FROM event
                 WHERE
-                    payload->>'type' = 'phase_completed'
+                    payload->>'type' = 'phase_completed' AND
+                    payload#>>'{result,type}' = 'user_error'
         """)
             .mapToMap()
             .forEach { event ->
@@ -34,8 +35,7 @@ class V5__Structure_user_errors : JdbcMigration {
                 handle.createUpdate("""
                     UPDATE event
                         SET payload = :payload
-                        WHERE id = :id AND
-                              payload#>>'{result,type}' = 'user_error'
+                        WHERE id = :id
                 """)
                     .bind("id", event["id"])
                     .bindJson("payload", newPayload)
@@ -50,7 +50,7 @@ class V5__Structure_user_errors : JdbcMigration {
                 when (event.result) {
                     is LegacyPhaseCompleted.V3.Result.UserError ->
                         CurrentPhaseCompleted.UserErrorInfo.OtherException(event.result.detail)
-                    else -> throw IllegalStateException("Can only transform UserError")
+                    else -> throw IllegalStateException("Can only transform UserError. Found ${event.result}")
                 }
             )
         )

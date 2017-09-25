@@ -157,9 +157,9 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v5_migrate() {
-        val eventId = uuid(100)
-        val buildId = uuid(101)
-        val phaseId = uuid(102)
+        val eventId = uuid(103)
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
         val time = Instant.now()
         insertEvent(eventId, buildId, time,
             V3(
@@ -168,8 +168,9 @@ class DatabaseMigrationsShould {
             )
         )
         databaseVersion("5")
+
         val otherEventId = insertOtherEvent()
-           with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
+        with(OBJECT_MAPPER.readValue<BuildEvent>(getEventFields(eventId)["payload"].toString())) {
             @Suppress("UNCHECKED_CAST")
             assertThat(this, isA(PhaseCompleted::class.java) as Matcher<BuildEvent>)
             this as PhaseCompleted
@@ -192,7 +193,7 @@ class DatabaseMigrationsShould {
     }
 
     private fun insertOtherEvent(): UUID {
-        val eventIdSucceeded = uuid(999)
+        val eventIdSucceeded = UUID.randomUUID()
         insertEvent(eventIdSucceeded, UUID.randomUUID(), Instant.now(), BUILD_SUCCEEDED)
         return eventIdSucceeded
     }
