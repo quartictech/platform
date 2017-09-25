@@ -10,6 +10,7 @@ import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.toDatabaseModel
+import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -38,29 +39,17 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (List<Node>) -> Dag?,
-    private val quartyBuilder: (String) -> QuartyProxy
+    private val extractDag: (List<Node>) -> Dag? = { nodes ->
+        try {
+            Dag.fromRaw(nodes)
+        } catch (e: Exception) {
+            LOG.error("Exception while validating DAG:", e)
+            null
+        }
+    },
+    private val dagPruner: Pruner = Pruner(),
+    private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
 ) {
-    constructor(
-        sequencer: Sequencer,
-        registry: RegistryServiceClient,
-        github: GitHubInstallationClient
-    ) : this(
-        sequencer,
-        registry,
-        github,
-        { nodes ->
-            try {
-                Dag.fromRaw(nodes)
-            } catch (e: Exception) {
-                LOG.error("Exception while validating DAG:", e)
-                null
-            }
-        },
-        { hostname -> QuartyProxy(hostname) }
-    )
-
-
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
         is GithubWebhook -> TriggerType.EVALUATE
@@ -99,15 +88,19 @@ class Evaluator(
 
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
+                        val acceptor = dagPruner.acceptorFor(dag)
+
                         dag
                             .forEach { node ->
-                                val action = when (node) {
-                                    is Node.Step -> "Executing step"
-                                    is Node.Raw -> "Acquiring raw data"
-                                }
-                                phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                    extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
-                                        success(Unit)
+                                if (acceptor(node)) {
+                                    val action = when (node) {
+                                        is Node.Step -> "Executing step"
+                                        is Node.Raw -> "Acquiring raw data"
+                                    }
+                                    phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
+                                        extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
+                                            success(Unit)
+                                        }
                                     }
                                 }
                             }

@@ -22,8 +22,6 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
     override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 
     companion object {
-        val LOG by logger()
-
         fun fromRaw(nodes: List<Node>): Dag {
             val dag = DefaultDirectedGraph<Node, DummyEdge>(DummyEdge::class.java)
 
