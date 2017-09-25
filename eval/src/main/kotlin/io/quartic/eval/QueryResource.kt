@@ -4,7 +4,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.Success
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LogMessageReceived

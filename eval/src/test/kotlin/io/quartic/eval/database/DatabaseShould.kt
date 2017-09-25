@@ -7,7 +7,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.Success
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput

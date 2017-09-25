@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
@@ -14,6 +13,7 @@ import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUAT
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.*
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -73,7 +73,7 @@ class CurrentBuildSucceeded : BuildCompleted()
 data class CurrentBuildFailed(val description: String) : BuildCompleted()
 data class CurrentContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 data class CurrentPhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
-data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildEvent() {
+data class PhaseCompletedV5(val phaseId: UUID, val result: Result) : BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
         Type(Success::class, name = "success"),
@@ -109,7 +109,7 @@ typealias BuildSucceeded = CurrentBuildSucceeded
 typealias BuildFailed = CurrentBuildFailed
 typealias ContainerAcquired = CurrentContainerAcquired
 typealias PhaseStarted = CurrentPhaseStarted
-typealias PhaseCompleted = CurrentPhaseCompleted
+typealias PhaseCompleted = PhaseCompletedV5
 typealias LogMessageReceived = CurrentLogMessageReceived
 
 

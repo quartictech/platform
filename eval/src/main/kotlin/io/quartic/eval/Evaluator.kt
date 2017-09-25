@@ -9,8 +9,8 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy

@@ -9,7 +9,7 @@ import io.quartic.eval.api.model.*
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.EventRow
 import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.Success
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw

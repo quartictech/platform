@@ -7,9 +7,9 @@ import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
+import io.quartic.eval.database.model.PhaseCompletedV5.Result
+import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.InternalError
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V4

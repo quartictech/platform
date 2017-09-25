@@ -8,8 +8,8 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV5.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
