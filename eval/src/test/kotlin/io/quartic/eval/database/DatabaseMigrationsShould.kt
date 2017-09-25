@@ -12,7 +12,7 @@ import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.InternalError
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V3
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V4
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
@@ -163,9 +163,9 @@ class DatabaseMigrationsShould {
         val phaseId = uuid(105)
         val time = Instant.now()
         insertEvent(eventId, buildId, time,
-            V3(
+            V4(
                 phaseId = phaseId,
-                result = V3.Result.UserError("wat")
+                result = V4.Result.UserError("wat")
             )
         )
         val otherEventId = insertOtherEvent()

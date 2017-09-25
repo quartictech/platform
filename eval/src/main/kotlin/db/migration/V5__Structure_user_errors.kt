@@ -24,7 +24,7 @@ class V5__Structure_user_errors : JdbcMigration {
         """)
             .mapToMap()
             .forEach { event ->
-                val oldPayload = OBJECT_MAPPER.readValue<LegacyPhaseCompleted.V3>(event["payload"].toString())
+                val oldPayload = OBJECT_MAPPER.readValue<LegacyPhaseCompleted.V4>(event["payload"].toString())
 
                 val newPayload = transform(oldPayload)
 
@@ -39,12 +39,12 @@ class V5__Structure_user_errors : JdbcMigration {
             }
     }
 
-    private fun transform(event: LegacyPhaseCompleted.V3) = CurrentPhaseCompleted(
+    private fun transform(event: LegacyPhaseCompleted.V4) = CurrentPhaseCompleted(
         event.phaseId,
         CurrentPhaseCompleted.Result.UserError(
             CurrentPhaseCompleted.UserErrorInfo.OtherException(
                 when (event.result) {
-                    is LegacyPhaseCompleted.V3.Result.UserError ->
+                    is LegacyPhaseCompleted.V4.Result.UserError ->
                         CurrentPhaseCompleted.UserErrorInfo.OtherException(event.result.detail)
                     else -> throw IllegalStateException("Can only transform UserError. Found ${event.result}")
                 }

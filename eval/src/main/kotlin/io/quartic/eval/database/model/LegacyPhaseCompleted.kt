@@ -10,8 +10,8 @@ import java.util.*
 
 class LegacyPhaseCompleted private constructor() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
-    @JsonSubTypes(Type(V3::class, name = "phase_completed"))
-    data class V3(val phaseId: UUID, val result: Result) {
+    @JsonSubTypes(Type(V4::class, name = "phase_completed"))
+    data class V4(val phaseId: UUID, val result: Result) {
         @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
         @JsonSubTypes(
             Type(Result.Success::class, name = "success"),
