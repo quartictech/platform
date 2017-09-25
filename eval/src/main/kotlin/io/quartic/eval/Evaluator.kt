@@ -9,6 +9,8 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
@@ -31,6 +33,7 @@ import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
+import io.quartic.eval.Dag.DagResult
 
 // TODO - retries
 // TODO - timeouts
@@ -38,7 +41,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (List<Node>) -> Dag?,
+    private val extractDag: (List<Node>) -> DagResult,
     private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
@@ -49,14 +52,7 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { nodes ->
-            try {
-                Dag.fromRaw(nodes)
-            } catch (e: Exception) {
-                LOG.error("Exception while validating DAG:", e)
-                null
-            }
-        },
+        { nodes -> Dag.fromRawValidating(nodes) },
         { hostname -> QuartyProxy(hostname) }
     )
 
@@ -91,7 +87,7 @@ class Evaluator(
                         }
                     }
 
-                    val dag = phase<Dag>("Evaluating DAG") {
+                    val dag = phase<DagResult>("Evaluating DAG") {
                         extractResultFrom(quarty, Evaluate()) {
                             extractDagFromPipeline(it)
                         }
@@ -99,7 +95,7 @@ class Evaluator(
 
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
-                        dag
+                        (dag as DagResult.Valid).dag
                             .forEach { node ->
                                 val action = when (node) {
                                     is Node.Step -> "Executing step"
@@ -124,7 +120,7 @@ class Evaluator(
     ) = with(quarty.request(request) { stream, message -> runBlocking { log(stream, message) } }) {
         when(this) {
             is Result -> block(result)
-            is Error -> userError(detail)
+            is Error -> userError(OtherException(detail))
         }
     }
 
@@ -136,15 +132,14 @@ class Evaluator(
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
-    private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
+    private fun PhaseBuilder<DagResult>.extractDagFromPipeline(raw: Any?): PhaseResult<DagResult> {
         val nodes = parseRawPipeline(raw)
         val dag = extractDag(nodes)
-        return with(dag) {
-            if (dag != null) {
+        return when (dag) {
+            is DagResult.Valid ->
                 successWithArtifact(EvaluationOutput(nodes), dag)
-            } else {
-                userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
-            }
+            is DagResult.Invalid ->
+                userError(InvalidDag(dag.error, dag.nodes))
         }
     }
 
