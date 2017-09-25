@@ -1,4 +1,4 @@
-package io.quartic.eval.api.model
+package io.quartic.home.model
 
 data class CytoscapeNodeData(
     val id: String,
