@@ -65,11 +65,13 @@ class DatabaseShould {
         insertBuild(buildId)
         insertEvent(buildId, successfulPhase(phaseId), id = { eventId })
 
-        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+        val events = DATABASE.getEventsForBuild(customerId, 1)
+
+        assertThat(events.map { it.payload }, contains(
             successfulPhase(phaseId) as BuildEvent
         ))
 
-        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.id }, equalTo(listOf(eventId)))
+        assertThat(events.map { it.id }, equalTo(listOf(eventId)))
     }
 
     @Test
