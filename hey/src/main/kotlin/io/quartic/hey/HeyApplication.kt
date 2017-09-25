@@ -40,7 +40,7 @@ class HeyApplication : ApplicationBase(HEY_DEV_PORT) {
 
     private fun noteToMessage(config: HeyConfiguration, note: HeyNotification) = SlackMessage(
         username = config.slackUsername,
-        channel = config.slackChannel,
+        channel = note.channel ?: config.defaultSlackChannel,
         attachments = note.attachments.map { a ->
             SlackAttachment(
                 title = a.title,
@@ -55,16 +55,18 @@ class HeyApplication : ApplicationBase(HEY_DEV_PORT) {
                 },
                 footer = a.footer,
                 timestamp = a.timestamp,
-                color = when (a.color) {
-                    HeyColor.GOOD -> SlackColor.GOOD
-                    HeyColor.WARNING -> SlackColor.WARNING
-                    HeyColor.DANGER -> SlackColor.DANGER
-                    HeyColor.QUARTIC -> SlackColor("#db1e7b")
-                    null -> null
-                }
+                color = a.color.slackColor
             )
         }
     )
+
+    private val HeyColor?.slackColor get() = when (this) {
+        HeyColor.GOOD -> SlackColor.GOOD
+        HeyColor.WARNING -> SlackColor.WARNING
+        HeyColor.DANGER -> SlackColor.DANGER
+        HeyColor.QUARTIC -> SlackColor("#db1e7b")
+        null -> null
+    }
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = deploy(HeyApplication())

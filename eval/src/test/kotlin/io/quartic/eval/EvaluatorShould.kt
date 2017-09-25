@@ -4,9 +4,12 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.exceptionalFuture
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.toDatabaseModel
@@ -91,16 +94,17 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         execute()
 
-        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }), dag)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }),
+            DagResult.Valid(dag))))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(extractDag(any())).doReturn(null as Dag?)
+        whenever(extractDag(any())).doReturn(DagResult.Invalid("Dag is das noob", listOf()))
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
+        assertThat(sequencer.results, hasItem(UserError<Any>(InvalidDag("Dag is das noob", listOf()))))
     }
 
     @Test
@@ -122,7 +126,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
+        assertThat(sequencer.results, hasItem(UserError<Any>(OtherException("badness"))))
     }
 
     @Test
@@ -304,7 +308,7 @@ class EvaluatorShould {
         on { invoke(containerHostname) } doReturn quarty
     }
 
-    private val extractDag = mock<(List<Node>) -> Dag?>()
+    private val extractDag = mock<(List<Node>) -> DagResult>()
 
     private val pruner = mock<Pruner> {
         on { acceptorFor(any()) } doReturn { true }
@@ -357,6 +361,6 @@ class EvaluatorShould {
     }
 
     init {
-        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(dag)
+        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(DagResult.Valid(dag))
     }
 }
