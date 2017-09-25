@@ -33,7 +33,7 @@ import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
-import io.quartic.eval.Dag.Companion.DagResult
+import io.quartic.eval.Dag.DagResult
 
 // TODO - retries
 // TODO - timeouts

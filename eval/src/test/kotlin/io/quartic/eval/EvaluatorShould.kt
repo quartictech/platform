@@ -14,7 +14,7 @@ import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
-import io.quartic.eval.Dag.Companion.DagResult
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
 import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
@@ -294,7 +294,7 @@ class EvaluatorShould {
         on { invoke(containerHostname) } doReturn quarty
     }
 
-    private val extractDag = mock<(List<Node>) -> Dag.Companion.DagResult>()
+    private val extractDag = mock<(List<Node>) -> DagResult>()
 
     private val sequencer = spy(MySequencer())
 

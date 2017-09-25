@@ -21,10 +21,6 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
     override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 
     companion object {
-        sealed class DagResult {
-            data class Valid(val dag: Dag): DagResult()
-            data class Invalid(val error: String, val nodes: List<Node>): DagResult()
-        }
 
         private fun wrapValidationExceptions(nodes: List<Node>, block: (List<Node>) -> Dag): DagResult =
             try {
@@ -67,5 +63,10 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
             return Dag(dag)
         }
 
+    }
+
+    sealed class DagResult {
+        data class Valid(val dag: Dag): DagResult()
+        data class Invalid(val error: String, val nodes: List<Node>): DagResult()
     }
 }
