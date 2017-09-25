@@ -1,7 +1,6 @@
 package io.quartic.eval
 
 import com.google.common.base.Preconditions.checkArgument
-import io.quartic.common.logging.logger
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import org.jgrapht.DirectedGraph
@@ -22,7 +21,21 @@ class Dag(private val dag: DirectedGraph<Node, DummyEdge>) : Iterable<Node> {
     override fun iterator(): Iterator<Node> = TopologicalOrderIterator(dag)
 
     companion object {
-        val LOG by logger()
+        sealed class DagResult {
+            data class Valid(val dag: Dag): DagResult()
+            data class Invalid(val error: String, val nodes: List<Node>): DagResult()
+        }
+
+        private fun wrapValidationExceptions(nodes: List<Node>, block: (List<Node>) -> Dag): DagResult =
+            try {
+                DagResult.Valid(block(nodes))
+            } catch (e: IllegalArgumentException) {
+                DagResult.Invalid(e.message!!, nodes)
+            }
+
+        fun fromRawValidating(nodes: List<Node>) = wrapValidationExceptions(nodes) {
+            fromRaw(nodes)
+        }
 
         fun fromRaw(nodes: List<Node>): Dag {
             val dag = DefaultDirectedGraph<Node, DummyEdge>(DummyEdge::class.java)

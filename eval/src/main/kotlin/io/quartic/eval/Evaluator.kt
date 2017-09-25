@@ -31,6 +31,7 @@ import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
+import io.quartic.eval.Dag.Companion.DagResult
 
 // TODO - retries
 // TODO - timeouts
@@ -38,7 +39,7 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (List<Node>) -> Dag?,
+    private val extractDag: (List<Node>) -> DagResult,
     private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
@@ -49,14 +50,7 @@ class Evaluator(
         sequencer,
         registry,
         github,
-        { nodes ->
-            try {
-                Dag.fromRaw(nodes)
-            } catch (e: Exception) {
-                LOG.error("Exception while validating DAG:", e)
-                null
-            }
-        },
+        { nodes -> Dag.fromRawValidating(nodes) },
         { hostname -> QuartyProxy(hostname) }
     )
 
@@ -91,15 +85,15 @@ class Evaluator(
                         }
                     }
 
-                    val dag = phase<Dag>("Evaluating DAG") {
+                    val dag = phase<DagResult>("Evaluating DAG") {
                         extractResultFrom(quarty, Evaluate()) {
                             extractDagFromPipeline(it)
                         }
                     }
 
                     // Only do this for manual launch
-                    if (triggerType == TriggerType.EXECUTE) {
-                        dag
+                    if (triggerType == TriggerType.EXECUTE && dag is DagResult.Valid) {
+                        dag.dag
                             .forEach { node ->
                                 val action = when (node) {
                                     is Node.Step -> "Executing step"
@@ -136,15 +130,14 @@ class Evaluator(
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
 
-    private fun PhaseBuilder<Dag>.extractDagFromPipeline(raw: Any?): PhaseResult<Dag> {
+    private fun PhaseBuilder<DagResult>.extractDagFromPipeline(raw: Any?): PhaseResult<DagResult> {
         val nodes = parseRawPipeline(raw)
         val dag = extractDag(nodes)
-        return with(dag) {
-            if (dag != null) {
+        return when (dag) {
+            is DagResult.Valid ->
                 successWithArtifact(EvaluationOutput(nodes), dag)
-            } else {
-                userError("DAG is invalid")     // TODO - we probably want a useful diagnostic message from the DAG validator
-            }
+            is DagResult.Invalid ->
+                userError(dag)
         }
     }
 

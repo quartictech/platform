@@ -14,6 +14,7 @@ import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
+import io.quartic.eval.Dag.Companion.DagResult
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Owner
@@ -88,16 +89,17 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         execute()
 
-        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }), dag)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }),
+            DagResult.Valid(dag))))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(extractDag(any())).doReturn(null as Dag?)
+        whenever(extractDag(any())).doReturn(DagResult.Invalid("Dag is das noob", listOf()))
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
+        assertThat(sequencer.results, hasItem(UserError<Any>(DagResult.Invalid("Dag is das noob", listOf()))))
     }
 
     @Test
@@ -289,7 +291,7 @@ class EvaluatorShould {
         on { invoke(containerHostname) } doReturn quarty
     }
 
-    private val extractDag = mock<(List<Node>) -> Dag?>()
+    private val extractDag = mock<(List<Node>) -> Dag.Companion.DagResult>()
 
     private val sequencer = spy(MySequencer())
 
@@ -337,6 +339,6 @@ class EvaluatorShould {
     }
 
     init {
-        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(dag)
+        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(DagResult.Valid(dag))
     }
 }
