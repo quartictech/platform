@@ -61,12 +61,15 @@ class DatabaseShould {
 
     @Test
     fun insert_event() {
+        val eventId = UUID.randomUUID()
         insertBuild(buildId)
-        insertEvent(buildId, successfulPhase(phaseId))
+        insertEvent(buildId, successfulPhase(phaseId), id = { eventId })
 
         assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
             successfulPhase(phaseId) as BuildEvent
         ))
+
+        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.id }, equalTo(listOf(eventId)))
     }
 
     @Test
@@ -222,8 +225,9 @@ class DatabaseShould {
         DATABASE.insertBuild(buildId, customerId, branch)
     }
 
-    private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now()) {
-        DATABASE.insertEvent(uuidGen(), event, time, buildId)
+    private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now(),
+                            id: () -> UUID = { uuidGen() }) {
+        DATABASE.insertEvent(id(), event, time, buildId)
     }
 
     private inner class UuidGen {
