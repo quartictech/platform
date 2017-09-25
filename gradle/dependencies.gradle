@@ -5,7 +5,6 @@ ext {
 
 versions.dropwizard = "1.1.0"
 versions.jackson = "2.8.7"      // This is the Jackson version that Dropwizard currently pulls in
-versions.feign = "9.5.0"
 versions.coroutines = "0.17"
 versions.retrofit = "2.3.0"
 versions.vertx = "3.4.2"

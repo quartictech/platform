@@ -3,18 +3,18 @@ package io.quartic.common.client
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import com.github.tomakehurst.wiremock.core.Options.DYNAMIC_PORT
 import com.github.tomakehurst.wiremock.junit.WireMockRule
-import feign.Param
-import feign.RequestLine
 import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import io.quartic.common.test.assertThrows
 import org.junit.Rule
 import org.junit.Test
-import javax.ws.rs.Path
+import retrofit2.http.GET
+import retrofit2.http.Path
+import java.util.concurrent.CompletableFuture
 
-@Path("/ooh")
+@Retrofittable
 private interface MyService {
-    @RequestLine("GET /ooh/{id}", decodeSlash = false)
-    fun getStuff(@Param("id") id: String): String
+    @GET("ooh/{id}")
+    fun getStuffAsync(@Path("id") id: String): CompletableFuture<String>
 }
 
 class ClientUtilsShould {
@@ -24,13 +24,14 @@ class ClientUtilsShould {
 
     private val clientBuilder = ClientBuilder(javaClass)
 
+    // Feign got this wrong without decodeSlash=false.  Retaining the test just to prove Retrofit is regular
     @Test
     fun encode_slashes_in_path_params() {
         stubFor(get(urlMatching("/ooh/(.*)")).willReturn(aResponse().withBody(""""hello"""")))
 
-        val service = clientBuilder.feign<MyService>("http://localhost:${wireMockRule.port()}")
+        val service = clientBuilder.retrofit<MyService>("http://localhost:${wireMockRule.port()}")
 
-        service.getStuff("abc/def")
+        service.getStuffAsync("abc/def").get()
 
         verify(getRequestedFor(urlEqualTo("/ooh/abc%2Fdef")))
     }

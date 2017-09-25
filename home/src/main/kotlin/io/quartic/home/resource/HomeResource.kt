@@ -1,7 +1,7 @@
 package io.quartic.home.resource
 
 import io.dropwizard.auth.Auth
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
@@ -28,7 +28,7 @@ import javax.ws.rs.core.MediaType
 @PermitAll
 @Path("/")
 class HomeResource(
-    private val catalogue: CatalogueService,
+    private val catalogue: CatalogueClient,
     private val howl: HowlService,
     private val evalQuery: EvalQueryServiceClient,
     private val evalTrigger: EvalTriggerServiceClient,
@@ -72,7 +72,7 @@ class HomeResource(
         @Auth user: User
     ): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
         val namespace = lookupNamespace(user)
-        return catalogue.getDatasets().filterKeys { namespace.namespace == it.namespace }
+        return catalogue.getDatasetsAsync().get().filterKeys { namespace.namespace == it.namespace }
     }
 
     @DELETE
@@ -89,7 +89,7 @@ class HomeResource(
         if (id !in datasets) {
             throw notFoundException("Dataset", id.uid)
         }
-        catalogue.deleteDataset(namespace, id)
+        catalogue.deleteDatasetAsync(namespace, id).get()
     }
 
     @POST
@@ -109,7 +109,7 @@ class HomeResource(
                 DEFAULT_MIME_TYPE
             )
         )
-        return catalogue.registerDataset(namespace, datasetConfig).id
+        return catalogue.registerDatasetAsync(namespace, datasetConfig).get().id
     }
 
     @POST

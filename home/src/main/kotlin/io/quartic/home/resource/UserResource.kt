@@ -2,7 +2,7 @@ package io.quartic.home.resource
 
 import io.dropwizard.auth.Auth
 import io.quartic.common.auth.User
-import io.quartic.github.GitHub
+import io.quartic.github.GitHubClient
 import io.quartic.home.model.Profile
 import javax.annotation.security.PermitAll
 import javax.ws.rs.GET
@@ -13,14 +13,14 @@ import javax.ws.rs.core.MediaType
 
 @PermitAll
 @Path("/profile")
-class UserResource(private val gitHubApi: GitHub) {
+class UserResource(private val gitHubApi: GitHubClient) {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun getProfile(@Auth user: User): Profile {
         // TODO - ultimately we should be doing this via a stored auth token, rather than storing the GH ID in the JWT
 
         val ghUser = try {
-            gitHubApi.user(user.id.toInt())
+            gitHubApi.userAsync(user.id.toInt()).get()
         } catch (e: Exception) {
             throw ServerErrorException("GitHub communication error", 500, e)
         }

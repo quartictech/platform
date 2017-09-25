@@ -11,7 +11,7 @@ import io.dropwizard.auth.Auth
 import io.quartic.common.auth.User
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
-import io.quartic.github.GitHub
+import io.quartic.github.GitHubClient
 import io.quartic.home.graphql.GraphQLContext
 import io.quartic.home.graphql.Query
 import javax.ws.rs.Consumes
@@ -21,7 +21,7 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
 
 @Path("/")
-class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHub) {
+class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHubClient) {
     private val LOG by logger()
 
     @JsonIgnoreProperties(ignoreUnknown = true)
