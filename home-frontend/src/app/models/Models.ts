@@ -69,6 +69,7 @@ export interface FeedItem {
 
 export interface BuildEvent {
   type: string;
+  id: string;
   time: number;
   phase_id: string;
   stream?: string;
