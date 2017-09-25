@@ -173,6 +173,11 @@ class DatabaseMigrationsShould {
         assertThatOtherEventsArentNuked(otherEventId)
     }
 
+    @Test
+    fun v6_migrate() {
+        databaseVersion("6")
+    }
+
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
         assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
     }
