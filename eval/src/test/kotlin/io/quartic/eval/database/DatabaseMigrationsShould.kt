@@ -260,13 +260,23 @@ class DatabaseMigrationsShould {
         )
 
         val goodEventId = uuid(110)
-        val goodEvent = PhaseCompletedV6(
+        val goodEvent =
+            PhaseCompletedV6(
+                phaseId = phaseId,
+                result = PhaseCompletedV6.Result.UserError(
+                    V5.UserErrorInfo.OtherException("noob")
+                )
+            )
+        insertEvent(goodEventId, UUID.randomUUID(), Instant.now(), goodEvent)
+
+        val goodEventId2 = uuid(111)
+        val goodEvent2 = PhaseCompletedV6(
             phaseId = UUID.randomUUID(),
             result = PhaseCompletedV6.Result.UserError(
                 V5.UserErrorInfo.InvalidDag("noob dag", listOf())
             )
         )
-        insertEvent(goodEventId, UUID.randomUUID(), Instant.now(), goodEvent)
+        insertEvent(goodEventId2, UUID.randomUUID(), Instant.now(), goodEvent2)
 
         println(getEventFields(badEventId)["payload"].toString())
         databaseVersion("7")
@@ -274,6 +284,7 @@ class DatabaseMigrationsShould {
 
         assertThat(readPayloadAs<PhaseCompletedV6>(badEventId).result, equalTo(expected as PhaseCompletedV6.Result))
         assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId).result, equalTo(goodEvent.result))
+        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId2).result, equalTo(goodEvent2.result))
     }
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {

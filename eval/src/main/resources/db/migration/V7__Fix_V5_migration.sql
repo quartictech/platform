@@ -5,4 +5,5 @@ SET payload = jsonb_set(e.payload, '{result, info, detail}', e.payload#>'{result
 WHERE
   e.payload->>'type' = 'phase_completed' AND
   e.payload#>>'{result, type}' = 'user_error' AND
-  e.payload#>>'{result, info, type}' = 'other_exception'
+  e.payload#>>'{result, info, type}' = 'other_exception' AND
+  e.payload#>'{result, info, detail, detail}' IS NOT NULL
