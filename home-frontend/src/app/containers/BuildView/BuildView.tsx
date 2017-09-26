@@ -158,7 +158,7 @@ class BuildView extends React.Component<IProps, IState> {
           description: `Build triggered by ${event.trigger_type}. Awaiting container...`,
         },
         [],
-        Intent.SUCCESS,
+        Intent.NONE,
       ));
   }
 
