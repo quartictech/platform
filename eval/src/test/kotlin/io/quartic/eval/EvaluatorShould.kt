@@ -8,6 +8,7 @@ import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
@@ -17,6 +18,7 @@ import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
@@ -47,6 +49,7 @@ import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Instant
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -57,8 +60,8 @@ class EvaluatorShould {
         whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
         whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
 
-        val a = evaluator.evaluateAsync(webhookTrigger)
-        val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
+        val a = evaluator.evaluateAsync(buildContext)
+        val b = evaluator.evaluateAsync(buildContext.copy(trigger = webhookTrigger.copy(repoId = 7777)))
 
         b.join()                                                // But we can still complete this one
 
@@ -128,17 +131,6 @@ class EvaluatorShould {
         execute()
 
         assertThat(sequencer.results, hasItem(UserError<Any>(OtherException("badness"))))
-    }
-
-    @Test
-    fun do_nothing_if_customer_lookup_failed() {
-        whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
-
-        evaluate()
-
-        runBlocking {
-            verify(sequencer, times(0)).sequence(any(), any(), any())
-        }
     }
 
     @Test
@@ -217,11 +209,11 @@ class EvaluatorShould {
     }
 
     private fun execute() = runBlocking {
-        evaluator.evaluateAsync(manualTrigger).join()
+        evaluator.evaluateAsync(buildContext).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(webhookTrigger).join()
+        evaluator.evaluateAsync(buildContext).join()
     }
 
     private val customerNamespace = "raging"
@@ -260,6 +252,8 @@ class EvaluatorShould {
         rawWebhook = emptyMap()
     )
 
+
+
     private val manualTrigger = Manual(
         "me",
         Instant.now(),
@@ -283,6 +277,10 @@ class EvaluatorShould {
         on { githubRepoId } doReturn githubRepoId
         on { githubInstallationId } doReturn githubInstallationId
     }
+
+
+    val buildRow = Database.BuildRow(UUID.randomUUID(), customer.id, "develop", 100)
+    val buildContext = BuildContext(webhookTrigger, customer, buildRow)
 
     private val nodes = listOf(rawX, stepY)
     private val pipeline = Pipeline(nodes)
@@ -329,7 +327,6 @@ class EvaluatorShould {
 
     private val evaluator = Evaluator(
         sequencer,
-        registry,
         github,
         extractDag,
         pruner,
@@ -341,7 +338,7 @@ class EvaluatorShould {
         val throwables = mutableListOf<Throwable>()
         val descriptions = mutableListOf<String>()
 
-        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        suspend override fun sequence(context: BuildContext, block: suspend SequenceBuilder.() -> Unit) {
             block(MySequenceBuilder())
         }
 

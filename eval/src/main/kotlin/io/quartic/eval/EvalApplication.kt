@@ -3,9 +3,10 @@ package io.quartic.eval
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.sequencer.BuildBootstrap
+import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
@@ -20,21 +21,28 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val database = database(configuration, environment)
 
         with(environment.jersey()) {
-            register(EvalResource(evaluator(configuration, database).channel))
+            register(EvalResource(
+                bootstrap(configuration, database),
+                evaluator(configuration, database).channel)
+            )
             register(QueryResource(database))
         }
     }
 
-    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildTrigger> {
+    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildContext> {
         val evaluator = Evaluator(
             sequencer(config, database),
-            clientBuilder.retrofit(config.registryUrl),
             github(config)
         )
         return actor(CommonPool, UNLIMITED) {
-            for (trigger in channel) evaluator.evaluateAsync(trigger)
+            for (build in channel) evaluator.evaluateAsync(build)
         }
     }
+
+    private fun bootstrap(config: EvalConfiguration, database: Database) = BuildBootstrap(
+        database,
+        clientBuilder.retrofit(config.registryUrl)
+    )
 
     private fun sequencer(config: EvalConfiguration, database: Database) = SequencerImpl(
         qube(config),

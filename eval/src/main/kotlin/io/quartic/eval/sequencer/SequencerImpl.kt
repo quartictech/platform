@@ -6,6 +6,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
+import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
@@ -16,6 +17,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Result
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -35,15 +37,14 @@ class SequencerImpl(
 ) : Sequencer {
     private val LOG by logger()
 
-    override suspend fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
-        SequenceContext(trigger, customer).execute(block)
+    override suspend fun sequence(context: BuildContext, block: suspend SequenceBuilder.() -> Unit) {
+        SequenceContext(context.trigger, context.build, context.customer).execute(block)
     }
 
-    private inner class SequenceContext(private val trigger: BuildTrigger, private val customer: Customer) {
+    private inner class SequenceContext(private val trigger: BuildTrigger, private val build: BuildRow, private val customer: Customer) {
         private val buildId = uuidGen()
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
-            val build = insertBuild(customer.id, trigger)
             insert(TriggerReceived(trigger.toDatabaseModel()))
             notifier.notifyQueue(trigger)
             val completionEvent = executeInContainer(block)
@@ -126,10 +127,6 @@ class SequencerImpl(
             )
         }
 
-        private suspend fun insertBuild(customerId: CustomerId, trigger: BuildTrigger) = run(threadPool) {
-            database.insertBuild(buildId, customerId, trigger.branch())
-            database.getBuild(buildId)
-        }
 
         private suspend fun notifyComplete(build: BuildRow, completionEvent: BuildCompleted) {
             notifier.notifyComplete(
