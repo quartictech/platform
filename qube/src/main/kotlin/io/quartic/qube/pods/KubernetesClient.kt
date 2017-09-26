@@ -49,7 +49,9 @@ class KubernetesClient(private val client: DefaultKubernetesClient, private val 
                 }
 
                 override fun onClose(cause: KubernetesClientException?) {
-                    LOG.error("Watch closed due to exception.", cause)
+                    if (cause != null) {
+                        LOG.error("Watch closed due to exception.", cause)
+                    }
                     channel.close()
                 }
             })
