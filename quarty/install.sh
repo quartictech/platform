@@ -21,6 +21,7 @@ mv ${temp_file} requirements.txt
 
 # Workaround for https://github.com/jazzband/pip-tools/pull/555 (due in the next pip-tools release)
 if [ -e /etc/debian_version ]; then
+    cp requirements.txt requirements.workaround.txt
     echo "pkg-resources==0.0.0" >> requirements.workaround.txt
     pip-sync requirements.workaround.txt
 else
