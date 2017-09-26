@@ -67,7 +67,7 @@ class GcsStorageFactory {
                 .build()
         }
 
-        override fun getData(coords: StorageCoords) = wrapGcsException {
+        override fun getObject(coords: StorageCoords) = wrapGcsException {
             val get = storage.objects().get(config.bucket, coords.bucketKey)
 
             val httpResponse = get.executeMedia()
@@ -97,7 +97,7 @@ class GcsStorageFactory {
             )
         }
 
-        override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
             storage.objects()
                 .insert(
                     config.bucket,

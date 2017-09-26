@@ -4,7 +4,6 @@ import io.quartic.common.serdes.decode
 import io.quartic.howl.api.model.HowlStorageId
 import okhttp3.*
 import okio.BufferedSink
-import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
 import javax.ws.rs.core.HttpHeaders.USER_AGENT
@@ -24,56 +23,17 @@ class HowlStreamingClient(userAgent: String, private val baseUrl: URI) {
             .addInterceptor(UserAgentInterceptor(userAgent))
             .build()
 
-    fun uploadFile(
-        targetNamespace: String,
-        identityNamespace: String,
-        key: String,
-        contentType: String,
-        upload: (OutputStream) -> Unit
-    ) = uploadFile(url(targetNamespace, MANAGED, identityNamespace, key), contentType, upload)
-
-    private fun uploadFile(url: HttpUrl, contentType: String, upload: (OutputStream) -> Unit) {
-        val request = Request.Builder()
-                .url(url)
-                .put(requestBody(contentType, upload))
-                .build()
-        client.newCall(request).execute()
-    }
-
-    fun uploadAnonymousFile(
+    fun uploadAnonymousObject(
             targetNamespace: String,
             identityNamespace: String,
             contentType: String,
             upload: (OutputStream) -> Unit
-    ) = uploadAnonymousFile(url(targetNamespace, MANAGED, identityNamespace), contentType, upload)
-
-    private fun uploadAnonymousFile(url: HttpUrl, contentType: String, upload: (OutputStream) -> Unit): HowlStorageId {
+    ): HowlStorageId {
         val request = Request.Builder()
-                .url(url)
-                .post(requestBody(contentType, upload))
-                .build()
+                    .url(url(targetNamespace, MANAGED, identityNamespace))
+                    .post(requestBody(contentType, upload))
+                    .build()
         return decode(client.newCall(request).execute().body()!!.string(), HowlStorageId::class.java)
-    }
-
-    fun downloadUnmanagedFile(targetNamespace: String, key: String)
-        = downloadFile(url(targetNamespace, UNMANAGED, key))
-
-    fun downloadManagedFile(targetNamespace: String, identityNamespace: String, key: String)
-        = downloadFile(url(targetNamespace, MANAGED, identityNamespace, key))
-
-    private fun downloadFile(url: HttpUrl): InputStream? {
-        val request = Request.Builder()
-                .url(url)
-                .get()
-                .build()
-
-        val response = client.newCall(request).execute()
-
-        return if (response.isSuccessful) {
-            response.body()!!.byteStream()
-        } else {
-            null
-        }
     }
 
     private fun url(vararg components: String) = with (HttpUrl.parse(baseUrl.toString())!!.newBuilder()) {
@@ -94,7 +54,6 @@ class HowlStreamingClient(userAgent: String, private val baseUrl: URI) {
     }
 
     companion object {
-        private val UNMANAGED = "unmanaged"
         private val MANAGED = "managed"
     }
 }

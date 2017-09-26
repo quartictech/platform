@@ -23,7 +23,7 @@ class LocalStorage(private val config: Config) : Storage {
     private val contentTypes = mutableMapOf<StorageCoords, String>()
     private val lock = ReentrantReadWriteLock()
 
-    override fun getData(coords: StorageCoords): StorageResult? {
+    override fun getObject(coords: StorageCoords): StorageResult? {
         try {
             lock.readLock().lock()
 
@@ -47,9 +47,9 @@ class LocalStorage(private val config: Config) : Storage {
         return null
     }
 
-    override fun getMetadata(coords: StorageCoords): StorageMetadata? = getData(coords)?.metadata
+    override fun getMetadata(coords: StorageCoords): StorageMetadata? = getObject(coords)?.metadata
 
-    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+    override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
         coords.path.toFile().mkdirs()
         var tempFile: File? = null
         try {

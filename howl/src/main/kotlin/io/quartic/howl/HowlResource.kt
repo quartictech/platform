@@ -26,17 +26,17 @@ class HowlResource(
 ) {
     @GET
     @Path("/unmanaged/{key}")
-    fun downloadUnmanaged(
+    fun downloadUnmanagedObject(
         @PathParam("target-namespace") targetNamespace: String,
         @PathParam("key") key: String
-    ) = downloadFile(Unmanaged(targetNamespace, key))
+    ) = downloadObject(Unmanaged(targetNamespace, key))
 
     @HEAD
     @Path("/unmanaged/{key}")
-    fun headUnmanaged(
+    fun getUnmanagedMetadata(
         @PathParam("target-namespace") targetNamespace: String,
         @PathParam("key") key: String
-    ) = headFile(Unmanaged(targetNamespace, key))
+    ) = getMetadata(Unmanaged(targetNamespace, key))
 
     @Path("/managed/{identity-namespace}")
     fun managedResource(
@@ -50,32 +50,34 @@ class HowlResource(
     ) {
         @POST
         @Produces(MediaType.APPLICATION_JSON)
-        fun uploadAnonymousFile(@Context request: HttpServletRequest): HowlStorageId {
+        fun uploadAnonymousManagedObject(@Context request: HttpServletRequest): HowlStorageId {
             val howlStorageId = howlStorageIdGenerator.get()
-            uploadFileOrThrow(identityNamespace, howlStorageId.uid, request)
+            uploadObjectOrThrow(identityNamespace, howlStorageId.uid, request)
             return howlStorageId
         }
 
         @PUT
         @Path("/{key}")
-        fun uploadFile(@PathParam("key") key: String, @Context request: HttpServletRequest) {
-            uploadFileOrThrow(identityNamespace, key, request)
+        fun uploadManagedObject(@PathParam("key") key: String, @Context request: HttpServletRequest) {
+            uploadObjectOrThrow(identityNamespace, key, request)
         }
 
         @GET
         @Path("/{key}")
-        fun downloadFile(@PathParam("key") key: String) = downloadFile(Managed(targetNamespace, identityNamespace, key))
+        fun downloadManagedObject(@PathParam("key") key: String) =
+            downloadObject(Managed(targetNamespace, identityNamespace, key))
 
         @HEAD
         @Path("/{key}")
-        fun headFile(@PathParam("key") key: String) = headFile(Managed(targetNamespace, identityNamespace, key))
+        fun getManagedMetadata(@PathParam("key") key: String) =
+            getMetadata(Managed(targetNamespace, identityNamespace, key))
 
-        private fun uploadFileOrThrow(
+        private fun uploadObjectOrThrow(
             identityNamespace: String,
             key: String,
             request: HttpServletRequest
         ) {
-            if (!storage.putData(
+            if (!storage.putObject(
                 Managed(targetNamespace, identityNamespace, key),
                 request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
                 request.contentType,
@@ -87,8 +89,8 @@ class HowlResource(
     }
 
 
-    private fun downloadFile(coords: StorageCoords): Response {
-        val (metadata, inputStream) = storage.getData(coords) ?: throw NotFoundException()  // TODO: provide a useful message
+    private fun downloadObject(coords: StorageCoords): Response {
+        val (metadata, inputStream) = storage.getObject(coords) ?: throw NotFoundException()  // TODO: provide a useful message
         return metadataHeaders(metadata, Response.ok())
             .entity(StreamingOutput {
                 inputStream.use { istream -> IOUtils.copy(istream, it) }
@@ -96,7 +98,7 @@ class HowlResource(
             .build()
     }
 
-    private fun headFile(coords: StorageCoords): Response {
+    private fun getMetadata(coords: StorageCoords): Response {
         val metadata = storage.getMetadata(coords) ?: throw NotFoundException()  // TODO: provide a useful message
         return metadataHeaders(metadata, Response.ok())
             .build()

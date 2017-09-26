@@ -31,16 +31,17 @@ class StorageFactoryShould {
     @Rule
     @JvmField
     val folder = TemporaryFolder()
-    val storage by lazy { storageFactory(folder.root) }
+
+    private val storage by lazy { storageFactory(folder.root) }
 
     @Test
-    fun get_data_that_was_put() {
+    fun get_object_that_was_put() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putData(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
 
-        storage.getData(coords).use {
+        storage.getObject(coords).use {
             it!!
             assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
@@ -52,14 +53,14 @@ class StorageFactoryShould {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putData(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
     }
 
     @Test
     fun return_null_if_key_not_found() {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
 
-        assertThat(storage.getData(coords), nullValue())
+        assertThat(storage.getObject(coords), nullValue())
     }
 
     @Test
@@ -74,8 +75,8 @@ class StorageFactoryShould {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
-        val metadata = storage.getData(coords)!!.metadata
+        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        val metadata = storage.getObject(coords)!!.metadata
         assertThat(metadata.contentLength, equalTo(12L))
         assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(metadata.lastModified, greaterThan(Instant.now().minus(5, ChronoUnit.MINUTES)))
@@ -87,11 +88,11 @@ class StorageFactoryShould {
         val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putData(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
         val data2 = "Goodbye world!"
-        storage.putData(coords, null, MediaType.TEXT_PLAIN, data2.byteInputStream())
+        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data2.byteInputStream())
 
-        storage.getData(coords).use {
+        storage.getObject(coords).use {
             it!!
             assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
             assertThat(it.inputStream.readTextAndClose(), equalTo(data2))
@@ -99,21 +100,21 @@ class StorageFactoryShould {
     }
 
     @Test
-    fun writes_to_separate_coords_are_separate() {
+    fun write_to_separate_objects_for_separate_coords() {
         val namespace = UUID.randomUUID().toString()
         val coordsA = Managed("foo", namespace, "hello.txt")
         val coordsB = Managed("foo", namespace,"hello2.txt")
         val dataA = "Hello world!"
         val dataB = "Goodbye world!"
-        storage.putData(coordsA, null, MediaType.TEXT_PLAIN, dataA.byteInputStream())
-        storage.putData(coordsB, null, MediaType.TEXT_PLAIN, dataB.byteInputStream())
+        storage.putObject(coordsA, null, MediaType.TEXT_PLAIN, dataA.byteInputStream())
+        storage.putObject(coordsB, null, MediaType.TEXT_PLAIN, dataB.byteInputStream())
 
-        storage.getData(coordsA).use {
+        storage.getObject(coordsA).use {
             it!!
             assertThat(it.inputStream.readTextAndClose(), equalTo(dataA))
         }
 
-        storage.getData(coordsB).use {
+        storage.getObject(coordsB).use {
             it!!
             assertThat(it.inputStream.readTextAndClose(), equalTo(dataB))
         }

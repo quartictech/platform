@@ -5,11 +5,11 @@ import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.model.HowlStorageId
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
-import io.quartic.howl.api.model.StorageMetadata
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
 import org.hamcrest.CoreMatchers.equalTo
@@ -40,11 +40,11 @@ class HowlResourceShould {
         .build()
 
     @Test
-    fun store_file_on_put() {
+    fun store_object_on_put() {
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+        whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             true
@@ -52,17 +52,17 @@ class HowlResourceShould {
 
         request("foo/managed/bar/thing").put(Entity.text(data))
 
-        verify(storage).putData(eq(Managed("foo", "bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(Managed("foo", "bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
-    fun store_file_on_post() {
+    fun store_object_on_post() {
         whenever(idGen.get()).thenReturn(HowlStorageId("42"))
         val data = "wat".toByteArray()
 
         val byteArrayOutputStream = ByteArrayOutputStream()
-        whenever(storage.putData(any(), any(), any(), any())).thenAnswer { invocation ->
+        whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(3)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             true
@@ -71,13 +71,13 @@ class HowlResourceShould {
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, equalTo(HowlStorageId("42")))
-        verify(storage).putData(eq(Managed("foo", "bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(Managed("foo", "bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
     @Test
     fun throw_if_storage_returns_false() {
-        whenever(storage.putData(any(), any(), anyOrNull(), any())).thenReturn(false)
+        whenever(storage.putObject(any(), any(), anyOrNull(), any())).thenReturn(false)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         assertThrows<NotFoundException> {
@@ -88,27 +88,27 @@ class HowlResourceShould {
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
-        whenever(storage.putData(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
+        whenever(storage.putObject(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         request("test/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putData(eq(Managed("test", "thing", "69")), eq(-1), eq(null), any())
+        verify(storage).putObject(eq(Managed("test", "thing", "69")), eq(-1), eq(null), any())
     }
 
     @Test
-    fun return_unmanaged_file_on_get() {
+    fun return_unmanaged_object_on_get() {
         assertGetBehavesCorrectly("foo/unmanaged/thing", Unmanaged("foo", "thing"))
     }
 
     @Test
-    fun return_managed_file_on_get() {
+    fun return_managed_object_on_get() {
         assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
     }
 
     @Suppress("UNCHECKED_CAST")
     @Test
-    fun return_headers_on_head() {
+    fun return_metadata_on_head() {
         val instant = Instant.now()
         whenever(storage.getMetadata(any())).thenReturn(
             StorageMetadata(
@@ -127,7 +127,7 @@ class HowlResourceShould {
 
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
-        whenever(storage.getData(any())).thenReturn(
+        whenever(storage.getObject(any())).thenReturn(
             Storage.StorageResult(
                 StorageMetadata(
                     Instant.now(),
@@ -140,7 +140,7 @@ class HowlResourceShould {
         val response = request(path).get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(storage).getData(eq(expectedCoords))
+        verify(storage).getObject(eq(expectedCoords))
         assertThat(responseEntity, equalTo(data))
     }
 
