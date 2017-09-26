@@ -7,11 +7,10 @@ import io.quartic.eval.api.model.ApiDag
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
@@ -50,8 +49,8 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
         is TriggerReceived -> ApiBuildEvent.TriggerReceived(
             when (this.payload.trigger) {
-                is BuildTrigger.Manual -> "manual"
-                is BuildTrigger.GithubWebhook -> "github"
+                is CurrentTriggerReceived.BuildTrigger.Manual -> "manual"
+                is CurrentTriggerReceived.BuildTrigger.GithubWebhook -> "github"
             },
             this.time,
             this.id

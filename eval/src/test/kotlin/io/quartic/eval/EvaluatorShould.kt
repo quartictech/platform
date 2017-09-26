@@ -4,20 +4,23 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.exceptionalFuture
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
+import io.quartic.eval.api.model.BuildTrigger.Manual
+import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
+import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.UserError
-import io.quartic.eval.Dag.DagResult
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Owner
@@ -171,6 +174,28 @@ class EvaluatorShould {
     }
 
     @Test
+    fun only_execute_steps_that_survived_pruning() {
+        whenever(pruner.acceptorFor(any())).thenReturn { it == stepY.toDatabaseModel() }
+
+        execute()
+
+        runBlocking {
+            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+            verify(quarty, times(1)).request(isA<Execute>(), any())
+        }
+    }
+
+    @Test
+    fun produce_node_execution_artifacts_according_to_pruning() {
+        whenever(pruner.acceptorFor(any())).thenReturn { it == stepY.toDatabaseModel() }
+
+        execute()
+
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = true), Unit)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = false), Unit)))
+    }
+
+    @Test
     fun execute_steps_from_dag_in_order() {
         execute()
 
@@ -235,12 +260,12 @@ class EvaluatorShould {
         rawWebhook = emptyMap()
     )
 
-    private val manualTrigger = BuildTrigger.Manual(
+    private val manualTrigger = Manual(
         "me",
         Instant.now(),
         customerId,
         "master",
-        BuildTrigger.TriggerType.EXECUTE
+        EXECUTE
     )
 
     private val repo = Repository(
@@ -296,6 +321,10 @@ class EvaluatorShould {
 
     private val extractDag = mock<(List<Node>) -> DagResult>()
 
+    private val pruner = mock<Pruner> {
+        on { acceptorFor(any()) } doReturn { true }
+    }
+
     private val sequencer = spy(MySequencer())
 
     private val evaluator = Evaluator(
@@ -303,6 +332,7 @@ class EvaluatorShould {
         registry,
         github,
         extractDag,
+        pruner,
         quartyBuilder
     )
 
