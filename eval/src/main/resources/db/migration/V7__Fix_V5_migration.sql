@@ -1,3 +1,5 @@
+-- This fixes a problem introduced in V5 whereby there was
+-- a surplus layer of nesting in UserError->OtherException
 UPDATE event e
 SET payload = jsonb_set(e.payload, '{result, info, detail}', e.payload#>'{result, info, detail, detail}')
 WHERE
