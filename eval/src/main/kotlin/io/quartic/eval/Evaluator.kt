@@ -5,13 +5,16 @@ import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.CurrentPhaseCompleted.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
+import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
@@ -33,7 +36,6 @@ import org.apache.http.client.utils.URIBuilder
 import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
-import io.quartic.eval.Dag.DagResult
 
 // TODO - retries
 // TODO - timeouts
@@ -41,22 +43,10 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
-    private val extractDag: (List<Node>) -> DagResult,
-    private val quartyBuilder: (String) -> QuartyProxy
+    private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
+    private val dagPruner: Pruner = Pruner(),
+    private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
 ) {
-    constructor(
-        sequencer: Sequencer,
-        registry: RegistryServiceClient,
-        github: GitHubInstallationClient
-    ) : this(
-        sequencer,
-        registry,
-        github,
-        { nodes -> Dag.fromRawValidating(nodes) },
-        { hostname -> QuartyProxy(hostname) }
-    )
-
-
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
         is GithubWebhook -> TriggerType.EVALUATE
@@ -87,7 +77,7 @@ class Evaluator(
                         }
                     }
 
-                    val dag = phase<DagResult>("Evaluating DAG") {
+                    val dagResult = phase<DagResult>("Evaluating DAG") {
                         extractResultFrom(quarty, Evaluate()) {
                             extractDagFromPipeline(it)
                         }
@@ -95,15 +85,22 @@ class Evaluator(
 
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
-                        (dag as DagResult.Valid).dag
+                        (dagResult as DagResult.Valid)
+                        val acceptor = dagPruner.acceptorFor(dagResult.dag)
+
+                        dagResult.dag
                             .forEach { node ->
                                 val action = when (node) {
                                     is Node.Step -> "Executing step"
                                     is Node.Raw -> "Acquiring raw data"
                                 }
                                 phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                    extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
-                                        success(Unit)
+                                    if (acceptor(node)) {
+                                        extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
+                                            successWithArtifact(NodeExecution(skipped = false), Unit)
+                                        }
+                                    } else {
+                                        successWithArtifact(NodeExecution(skipped = true), Unit)
                                     }
                                 }
                             }

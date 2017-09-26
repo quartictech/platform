@@ -6,14 +6,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2
+import io.quartic.eval.database.model.LegacyPhaseCompleted.*
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.InternalError
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -73,27 +72,27 @@ class CurrentBuildSucceeded : BuildCompleted()
 data class CurrentBuildFailed(val description: String) : BuildCompleted()
 data class CurrentContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 data class CurrentPhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
-data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildEvent() {
+data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(Success::class, name = "success"),
-        Type(InternalError::class, name = "internal_error"),
-        Type(UserError::class, name = "user_error")
+        Type(Result.Success::class, name = "success"),
+        Type(Result.InternalError::class, name = "internal_error"),
+        Type(Result.UserError::class, name = "user_error")
     )
     sealed class Result {
-        data class Success(val artifact: V2.Artifact? = null) : Result()
+        data class Success(val artifact: Artifact? = null) : Result()
         class InternalError : Result()
-        data class UserError(val info: UserErrorInfo): Result()
+        data class UserError(val info: V5.UserErrorInfo): Result()
     }
 
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(UserErrorInfo.InvalidDag::class, name = "invalid_dag"),
-        Type(UserErrorInfo.OtherException::class, name = "other_exception")
+        Type(Artifact.EvaluationOutput::class, name = "evaluation_output"),
+        Type(Artifact.NodeExecution::class, name = "node_execution")
     )
-    sealed class UserErrorInfo {
-        data class InvalidDag(val error: String, val nodes: List<V2.Node>) : UserErrorInfo()
-        data class OtherException(val detail: Any?): UserErrorInfo()
+    sealed class Artifact {
+        data class EvaluationOutput(val nodes: List<V2.Node>) : Artifact()
+        data class NodeExecution(val skipped: Boolean) : Artifact()
     }
 }
 
@@ -109,7 +108,7 @@ typealias BuildSucceeded = CurrentBuildSucceeded
 typealias BuildFailed = CurrentBuildFailed
 typealias ContainerAcquired = CurrentContainerAcquired
 typealias PhaseStarted = CurrentPhaseStarted
-typealias PhaseCompleted = CurrentPhaseCompleted
+typealias PhaseCompleted = PhaseCompletedV6
 typealias LogMessageReceived = CurrentLogMessageReceived
 
 
