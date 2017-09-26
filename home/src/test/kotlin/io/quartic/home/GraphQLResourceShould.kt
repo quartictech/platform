@@ -6,6 +6,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType
@@ -55,7 +56,8 @@ class GraphQLResourceShould {
     )
 
     private val events = listOf<ApiBuildEvent>(
-        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(), Instant.now(), UUID.randomUUID())
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
+            ApiPhaseCompletedResult.Success(), Instant.now(), UUID.randomUUID())
     )
 
     private val eval = mock<EvalQueryServiceClient> {
