@@ -43,8 +43,8 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
+    private val dagPruner: Pruner,
     private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
-    private val dagPruner: Pruner = Pruner(),
     private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
 ) {
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
@@ -86,7 +86,7 @@ class Evaluator(
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
                         (dagResult as DagResult.Valid)
-                        val acceptor = dagPruner.acceptorFor(dagResult.dag)
+                        val acceptor = dagPruner.acceptorFor(customer, dagResult.dag)
 
                         dagResult.dag
                             .forEach { node ->

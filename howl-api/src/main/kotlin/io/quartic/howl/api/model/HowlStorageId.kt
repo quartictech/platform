@@ -1,4 +1,4 @@
-package io.quartic.howl.api
+package io.quartic.howl.api.model
 
 import io.quartic.common.uid.Uid
 

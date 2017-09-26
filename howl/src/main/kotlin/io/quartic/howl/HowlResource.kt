@@ -2,9 +2,9 @@ package io.quartic.howl
 
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
-import io.quartic.howl.api.HowlStorageId
+import io.quartic.howl.api.model.HowlStorageId
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage
-import io.quartic.howl.storage.Storage.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
@@ -13,10 +13,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.*
-import javax.ws.rs.core.HttpHeaders.CONTENT_TYPE
-import javax.ws.rs.core.HttpHeaders.LAST_MODIFIED
-import javax.ws.rs.core.HttpHeaders.CONTENT_LENGTH
+import javax.ws.rs.core.Context
+import javax.ws.rs.core.HttpHeaders.*
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.Response
+import javax.ws.rs.core.StreamingOutput
 
 @Path("/{target-namespace}")
 class HowlResource(

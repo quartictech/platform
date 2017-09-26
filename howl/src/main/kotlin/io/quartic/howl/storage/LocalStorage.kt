@@ -1,6 +1,6 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
