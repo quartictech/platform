@@ -1,6 +1,7 @@
 package io.quartic.eval.pruner
 
 import com.fasterxml.jackson.module.kotlin.convertValue
+import com.google.common.base.Throwables.getRootCause
 import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
@@ -52,7 +53,6 @@ class Pruner(
 
         val oldEtag = getOldEtag(namespace, raw.output.datasetId) ?: return true
         val newEtag = calculateNewEtag(namespace, raw.source as Bucket) ?: return true
-
         return (newEtag != oldEtag)
     }
 
@@ -62,9 +62,14 @@ class Pruner(
             id = DatasetId(datasetId)
         ).awaitOrNullOrThrow("Catalogue")
 
-        val raw = dataset?.extensions?.get("ETAG_FIELD")
+        val raw = dataset?.extensions?.get(ETAG_FIELD)
         return if (raw != null) {
-            OBJECT_MAPPER.convertValue(raw)
+            try {
+                OBJECT_MAPPER.convertValue<Etag>(raw)
+            } catch (e: Exception) {
+                LOG.warn("Could not parse etag", getRootCause(e))
+                null
+            }
         } else {
             null
         }
@@ -92,7 +97,7 @@ class Pruner(
                 if (t is HttpException && t.code() == 404) {
                     null
                 } else {
-                    LOG.error("Error while communicating with ${service}", t)
+                    LOG.error("Error while communicating with ${service}", getRootCause(t))
                     throw EvaluatorException("Error while communicating with ${service}", t)
                 }
             }
