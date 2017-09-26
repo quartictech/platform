@@ -11,8 +11,9 @@ import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.uid.Uid
 import io.quartic.common.uid.secureRandomGenerator
-import io.quartic.github.GitHub
-import io.quartic.github.GitHubOAuth
+import io.quartic.github.AuthToken
+import io.quartic.github.GitHubClient
+import io.quartic.github.GitHubOAuthClient
 import io.quartic.github.oauthUrl
 import io.quartic.home.CookiesConfiguration
 import io.quartic.home.GithubConfiguration
@@ -35,8 +36,8 @@ class AuthResource(
     private val secretsCodec: SecretsCodec,
     private val tokenGenerator: TokenGenerator,
     private val registry: RegistryServiceClient,
-    private val gitHubOAuth: GitHubOAuth,
-    private val gitHubApi: GitHub
+    private val gitHubOAuth: GitHubOAuthClient,
+    private val gitHubApi: GitHubClient
 ) {
     constructor(
         gitHubConfig: GithubConfiguration,
@@ -46,8 +47,8 @@ class AuthResource(
         registry: RegistryServiceClient,
         clientBuilder: ClientBuilder
     ) : this(gitHubConfig, cookiesConfig, secretsCodec, tokenGenerator, registry,
-        clientBuilder.feign(gitHubConfig.oauthApiRoot),
-        clientBuilder.feign(gitHubConfig.apiRoot)
+        clientBuilder.retrofit(gitHubConfig.oauthApiRoot),
+        clientBuilder.retrofit(gitHubConfig.apiRoot)
     )
 
     class NonceId(uid: String) : Uid(uid)
@@ -113,8 +114,8 @@ class AuthResource(
             throw NotAuthorizedException("GitHub authorisation failure")
         }
 
-        val ghUser = callServerOrThrow { gitHubApi.user(accessToken.accessToken!!) }
-        val ghOrgs = callServerOrThrow { gitHubApi.organizations(accessToken.accessToken!!) }
+        val ghUser = callServerOrThrow { gitHubApi.userAsync(AuthToken(accessToken.accessToken!!)).get() }
+        val ghOrgs = callServerOrThrow { gitHubApi.organizationsAsync(AuthToken(accessToken.accessToken!!)).get() }
 
         val subdomain = extractSubdomain(host)
         val customer = callServerOrThrow { registry.getCustomerAsync(subdomain, null).get()!! } // Should never be null
@@ -140,12 +141,12 @@ class AuthResource(
         throw ServerErrorException("Inter-service communication error", 500, e)
     }
 
-    private fun getAccessToken(code: String) = gitHubOAuth.accessToken(
+    private fun getAccessToken(code: String) = gitHubOAuth.accessTokenAsync(
         gitHubConfig.clientId,
         secretsCodec.decrypt(gitHubConfig.clientSecretEncrypted).veryUnsafe,
         gitHubConfig.trampolineUrl.toString(),
         code
-    )
+    ).get()
 
     // TODO - can we get DW to deal with this for QueryParam and CookieParam?
     private fun <T> T?.nonNull(name: String): T = this ?: throw BadRequestException("Missing parameter: $name")
