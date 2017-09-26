@@ -4,6 +4,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.ApiDag
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.*
@@ -44,6 +45,20 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
         is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
             this.payload.phaseId,
+            when (this.payload.result) {
+                is PhaseCompletedV6.Result.Success ->
+                    ApiPhaseCompletedResult.Success()
+                is PhaseCompletedV6.Result.UserError ->
+                    ApiPhaseCompletedResult.UserError(
+                        when(this.payload.result.info) {
+                            is LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag ->
+                                this.payload.result.info.error
+                            is LegacyPhaseCompleted.V5.UserErrorInfo.OtherException ->
+                                this.payload.result.info.detail.toString()
+                        }
+                    )
+                is PhaseCompletedV6.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
+            },
             this.time,
             this.id
         )
@@ -52,6 +67,11 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 is CurrentTriggerReceived.BuildTrigger.Manual -> "manual"
                 is CurrentTriggerReceived.BuildTrigger.GithubWebhook -> "github"
             },
+            this.time,
+            this.id
+        )
+        is BuildFailed -> ApiBuildEvent.BuildFailed(
+            this.payload.description,
             this.time,
             this.id
         )

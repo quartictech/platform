@@ -3,6 +3,7 @@ package io.quartic.home.graphql
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.BuildTrigger
 
 abstract class Fetcher<T> : DataFetcher<T> {
@@ -64,11 +65,24 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
     )
     is ApiBuildEvent.PhaseCompleted -> BuildEvent.PhaseCompleted(
         this.id,
+        when (this.result) {
+            is ApiPhaseCompletedResult.Success ->
+                PhaseCompletedResult.Success()
+            is ApiPhaseCompletedResult.UserError ->
+                PhaseCompletedResult.UserError((this.result as ApiPhaseCompletedResult.UserError).error)
+            is ApiPhaseCompletedResult.InternalError ->
+                PhaseCompletedResult.InternalError()
+        },
         this.phaseId.toString(),
         this.time
     )
     is ApiBuildEvent.TriggerReceived -> BuildEvent.TriggerReceived(
-        this.type,
+        this.triggerType,
+        this.id,
+        this.time
+    )
+    is ApiBuildEvent.BuildFailed -> BuildEvent.BuildFailed(
+        this.description,
         this.id,
         this.time
     )

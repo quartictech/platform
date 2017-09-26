@@ -55,9 +55,10 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   private renderLogs(events) {
+    const logEvents = events.filter(event => event.type === "log")
     return (
       <table>
-      {events.map(event => this.renderLogLine(event))}
+      {logEvents.map(event => this.renderLogLine(event))}
       </table>
     );
   }
@@ -72,7 +73,7 @@ class BuildView extends React.Component<IProps, IState> {
   private groupByPhase(events: BuildEvent[]) {
     const groupedEvents = _.groupBy(events, event => event.phase_id);
     return _.mapObject(groupedEvents, (val, _) =>
-      val.filter(event => event.type === "log").sort((a, b) => a.time - b.time));
+      val.sort((a, b) => a.time - b.time));
   }
 
   private formatTime = time => moment.unix(time).format("YYYY-MM-DD HH:mm:ss");
@@ -86,7 +87,9 @@ class BuildView extends React.Component<IProps, IState> {
   }
 
   private renderPhase(phase, events, phaseIntent) {
-    if (events.length === 0) {
+    const logEvents = events.filter(event => event.type === "log")
+    const completedEvent = events.filter(event => event.type === "phase_completed")
+    if (logEvents.length === 0) {
       return (
         <div key={phase.phase_id} className={s.phaseItem}>
           <span className={s.phaseTitle}>
@@ -95,6 +98,7 @@ class BuildView extends React.Component<IProps, IState> {
             </Tag>
             <b> {phase.description}</b>
           </span>
+          { completedEvent.type === "user_error" ? "Noob" : "Success"}
         </div>
       );
     } else {
@@ -183,7 +187,10 @@ const query = gql`
           id, description, phase_id, time, type
         }
         ... on PhaseCompleted {
-          id, phase_id, time, type
+          id, phase_id, time, type,
+          result {
+            ... on UserError { error }
+          }
         }
         ... on TriggerReceived {
           id, trigger_type, time, type
