@@ -1,7 +1,7 @@
 package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
@@ -44,7 +44,7 @@ class HomeResourceShould {
         bar to mapOf(DatasetId("c") to mock<DatasetConfig>(), DatasetId("e") to mock<DatasetConfig>())
     )
 
-    private val catalogue = mock<CatalogueService>()
+    private val catalogue = mock<CatalogueClient>()
     private val howl = mock<HowlService>()
     private val registry = mock<RegistryServiceClient>()
     private val evalQuery = mock<EvalQueryServiceClient>()
@@ -54,7 +54,7 @@ class HomeResourceShould {
 
     @Before
     fun before() {
-        whenever(catalogue.getDatasets()).thenReturn(datasets)
+        whenever(catalogue.getDatasetsAsync()).thenReturn(completedFuture(datasets))
         whenever(registry.getCustomerByIdAsync(CustomerId(5678))).thenReturn(completedFuture(quartic))
     }
 
@@ -65,20 +65,22 @@ class HomeResourceShould {
 
     @Test
     fun create_dataset() {
-        whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
+        whenever(catalogue.registerDatasetAsync(any(), any())).thenReturn(completedFuture(mock()))
         whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
 
         resource.createDataset(arlo, CreateDatasetRequest(mock(), "yeah"))
 
-        verify(catalogue).registerDataset(eq(foo), any())
+        verify(catalogue).registerDatasetAsync(eq(foo), any())
 
         // TODO - validate interaction with Howl, and 2nd param to registerDataset
     }
 
     @Test
     fun delete_dataset_if_namespace_authorised_and_dataset_exists() {
+        whenever(catalogue.deleteDatasetAsync(any(), any())).thenReturn(completedFuture(mock()))
+
         resource.deleteDataset(arlo, DatasetId("a"))
-        verify(catalogue).deleteDataset(foo, DatasetId("a"))
+        verify(catalogue).deleteDatasetAsync(foo, DatasetId("a"))
     }
 
     @Test

@@ -101,6 +101,19 @@ Frontend dependencies aren't directly managed in `package.json`, because they're
 entries to the `build.gradle` file for the relevant subproject.  `package.json` files are explicitly Git-ignored!
 
 
+## Python dependencies
+
+Python dependencies are managed via [pip-tools][1], in order to ensure that the local virtualenv contains *only* the
+current dependencies (as opposed to retaining old dependencies).  The workflow is entirely managed by Gradle, which
+delegates some of the complexity to a wrapper script (`install.sh`).
+
+Requirements should be listed in the relevant section of `setup.py`.  `pip-tools` then treats `requirements.txt` as a
+lock-file, so you shouldn't edit this directly. 
+
+
+[1]: https://github.com/jazzband/pip-tools
+
+
 ## Building Docker images
 
 ```

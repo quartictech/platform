@@ -4,7 +4,7 @@ import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetLocator
 import io.quartic.catalogue.api.model.DatasetMetadata
@@ -21,7 +21,7 @@ class CatalogueApplicationShould {
 
     @Test
     fun retrieve_registered_datasets() {
-        val catalogue = ClientBuilder(this).feign<CatalogueService>("http://localhost:" + RULE.localPort + "/api")
+        val catalogue = ClientBuilder(this).retrofit<CatalogueClient>("http://localhost:" + RULE.localPort + "/api")
 
         val config = DatasetConfig(
                 DatasetMetadata("Foo", "Bar", "Arlo", null),
@@ -29,8 +29,8 @@ class CatalogueApplicationShould {
                 emptyMap()
         )
 
-        val coords = catalogue.registerDataset(DatasetNamespace("yeah"), config)
-        val datasets = catalogue.getDatasets()
+        val coords = catalogue.registerDatasetAsync(DatasetNamespace("yeah"), config).get()
+        val datasets = catalogue.getDatasetsAsync().get()
 
         assertThat(withTimestampRemoved(datasets[coords.namespace]!![coords.id]!!), equalTo(config))
     }

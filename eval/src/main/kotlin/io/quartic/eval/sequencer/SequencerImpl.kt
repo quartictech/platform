@@ -61,6 +61,7 @@ class SequencerImpl(
         } catch (pe: PhaseException) {
             BuildFailed(pe.message!!)
         } catch (e: Exception) {
+            LOG.error("Build failed with internal error", e)
             BuildFailed("Internal error")
         }
 

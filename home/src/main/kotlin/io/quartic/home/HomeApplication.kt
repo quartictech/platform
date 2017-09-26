@@ -1,7 +1,7 @@
 package io.quartic.home
 
 import io.dropwizard.setup.Environment
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.application.TokenAuthConfiguration
 import io.quartic.common.auth.TokenGenerator
@@ -9,7 +9,7 @@ import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
-import io.quartic.github.GitHub
+import io.quartic.github.GitHubClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.GraphQLResource
 import io.quartic.home.resource.HomeResource
@@ -22,11 +22,11 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
 
     public override fun runApplication(configuration: HomeConfiguration, environment: Environment) {
         val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
-        val catalogue = clientBuilder.feign<CatalogueService>(configuration.catalogueUrl)
+        val catalogue = clientBuilder.retrofit<CatalogueClient>(configuration.catalogueUrl)
         val registry = clientBuilder.retrofit<RegistryServiceClient>(configuration.registryUrl)
         val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)
         val evalTrigger = clientBuilder.retrofit<EvalTriggerServiceClient>(configuration.evalUrl)
-        val github = clientBuilder.feign<GitHub>(configuration.github.apiRoot)
+        val github = clientBuilder.retrofit<GitHubClient>(configuration.github.apiRoot)
 
         val tokenGenerator = TokenGenerator(
             configuration.auth as TokenAuthConfiguration,
@@ -36,7 +36,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
 
         with (environment.jersey()) {
             register(GraphQLResource(evalQuery, github))
-            register(UserResource(clientBuilder.feign(configuration.github.apiRoot)))
+            register(UserResource(clientBuilder.retrofit(configuration.github.apiRoot)))
             register(HomeResource(
                 catalogue,
                 howl,

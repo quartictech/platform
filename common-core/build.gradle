@@ -16,12 +16,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
 
-    compile "io.github.openfeign:feign-core:${versions.feign}"
-    compile("io.github.openfeign:feign-jaxrs:${versions.feign}") {
-        exclude group: "javax.ws.rs", module: "jsr311-api"      // This is JAX-RS 1.0, which conflicts with Jersey reliance on 2.0
-    }
-    compile "io.github.openfeign:feign-jackson:${versions.feign}"
-    compile "io.github.openfeign:feign-slf4j:${versions.feign}"
+    compile "org.slf4j:slf4j-api:1.7.25"
     compile "commons-io:commons-io:2.5"
     compile libraries.commonsCodec
     compile "com.squareup.okhttp3:okhttp:3.8.1"

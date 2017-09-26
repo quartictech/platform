@@ -9,7 +9,7 @@ import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType
-import io.quartic.github.GitHub
+import io.quartic.github.GitHubClient
 import io.quartic.github.GitHubUser
 import io.quartic.home.resource.GraphQLResource
 import org.hamcrest.CoreMatchers.equalTo
@@ -64,13 +64,13 @@ class GraphQLResourceShould {
         on { getBuildEventsAsync(any(), any()) } doReturn completedFuture(events)
     }
 
-    private val github = mock<GitHub> {
-        on { user(eq(111)) } doReturn GitHubUser(
+    private val github = mock<GitHubClient> {
+        on { userAsync(eq(111)) } doReturn completedFuture(GitHubUser(
             111,
             "bigmo",
             "Big Monad",
             URI.create("http://noob.gif")
-        )
+        ))
     }
 
     private val resource = GraphQLResource(eval, github)
