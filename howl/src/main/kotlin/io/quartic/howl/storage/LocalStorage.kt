@@ -2,8 +2,6 @@ package io.quartic.howl.storage
 
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
-import io.quartic.howl.storage.StorageCoords.Managed
-import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -65,12 +63,7 @@ class LocalStorage(private val config: Config) : Storage {
         return true
     }
 
-    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(
-        when (this) {
-            is Managed -> Paths.get(targetNamespace, "managed", identityNamespace, objectKey)
-            is Unmanaged -> Paths.get(targetNamespace, "unmanaged", objectKey)
-        }
-    )
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(backendKey)
 
     private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
         try {

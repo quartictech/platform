@@ -3,8 +3,8 @@ package io.quartic.howl.storage
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
@@ -68,7 +68,7 @@ class GcsStorageFactory {
         }
 
         override fun getObject(coords: StorageCoords) = wrapGcsException {
-            val get = storage.objects().get(config.bucket, coords.bucketKey)
+            val get = storage.objects().get(config.bucket, coords.backendKey)
 
             val httpResponse = get.executeMedia()
             val content = httpResponse.content
@@ -86,7 +86,7 @@ class GcsStorageFactory {
 
 
         override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException {
-            val get = storage.objects().get(config.bucket, coords.bucketKey)
+            val get = storage.objects().get(config.bucket, coords.backendKey)
             val response = get.execute()
 
             StorageMetadata(
@@ -101,7 +101,7 @@ class GcsStorageFactory {
             storage.objects()
                 .insert(
                     config.bucket,
-                    StorageObject().setName(coords.bucketKey),
+                    StorageObject().setName(coords.backendKey),
                     InputStreamContent(contentType, inputStream)
                 )
                 .execute()

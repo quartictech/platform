@@ -54,7 +54,7 @@ class S3StorageFactory(
         private val bucket = config.bucketEncrypted.decrypt()
 
         override fun getObject(coords: StorageCoords): Storage.StorageResult? = wrapS3Exception {
-            val s3Object = s3.getObject(bucket.veryUnsafe, coords.bucketKey)
+            val s3Object = s3.getObject(bucket.veryUnsafe, coords.backendKey)
             StorageResult(
                 storageMetadata(s3Object.objectMetadata),
                 s3Object.objectContent
@@ -62,7 +62,7 @@ class S3StorageFactory(
         }
 
         override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapS3Exception {
-            s3.getObjectMetadata(bucket.veryUnsafe, coords.bucketKey)
+            s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey)
                 .let { storageMetadata(it) }
         }
 
@@ -80,7 +80,7 @@ class S3StorageFactory(
                     metadata.contentLength = contentLength.toLong()
                 }
                 metadata.contentType = contentType
-                s3.putObject(bucket.veryUnsafe, coords.bucketKey, s, metadata)
+                s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata)
             }
             return true
         }
