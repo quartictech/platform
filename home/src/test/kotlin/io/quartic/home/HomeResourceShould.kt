@@ -11,9 +11,9 @@ import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.ApiDag
+import io.quartic.home.howl.HowlStreamingClient
 import io.quartic.home.model.*
 import io.quartic.home.resource.HomeResource
-import io.quartic.howl.api.HowlService
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
@@ -45,7 +45,7 @@ class HomeResourceShould {
     )
 
     private val catalogue = mock<CatalogueClient>()
-    private val howl = mock<HowlService>()
+    private val howl = mock<HowlStreamingClient>()
     private val registry = mock<RegistryServiceClient>()
     private val evalQuery = mock<EvalQueryServiceClient>()
     private val evalTrigger = mock<EvalTriggerServiceClient>()
