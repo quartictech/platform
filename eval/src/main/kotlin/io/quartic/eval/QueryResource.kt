@@ -2,9 +2,12 @@ package io.quartic.eval
 
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
-import io.quartic.eval.api.model.*
+import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.ApiDag
+import io.quartic.eval.api.model.Build
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
@@ -68,14 +71,14 @@ class QueryResource(private val database: Database) : EvalQueryService {
         time = this.time
     )
 
-    override fun getLatestDag(customerId: CustomerId): CytoscapeDag {
+    override fun getLatestDag(customerId: CustomerId): ApiDag {
         val buildNumber = database.getLatestSuccessfulBuildNumber(customerId) ?:
             throw NotFoundException("No successful builds for ${customerId}")
 
         return getDag(customerId, buildNumber)
     }
 
-    override fun getDag(customerId: CustomerId, buildNumber: Long): CytoscapeDag {
+    override fun getDag(customerId: CustomerId, buildNumber: Long): ApiDag {
         // TODO - this linear scan is going to be expensive
         val output = database.getEventsForBuild(customerId, buildNumber)
             .mapNotNull { row ->
@@ -85,31 +88,25 @@ class QueryResource(private val database: Database) : EvalQueryService {
             }
             .firstOrNull() ?: throw NotFoundException("No DAG found for ${customerId} with build number ${buildNumber}")
 
-        return convertToCytoscape(output.nodes)
+        return convertToApiDag(output.nodes)
     }
 
     // TODO - We're assuming that the DAG was validated before being added to the database
-    private fun convertToCytoscape(nodes: List<Node>) = with(Dag.fromRaw(nodes)) {
-        CytoscapeDag(nodesFrom(this), edgesFrom(this))
+    private fun convertToApiDag(nodes: List<Node>): ApiDag {
+        val reverseMapping = mutableMapOf<Dataset, Int>()
+
+        val dag = Dag.fromRaw(nodes)
+
+        dag.forEachIndexed { i, node ->
+            reverseMapping[node.output] = i
+        }
+
+        return ApiDag(dag.map { node ->
+            ApiDag.Node(
+                namespace = node.output.namespace,
+                datasetId = node.output.datasetId,
+                sources = node.inputs.map { reverseMapping[it]!! }  // Guaranteed to be present due to topological iteration order
+            )
+        })
     }
-
-    private fun nodesFrom(dag: Dag) = dag.nodes.map {
-        CytoscapeNode(
-            CytoscapeNodeData(
-                id = it.output.fullyQualifiedName,
-                title = it.output.fullyQualifiedName,
-                type = if (it is Node.Raw) "raw" else "derived"
-            )
-        )
-    }.toSet()
-
-    private fun edgesFrom(dag: Dag) = dag.edges.mapIndexed { i, it ->
-        CytoscapeEdge(
-            CytoscapeEdgeData(
-                id = i.toLong(),
-                source = it.first.output.fullyQualifiedName,
-                target = it.second.output.fullyQualifiedName
-            )
-        )
-    }.toSet()
 }
