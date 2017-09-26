@@ -120,7 +120,7 @@ class PrunerShould {
 
     @Test
     fun not_prune_if_not_raw_node() = runBlocking {
-        assertTrue(pruner.acceptorFor(customer, mock())(mock<Step>()))
+        assertTrue(pruner.shouldRetain(customer, mock<Step>()))
     }
 
     @Test
@@ -157,7 +157,7 @@ class PrunerShould {
     }
 
 
-    private suspend fun invokePruner() = pruner.acceptorFor(customer, mock())(node)
+    private suspend fun invokePruner() = pruner.shouldRetain(customer, node)
 
     private fun httpException(code: Int) = HttpException(Response.error<Any>(code, ResponseBody.create(null, "Bad")))
 }

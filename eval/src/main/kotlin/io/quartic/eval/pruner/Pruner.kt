@@ -8,7 +8,6 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.Dag
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw
@@ -27,15 +26,12 @@ class Pruner(
 ) {
     private val LOG by logger()
 
-    fun acceptorFor(customer: Customer, dag: Dag): suspend (Node) -> Boolean {
-        return { node ->
-            when (node) {
-                is Step -> true
-                is Raw -> {
-                    when (node.source) {
-                        is Bucket -> isBucketObjectOutOfDate(customer, node)
-                        else -> true
-                    }
+    suspend fun shouldRetain(customer: Customer, node: Node): Boolean {
+        return when (node) {
+            is Step -> true
+            is Raw -> {
+                when (node.source) {
+                    is Bucket -> isBucketObjectOutOfDate(customer, node)
                 }
             }
         }

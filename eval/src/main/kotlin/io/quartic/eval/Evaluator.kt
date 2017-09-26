@@ -85,17 +85,14 @@ class Evaluator(
 
                     // Only do this for manual launch
                     if (triggerType == TriggerType.EXECUTE) {
-                        (dagResult as DagResult.Valid)
-                        val acceptor = dagPruner.acceptorFor(customer, dagResult.dag)
-
-                        dagResult.dag
+                        (dagResult as DagResult.Valid).dag
                             .forEach { node ->
                                 val action = when (node) {
                                     is Node.Step -> "Executing step"
                                     is Node.Raw -> "Acquiring raw data"
                                 }
                                 phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                    if (acceptor(node)) {
+                                    if (dagPruner.shouldRetain(customer, node)) {
                                         extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
                                             successWithArtifact(NodeExecution(skipped = false), Unit)
                                         }

@@ -60,7 +60,7 @@ class EvaluatorShould {
         val a = evaluator.evaluateAsync(webhookTrigger)
         val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
 
-        b.join()                                                // But we can still complete this one
+        b.join()    // But we can still complete this one
 
         assertFalse(a.isCompleted)
     }
@@ -175,7 +175,7 @@ class EvaluatorShould {
 
     @Test
     fun only_execute_steps_that_survived_pruning() {
-        whenever(pruner.acceptorFor(any(), any())).thenReturn { it == stepY.toDatabaseModel() }
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
 
         execute()
 
@@ -187,7 +187,7 @@ class EvaluatorShould {
 
     @Test
     fun produce_node_execution_artifacts_according_to_pruning() {
-        whenever(pruner.acceptorFor(any(), any())).thenReturn { it == stepY.toDatabaseModel() }
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
 
         execute()
 
@@ -322,7 +322,7 @@ class EvaluatorShould {
     private val extractDag = mock<(List<Node>) -> DagResult>()
 
     private val pruner = mock<Pruner> {
-        on { acceptorFor(any(), any()) } doReturn { true }
+        onGeneric { runBlocking { shouldRetain(any(), any()) } } doReturn true
     }
 
     private val sequencer = spy(MySequencer())
