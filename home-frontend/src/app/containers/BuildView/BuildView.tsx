@@ -198,6 +198,7 @@ const query = gql`
 
 export default graphql(query, {
   options: (props: IProps) => ({
+    pollInterval: 5000,
     variables: {
       buildNumber: props.params.build,
     },
