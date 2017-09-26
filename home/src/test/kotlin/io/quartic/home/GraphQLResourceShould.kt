@@ -80,7 +80,7 @@ class GraphQLResourceShould {
     fun list_builds() {
         val result = resource.execute(user, buildsRequest)
 
-        assertThat(result.errors, equalTo(emptyList()))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val feed = result.data["feed"] as List<Map<String, *>>
         assertThat(feed.size, equalTo(2))
@@ -91,7 +91,7 @@ class GraphQLResourceShould {
     fun fetch_build() {
         val result = resource.execute(user, buildRequest)
 
-        assertThat(result.errors.size, equalTo(0))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val data = result.data["build"] as Map<String, *>
         assertThat(data.keys, equalTo(setOf("id", "number", "events")))
@@ -101,7 +101,7 @@ class GraphQLResourceShould {
     fun fetch_profile() {
         val result = resource.execute(user, profileRequest)
 
-        assertThat(result.errors.size, equalTo(0))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val data: Map<String, Any> = result.data["profile"] as Map<String, Any>
         val expected: Map<String, Any> = mapOf("name" to "Big Monad", "avatarUrl" to "http://noob.gif")
@@ -114,7 +114,7 @@ class GraphQLResourceShould {
 
         val result = resource.execute(user, buildsRequest)
 
-        assertThat(result.errors.map { it.message }, not(hasItem(containsString("badness"))))
+        assertThat(result.errors!!.map { it.message }, not(hasItem(containsString("badness"))))
     }
 
     private val buildsRequest = GraphQLResource.Request("""
