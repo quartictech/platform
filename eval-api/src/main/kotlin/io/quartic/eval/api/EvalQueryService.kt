@@ -56,7 +56,7 @@ interface EvalQueryService {
 
 @Retrofittable
 interface EvalQueryServiceClient {
-    @GET("query/dag/customer_id}")
+    @GET("query/dag/{customer_id}")
     fun getLatestDagAsync(
         @Path("customer_id") customerId: CustomerId
     ): CompletableFuture<ApiDag>
