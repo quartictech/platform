@@ -49,14 +49,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 is PhaseCompletedV6.Result.Success ->
                     ApiPhaseCompletedResult.Success()
                 is PhaseCompletedV6.Result.UserError ->
-                    ApiPhaseCompletedResult.UserError(
-                        when(this.payload.result.info) {
-                            is LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag ->
-                                this.payload.result.info.error
-                            is LegacyPhaseCompleted.V5.UserErrorInfo.OtherException ->
-                                this.payload.result.info.detail.toString()
-                        }
-                    )
+                    ApiPhaseCompletedResult.UserError(this.payload.result.info.toApi())
                 is PhaseCompletedV6.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
             },
             this.time,
@@ -76,6 +69,13 @@ class QueryResource(private val database: Database) : EvalQueryService {
             this.id
         )
         else -> ApiBuildEvent.Other(this.time, this.id)
+    }
+
+    private fun LegacyPhaseCompleted.V5.UserErrorInfo.toApi() =  when(this) {
+        is LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag ->
+            this.error
+        is LegacyPhaseCompleted.V5.UserErrorInfo.OtherException ->
+            this.detail.toString()
     }
 
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
