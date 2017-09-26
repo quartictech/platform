@@ -243,8 +243,38 @@ class DatabaseMigrationsShould {
         assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success() as Result))
     }
 
-    // TODO - Sparrow to write v7 to fix v5
 
+    @Test
+    fun v7_fix_bad_migration() {
+        databaseVersion("6")
+        val buildId = uuid(107)
+        val phaseId = uuid(108)
+        val badEventId = uuid(109)
+        insertEvent(badEventId, buildId, Instant.now(),
+            PhaseCompletedV6(
+                phaseId = phaseId,
+                result = PhaseCompletedV6.Result.UserError(
+                    V5.UserErrorInfo.OtherException(V5.UserErrorInfo.OtherException("noob"))
+                )
+            )
+        )
+
+        val goodEventId = uuid(110)
+        val goodEvent = PhaseCompletedV6(
+            phaseId = UUID.randomUUID(),
+            result = PhaseCompletedV6.Result.UserError(
+                V5.UserErrorInfo.InvalidDag("noob dag", listOf())
+            )
+        )
+        insertEvent(goodEventId, UUID.randomUUID(), Instant.now(), goodEvent)
+
+        println(getEventFields(badEventId)["payload"].toString())
+        databaseVersion("7")
+        val expected = Result.UserError(V5.UserErrorInfo.OtherException("noob"))
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(badEventId).result, equalTo(expected as PhaseCompletedV6.Result))
+        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId).result, equalTo(goodEvent.result))
+    }
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
         assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
