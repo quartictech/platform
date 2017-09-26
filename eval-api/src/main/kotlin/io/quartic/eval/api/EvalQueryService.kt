@@ -17,14 +17,14 @@ import javax.ws.rs.core.MediaType
 interface EvalQueryService {
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Path("/dag2/cytoscape/{customer_id}")
+    @javax.ws.rs.Path("/dag/{customer_id}")
     fun getLatestDag(
         @PathParam("customer_id") customerId: CustomerId
     ): ApiDag
 
     @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
-    @javax.ws.rs.Path("/dag2/cytoscape/{customer_id}/{build_number}")
+    @javax.ws.rs.Path("/dag/{customer_id}/{build_number}")
     fun getDag(
         @PathParam("customer_id") customerId: CustomerId,
         @PathParam("build_number") buildNumber: Long
@@ -56,12 +56,12 @@ interface EvalQueryService {
 
 @Retrofittable
 interface EvalQueryServiceClient {
-    @GET("query/dag/cytoscape/{customer_id}")
+    @GET("query/dag/{customer_id}")
     fun getLatestDagAsync(
         @Path("customer_id") customerId: CustomerId
     ): CompletableFuture<ApiDag>
 
-    @GET("query/dag/cytoscape/{customer_id}/{build_number}")
+    @GET("query/dag/{customer_id}/{build_number}")
     fun getDagAsync(
         @Path("customer_id") customerId: CustomerId,
         @Path("build_number") buildNumber: Long
