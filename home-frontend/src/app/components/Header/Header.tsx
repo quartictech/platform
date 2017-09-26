@@ -46,7 +46,12 @@ class Header extends React.Component<IProps, {}> {
               role="presentation"
             />
           </Link>
-
+          <Link
+            className="pt-button pt-minimal pt-icon-feed"
+            to="/"
+          >
+            Activity
+          </Link>
           <Link
             className="pt-button pt-minimal pt-icon-database"
             to="/datasets"

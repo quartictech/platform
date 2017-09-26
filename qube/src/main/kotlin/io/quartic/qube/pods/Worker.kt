@@ -56,11 +56,12 @@ class WorkerImpl(
                 when {
                     anyTerminated -> {
                         if (states.all { state -> state?.terminated == null || state.terminated?.exitCode == 0 }) {
+                            LOG.info("[$podName] Pod terminated. $ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE")
                             responses.send(Terminated.Succeeded(key.name, ALL_CONTAINERS_SUCCEEDED_OR_DIDNT_TERMINATE))
                         } else {
+                            LOG.warn("[$podName] Pod terminated. $SOME_CONTAINERS_FAILED")
                             responses.send(Terminated.Failed(key.name, SOME_CONTAINERS_FAILED))
                         }
-                        LOG.info("[{}] terminated {}", podName, states)
                         return@withTimeout
                     }
                     anyWaiting -> {

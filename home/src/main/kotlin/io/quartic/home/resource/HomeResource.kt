@@ -9,8 +9,8 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
-import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.home.model.CreateDatasetRequest
+import io.quartic.eval.api.model.*
+import io.quartic.home.model.*
 import io.quartic.howl.api.HowlService
 import io.quartic.howl.api.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
@@ -37,8 +37,19 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDayAsync(user.customerId!!)
+    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDagAsync(user.customerId!!)
         .wrapNotFound("DAG", "latest")
+        .toCytoscape()
+
+    @GET
+    @Path("/dag/{build}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getDag(
+        @Auth user: User,
+        @PathParam("build") build: Long
+    ) = evalQuery.getDagAsync(user.customerId!!, build)
+        .wrapNotFound("DAG", build)
+        .toCytoscape()
 
     @POST
     @Path("/build")
@@ -55,15 +66,6 @@ class HomeResource(
     @Produces(MediaType.APPLICATION_JSON)
     fun getBuilds(@Auth user: User) = evalQuery.getBuildsAsync(user.customerId!!)
         .wrapNotFound("Builds", user.customerId!!)
-
-    @GET
-    @Path("/dag/{build}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(
-        @Auth user: User,
-        @PathParam("build") build: Long
-    ) = evalQuery.getDagAsync(user.customerId!!, build)
-        .wrapNotFound("DAG", build)
 
     @GET
     @Path("/datasets")
@@ -147,6 +149,35 @@ class HomeResource(
         val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
         return DatasetNamespace(customer.namespace)
     }
+
+    private fun ApiDag.toCytoscape() = CytoscapeDag(toCytoscapeNodes(), toCytoscapeEdges())
+
+    private fun ApiDag.toCytoscapeNodes() = nodes.map {
+        CytoscapeNode(
+            CytoscapeNodeData(
+                id = it.fullyQualifiedName,
+                title = it.fullyQualifiedName,
+                type = if (it.sources.isEmpty()) "raw" else "derived"
+            )
+        )
+    }.toSet()
+
+    private fun ApiDag.toCytoscapeEdges(): Set<CytoscapeEdge> {
+        var i = 0L
+        return nodes.flatMap { node ->
+            node.sources.map { source ->
+                CytoscapeEdge(
+                    CytoscapeEdgeData(
+                        id = i++,
+                        source = nodes[source].fullyQualifiedName,
+                        target = node.fullyQualifiedName
+                    )
+                )
+            }
+        }.toSet()
+    }
+
+    private val ApiDag.Node.fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
 
     companion object {
         private val DEFAULT_MIME_TYPE = "application/octet-stream"

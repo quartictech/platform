@@ -10,7 +10,8 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
-import io.quartic.home.model.CreateDatasetRequest
+import io.quartic.eval.api.model.ApiDag
+import io.quartic.home.model.*
 import io.quartic.home.resource.HomeResource
 import io.quartic.howl.api.HowlService
 import io.quartic.registry.api.RegistryServiceClient
@@ -90,4 +91,66 @@ class HomeResourceShould {
     }
 
     // TODO - something for uploadFile
+
+    @Test
+    fun get_dag_in_cytoscape_format() {
+        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+            ApiDag(
+                listOf(
+                    ApiDag.Node("test", "A", emptyList()),
+                    ApiDag.Node("test", "B", emptyList()),
+                    ApiDag.Node("test", "C", emptyList()),
+                    ApiDag.Node("test", "D", listOf(0, 1)),
+                    ApiDag.Node("test", "E", listOf(1, 2, 3))
+                )
+            )
+        ))
+
+        assertThat(resource.getDag(arlo, 69), equalTo(
+            CytoscapeDag(
+                setOf(
+                    node("A", "raw"),
+                    node("B", "raw"),
+                    node("C", "raw"),
+                    node("D", "derived"),
+                    node("E", "derived")
+                ),
+                setOf(
+                    edge(0, "A", "D"),
+                    edge(1, "B", "D"),
+                    edge(2, "B", "E"),
+                    edge(3, "C", "E"),
+                    edge(4, "D", "E")
+                )
+            )
+        ))
+    }
+
+    @Test
+    fun show_nothing_for_null_namespace_in_dag() {
+        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+            ApiDag(
+                listOf(
+                    ApiDag.Node(null, "A", emptyList())     // Null!
+                )
+            )
+        ))
+
+        assertThat(resource.getDag(arlo, 69), equalTo(
+            CytoscapeDag(
+                setOf(
+                    node("A", "raw", "")        // Null becomes empty string
+                ),
+                emptySet()
+            )
+        ))
+    }
+
+    private fun node(id: String, type: String, namespace: String = "test") =
+        CytoscapeNode(CytoscapeNodeData("${namespace}::${id}", "${namespace}::${id}", type))
+
+    private fun edge(id: Long, source: String, target: String, namespace: String = "test") =
+        CytoscapeEdge(CytoscapeEdgeData(id, "${namespace}::${source}", "${namespace}::${target}"))
+
+
 }

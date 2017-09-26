@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.CurrentPhaseCompleted
-import io.quartic.eval.database.model.LegacyPhaseCompleted
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V4
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration
 import org.jdbi.v3.core.Jdbi
 import java.sql.Connection
@@ -24,7 +24,7 @@ class V5__Structure_user_errors : JdbcMigration {
         """)
             .mapToMap()
             .forEach { event ->
-                val oldPayload = OBJECT_MAPPER.readValue<LegacyPhaseCompleted.V3>(event["payload"].toString())
+                val oldPayload = OBJECT_MAPPER.readValue<V4>(event["payload"].toString())
 
                 val newPayload = transform(oldPayload)
 
@@ -39,13 +39,12 @@ class V5__Structure_user_errors : JdbcMigration {
             }
     }
 
-    private fun transform(event: LegacyPhaseCompleted.V3) = CurrentPhaseCompleted(
+    private fun transform(event: V4) = V5(
         event.phaseId,
-        CurrentPhaseCompleted.Result.UserError(
-            CurrentPhaseCompleted.UserErrorInfo.OtherException(
+        V5.Result.UserError(
+            V5.UserErrorInfo.OtherException(
                 when (event.result) {
-                    is LegacyPhaseCompleted.V3.Result.UserError ->
-                        CurrentPhaseCompleted.UserErrorInfo.OtherException(event.result.detail)
+                    is V4.Result.UserError -> V5.UserErrorInfo.OtherException(event.result.detail)
                     else -> throw IllegalStateException("Can only transform UserError. Found ${event.result}")
                 }
             )

@@ -5,8 +5,9 @@ import io.quartic.quarty.api.model.Pipeline
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import kotlinx.coroutines.experimental.runBlocking
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.MatcherAssert.*
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Ignore
 import org.junit.Test
 import java.net.URI

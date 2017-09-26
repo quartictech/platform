@@ -5,16 +5,16 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.api.model.*
+import io.quartic.eval.api.model.ApiDag
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.EventRow
 import io.quartic.eval.database.model.BuildEvent
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
 import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -54,7 +54,7 @@ class QueryResourceShould {
     }
 
     @Test
-    fun convert_dag_to_cytoscape() {
+    fun get_dag_for_build() {
         val a = Raw("111", mock(), mock(),
             dataset("A")
         )
@@ -79,55 +79,17 @@ class QueryResourceShould {
         ))
 
         assertThat(resource.getDag(customerId, 1234), equalTo(
-            CytoscapeDag(
-                setOf(
-                    node("A", "raw"),
-                    node("B", "raw"),
-                    node("C", "raw"),
-                    node("D", "derived"),
-                    node("E", "derived")
-                ),
-                setOf(
-                    edge(0, "A", "D"),
-                    edge(1, "B", "D"),
-                    edge(2, "B", "E"),
-                    edge(3, "C", "E"),
-                    edge(4, "D", "E")
+            ApiDag(
+                listOf(
+                    ApiDag.Node("test", "A", emptyList()),
+                    ApiDag.Node("test", "B", emptyList()),
+                    ApiDag.Node("test", "C", emptyList()),
+                    ApiDag.Node("test", "D", listOf(0, 1)),
+                    ApiDag.Node("test", "E", listOf(1, 2, 3))
                 )
             )
         ))
     }
-
-    @Test
-    fun show_nothing_for_null_namespaces() {
-        val nodes = listOf(
-            Raw(
-                id = "123",
-                info = mock(),
-                output = dataset("A", null),
-                source = mock()
-            )
-        )
-
-        whenever(database.getEventsForBuild(customerId, 1234)).thenReturn(listOf(
-            eventRow(PhaseCompleted(UUID.randomUUID(), Success(EvaluationOutput(nodes))))
-        ))
-
-        assertThat(resource.getDag(customerId, 1234), equalTo(
-            CytoscapeDag(
-                setOf(
-                    node("A", "raw", "")        // Note null becomes empty string
-                ),
-                emptySet()
-            )
-        ))
-    }
-
-    private fun node(id: String, type: String, namespace: String = "test") =
-        CytoscapeNode(CytoscapeNodeData("${namespace}::${id}", "${namespace}::${id}", type))
-
-    private fun edge(id: Long, source: String, target: String, namespace: String = "test") =
-        CytoscapeEdge(CytoscapeEdgeData(id, "${namespace}::${source}", "${namespace}::${target}"))
 
     private fun dataset(id: String, namespace: String? = "test") = Dataset(namespace, id)
 

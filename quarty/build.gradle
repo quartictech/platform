@@ -20,6 +20,7 @@ task createVirtualenvAndInstallDeps(type: Exec) {
     group               "Python"
     description         "Creates virtualenv and installs dependencies via Pip."
 
+    inputs.file         "install.sh"
     inputs.file         "requirements.in"
     inputs.file         "setup.py"
     inputs.file         "setup.cfg"

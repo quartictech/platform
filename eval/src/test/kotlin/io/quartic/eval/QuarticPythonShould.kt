@@ -2,6 +2,7 @@ package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.EvalApplication.Companion.QUARTIC_PYTHON_VERSION
 import io.quartic.quarty.api.model.Pipeline
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -10,7 +11,6 @@ import org.junit.ClassRule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Paths
-import io.quartic.eval.EvalApplication.Companion.QUARTIC_PYTHON_VERSION
 
 class QuarticPythonShould {
     companion object {
