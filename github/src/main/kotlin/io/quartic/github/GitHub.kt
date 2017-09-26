@@ -32,6 +32,7 @@ data class AccessToken(
 @Retrofittable
 interface GitHubOAuthClient {
     @POST("login/oauth/access_token")
+    @retrofit2.http.Headers("Accept: application/json")
     fun accessTokenAsync(
         @Query("client_id") clientId: String,
         @Query("client_secret") clientSecret: String,
@@ -43,16 +44,19 @@ interface GitHubOAuthClient {
 @Retrofittable
 interface GitHubClient {
     @GET("user/{userId}")
+    @retrofit2.http.Headers("Accept: application/json")
     fun userAsync(
         @Path("userId") userId: Int
     ): CompletableFuture<GitHubUser>
 
     @GET("user")
+    @retrofit2.http.Headers("Accept: application/json")
     fun userAsync(
         @Header("Authorization") auth: AuthToken
     ): CompletableFuture<GitHubUser>
 
     @GET("user/orgs")
+    @retrofit2.http.Headers("Accept: application/json")
     fun organizationsAsync(
         @Header("Authorization") auth: AuthToken
     ): CompletableFuture<List<GitHubOrganization>>
