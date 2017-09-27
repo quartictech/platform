@@ -10,18 +10,18 @@ import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.github.GitHubClient
+import io.quartic.home.howl.HowlStreamingClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.GraphQLResource
 import io.quartic.home.resource.HomeResource
 import io.quartic.home.resource.UserResource
-import io.quartic.howl.api.HowlClient
 import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
 class HomeApplication : ApplicationBase<HomeConfiguration>() {
 
     public override fun runApplication(configuration: HomeConfiguration, environment: Environment) {
-        val howl = HowlClient(userAgentFor(javaClass), configuration.howlUrl)
+        val howl = HowlStreamingClient(userAgentFor(javaClass), configuration.howlUrl)
         val catalogue = clientBuilder.retrofit<CatalogueClient>(configuration.catalogueUrl)
         val registry = clientBuilder.retrofit<RegistryServiceClient>(configuration.registryUrl)
         val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)

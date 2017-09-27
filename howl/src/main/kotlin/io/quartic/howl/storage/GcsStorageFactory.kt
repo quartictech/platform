@@ -15,7 +15,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
-import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.ByteArrayInputStream
 import java.io.InputStream

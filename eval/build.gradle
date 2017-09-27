@@ -17,6 +17,8 @@ dependencies {
     compile project(":eval-api")
     compile project(":common-application")
     compile project(":common-db")
+    compile project(":catalogue-api")
+    compile project(":howl-api")
     compile project(":registry-api")
     compile project(":hey-api")
     compile project(":qube-api")
