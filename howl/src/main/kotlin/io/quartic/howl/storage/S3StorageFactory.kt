@@ -64,7 +64,7 @@ class S3StorageFactory(
         }
 
         override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapS3Exception {
-            storageMetadata(s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey))
+            storageMetadata(getRawMetadata(coords))
         }
 
         // TODO - need to catch exceptions here
@@ -92,7 +92,7 @@ class S3StorageFactory(
         }
 
         private fun attemptSafeCopy(source: StorageCoords, dest: StorageCoords): StorageMetadata? {
-            val sourceMetadata = s3.getObjectMetadata(bucket.veryUnsafe, source.backendKey)
+            val sourceMetadata = getRawMetadata(source)
 
             val copyRequest = CopyObjectRequest(
                 bucket.veryUnsafe,
@@ -107,6 +107,8 @@ class S3StorageFactory(
                 null
             }
         }
+
+        private fun getRawMetadata(coords: StorageCoords) = s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey)
 
         private fun storageMetadata(objectMetadata: ObjectMetadata) =
             StorageMetadata(

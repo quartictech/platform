@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.time.Instant
 
+// See https://cloud.google.com/storage/docs/consistency for the consistency model
 class GcsStorageFactory {
     data class Config(val bucket: String, val credentials: Credentials) : StorageConfig
 
@@ -83,14 +84,13 @@ class GcsStorageFactory {
 
 
         override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException {
-            val get = storage.objects().get(config.bucket, coords.backendKey)
-            val response = get.execute()
+            val storageObject: StorageObject = getStorageObject(coords)
 
             StorageMetadata(
-                Instant.ofEpochMilli(response.updated.value),
-                response.contentType ?: DEFAULT_MIME_TYPE,
+                Instant.ofEpochMilli(storageObject.updated.value),
+                storageObject.contentType ?: DEFAULT_MIME_TYPE,
                 // Probably OK for now!
-                response.getSize().toLong()
+                storageObject.getSize().toLong()
             )
         }
 
@@ -104,9 +104,24 @@ class GcsStorageFactory {
                 .execute()
         }
 
-        override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? {
-            TODO()
+        // According to https://cloud.google.com/storage/docs/consistency, GCS is strongly consistent.  So this
+        // read-metadata-after-write pair should be safe (so long as we don't have concurrent writers, which is not
+        // something we're considering as it will eventually be mitigated by namespaces/transactions).
+        override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? = wrapGcsException {
+            storage.objects()
+                .copy(
+                    config.bucket,
+                    source.backendKey,
+                    config.bucket,
+                    dest.backendKey,
+                    null
+                )
+                .execute()
+            getMetadata(dest)
         }
+
+        private fun getStorageObject(coords: StorageCoords) =
+            storage.objects().get(config.bucket, coords.backendKey).execute()
 
         private fun <T> wrapGcsException(block: () -> T): T? = try {
             block()
