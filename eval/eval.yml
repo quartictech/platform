@@ -1,5 +1,7 @@
 registry_url: http://localhost:8190/api
 hey_url: http://localhost:8220/api
+catalogue_url: http://localhost:8090/api
+howl_url: http://localhost:8120/api
 home_url_format: "http://%s:3010"
 
 qube:
