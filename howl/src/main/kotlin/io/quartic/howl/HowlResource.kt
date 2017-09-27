@@ -29,66 +29,52 @@ class HowlResource(
         private val storage = storageFactory.createFor(targetNamespace)
             ?: throw NotFoundException("Cannot find namespace '${targetNamespace}'")
 
-        @GET
         @Path("/unmanaged/{key}")
-        fun downloadUnmanagedObject(@PathParam("key") key: String) = downloadObject(Unmanaged(key))
-
-        @HEAD
-        @Path("/unmanaged/{key}")
-        fun getUnmanagedMetadata(@PathParam("key") key: String) = getMetadata(Unmanaged(key))
+        fun unmanagedResource(@PathParam("key") key: String) = ReadableObjectResource(Unmanaged(key))
 
         @Path("/managed/{identity-namespace}")
         fun managedResource(@PathParam("identity-namespace") identityNamespace: String) = object : Any() {
 
-            @GET
             @Path("/{key}")
-            fun downloadManagedObject(@PathParam("key") key: String) = downloadObject(Managed(identityNamespace, key))
-
-            @HEAD
-            @Path("/{key}")
-            fun getManagedMetadata(@PathParam("key") key: String) = getMetadata(Managed(identityNamespace, key))
+            fun writableResource(@PathParam("key") key: String) = WritableObjectResource(Managed(identityNamespace, key))
 
             @POST
             @Produces(MediaType.APPLICATION_JSON)
-            fun uploadAnonymousManagedObject(@Context request: HttpServletRequest): HowlStorageId {
+            fun uploadAnonymousObject(@Context request: HttpServletRequest): HowlStorageId {
                 val howlStorageId = howlStorageIdGenerator.get()
-                uploadObjectOrThrow(identityNamespace, howlStorageId.uid, request)
+                uploadObjectOrThrow(Managed(identityNamespace, howlStorageId.uid), request)
                 return howlStorageId
             }
+        }
 
+        private open inner class ReadableObjectResource(protected val coords: StorageCoords) {
+            @GET
+            fun downloadObject(): Response {
+                val (metadata, inputStream) = storage.getObject(coords) ?: throw NotFoundException()  // TODO: provide a useful message
+                return metadataHeaders(metadata, Response.ok())
+                    .entity(StreamingOutput { inputStream.use { istream -> IOUtils.copy(istream, it) } })
+                    .build()
+            }
+
+            @HEAD
+            fun getMetadata(): Response {
+                val metadata = storage.getMetadata(coords) ?: throw NotFoundException()  // TODO: provide a useful message
+                return metadataHeaders(metadata, Response.ok()).build()
+            }
+        }
+
+        private inner class WritableObjectResource(coords: StorageCoords) : ReadableObjectResource(coords) {
             @PUT
-            @Path("/{key}")
-            fun uploadManagedObject(@PathParam("key") key: String, @Context request: HttpServletRequest) {
-                uploadObjectOrThrow(identityNamespace, key, request)
-            }
-
-            private fun uploadObjectOrThrow(
-                identityNamespace: String,
-                key: String,
-                request: HttpServletRequest
-            ) {
-                storage.putObject(
-                    Managed(identityNamespace, key),
-                    request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
-                    request.contentType,
-                    request.inputStream
-                )
-            }
+            fun uploadObject(@Context request: HttpServletRequest) = uploadObjectOrThrow(coords, request)
         }
 
-        private fun downloadObject(coords: StorageCoords): Response {
-            val (metadata, inputStream) = storage.getObject(coords) ?: throw NotFoundException()  // TODO: provide a useful message
-            return metadataHeaders(metadata, Response.ok())
-                .entity(StreamingOutput {
-                    inputStream.use { istream -> IOUtils.copy(istream, it) }
-                })
-                .build()
-        }
-
-        private fun getMetadata(coords: StorageCoords): Response {
-            val metadata = storage.getMetadata(coords) ?: throw NotFoundException()  // TODO: provide a useful message
-            return metadataHeaders(metadata, Response.ok())
-                .build()
+        private fun uploadObjectOrThrow(coords: StorageCoords, request: HttpServletRequest) {
+            storage.putObject(
+                coords,
+                request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
+                request.contentType,
+                request.inputStream
+            )
         }
     }
 
@@ -98,7 +84,4 @@ class HowlResource(
             .header(LAST_MODIFIED,
                 DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
-
-
-
 }
