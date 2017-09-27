@@ -203,7 +203,9 @@ const query = gql`{
   }
 }`;
 
-export default graphql(query)(connect(
+export default graphql(query, {
+  options: { pollInterval: 5000 },
+})(connect(
   mapStateToProps,
   mapDispatchToProps,
 )(HomeView));

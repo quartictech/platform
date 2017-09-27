@@ -8,6 +8,7 @@ import io.quartic.howl.HowlResource.Companion.UNMANAGED_SOURCE_KEY_HEADER
 import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage
+import io.quartic.howl.storage.Storage.StorageResult
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
@@ -147,11 +148,8 @@ class HowlResourceShould {
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
         whenever(storage.getObject(any())).thenReturn(
-            Storage.StorageResult(
-                StorageMetadata(
-                    Instant.now(),
-                    MediaType.TEXT_PLAIN,
-                    3),
+            StorageResult(
+                StorageMetadata(Instant.now(), MediaType.TEXT_PLAIN, 3),
                 ByteArrayInputStream(data)
             )
         )

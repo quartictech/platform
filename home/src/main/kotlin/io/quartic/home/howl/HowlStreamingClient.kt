@@ -24,10 +24,10 @@ class HowlStreamingClient(userAgent: String, private val baseUrl: URI) {
             .build()
 
     fun uploadAnonymousObject(
-            targetNamespace: String,
-            identityNamespace: String,
-            contentType: String,
-            upload: (OutputStream) -> Unit
+        targetNamespace: String,
+        identityNamespace: String,
+        contentType: String,
+        upload: (OutputStream) -> Unit
     ): HowlStorageId {
         val request = Request.Builder()
                     .url(url(targetNamespace, MANAGED, identityNamespace))

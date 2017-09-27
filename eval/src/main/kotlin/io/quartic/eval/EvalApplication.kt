@@ -10,11 +10,17 @@ import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
+import io.quartic.howl.api.HowlClient
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
+import okhttp3.ResponseBody
+import retrofit2.HttpException
+import retrofit2.Response
+import java.util.concurrent.CompletableFuture
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
@@ -40,8 +46,18 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
     private fun pruner(config: EvalConfiguration) = Pruner(
         clientBuilder.retrofit(config.catalogueUrl),
-        clientBuilder.retrofit(config.howlUrl)
+        stubHowl()
     )
+
+    // This emulates a 404 response from Howl for any request, which means that nothing will get pruned
+    // TODO - switch this out for real calls to Howl once the endpoint is implemented
+    private fun stubHowl() = object : HowlClient {
+        override fun getUnmanagedMetadataAsync(targetNamespace: String, key: String): CompletableFuture<StorageMetadata> {
+            val future = CompletableFuture<StorageMetadata>()
+            future.completeExceptionally(HttpException(Response.error<Any>(404, ResponseBody.create(null, "Not found"))))
+            return future
+        }
+    }
 
     private fun sequencer(config: EvalConfiguration, database: Database) = SequencerImpl(
         qube(config),
