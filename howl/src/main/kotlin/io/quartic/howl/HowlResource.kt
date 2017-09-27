@@ -17,6 +17,7 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status.NOT_FOUND
 import javax.ws.rs.core.StreamingOutput
 
 @Path("/")
@@ -76,10 +77,13 @@ class HowlResource(
         }
 
         private fun copyObject(source: StorageCoords, dest: StorageCoords): Response = try {
-            storage.copyObject(source, dest)
-            Response.ok().build()
+            if (storage.copyObject(source, dest) != null) {
+                Response.ok().build()
+            } else {
+                Response.status(NOT_FOUND).build()  // TODO: provide a useful message
+            }
         } catch (e: Exception) {
-            Response.serverError().build()
+            Response.serverError().build()  // TODO: provide a useful message
         }
 
         private fun uploadObject(request: HttpServletRequest, dest: StorageCoords): Response = try {

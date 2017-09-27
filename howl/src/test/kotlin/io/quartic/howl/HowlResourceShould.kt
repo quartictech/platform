@@ -82,15 +82,28 @@ class HowlResourceShould {
 
     @Test
     fun copy_object_on_put_with_source_key_header() {
+        whenever(storage.copyObject(any(), any())).thenReturn(mock())
+
         request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-            .put(Entity.text(""))
+            .put(Entity.text(""), Unit::class.java)
 
         verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"))
     }
 
     @Test
-    fun throw_if_storage_not_present() {
+    fun throw_not_found_if_copy_source_not_present() {
+        whenever(storage.copyObject(any(), any())).thenReturn(null)
+
+        assertThrows<NotFoundException> {
+            request("foo/managed/bar/thing")
+                .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
+                .put(Entity.text(""), Unit::class.java)
+        }
+    }
+
+    @Test
+    fun throw_not_found_if_storage_not_present() {
         whenever(router.createFor(any())).thenReturn(null)
 
         assertThrows<NotFoundException> {
