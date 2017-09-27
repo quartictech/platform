@@ -1,6 +1,5 @@
 package io.quartic.eval.api.model
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
@@ -14,6 +13,7 @@ import java.util.*
     JsonSubTypes.Type(ApiBuildEvent.PhaseStarted::class, name = "phase_started"),
     JsonSubTypes.Type(ApiBuildEvent.PhaseCompleted::class, name = "phase_completed"),
     JsonSubTypes.Type(ApiBuildEvent.TriggerReceived::class, name = "trigger_received"),
+    JsonSubTypes.Type(ApiBuildEvent.BuildFailed::class, name = "build_failed"),
     JsonSubTypes.Type(ApiBuildEvent.Other::class, name = "other")
 )
 sealed class ApiBuildEvent {
@@ -37,12 +37,19 @@ sealed class ApiBuildEvent {
 
     data class PhaseCompleted(
         val phaseId: UUID,
+        val result: ApiPhaseCompletedResult,
         override val time: Instant,
         override val id: UUID
     ): ApiBuildEvent()
 
     data class TriggerReceived(
-        val type: String,
+        val triggerType: String,
+        override val time: Instant,
+        override val id: UUID
+    ): ApiBuildEvent()
+
+    data class BuildFailed(
+        val description: String,
         override val time: Instant,
         override val id: UUID
     ): ApiBuildEvent()
