@@ -13,7 +13,7 @@ import javax.ws.rs.container.AsyncResponse
 import javax.ws.rs.container.Suspended
 
 @Path("/")
-class EvalResource(private val buildInitiator: BuildInitiator, private val channel: SendChannel<BuildContext>) {
+class TriggerResource(private val buildInitiator: BuildInitiator, private val channel: SendChannel<BuildContext>) {
     @POST
     @Path("/trigger")
     fun trigger(details: BuildTrigger, @Suspended response: AsyncResponse) = async(CommonPool) {

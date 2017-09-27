@@ -21,7 +21,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val database = database(configuration, environment)
 
         with(environment.jersey()) {
-            register(EvalResource(
+            register(TriggerResource(
                 buildInitiator(configuration, database),
                 evaluator(configuration, database).channel)
             )
