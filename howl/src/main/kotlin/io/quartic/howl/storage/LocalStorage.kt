@@ -10,6 +10,7 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
@@ -21,34 +22,21 @@ class LocalStorage(private val config: Config) : Storage {
     private val contentTypes = mutableMapOf<StorageCoords, String>()
     private val lock = ReentrantReadWriteLock()
 
-    override fun getObject(coords: StorageCoords): StorageResult? {
-        try {
-            lock.readLock().lock()
-
-            val contentType = contentTypes[coords]
-            val file = coords.path.toFile()
-            // Testing both is overkill, but whatever
-            if ((contentType != null) && file.exists()) {
-                return StorageResult(
-                    StorageMetadata(
-                        Files.getLastModifiedTime(coords.path).toInstant(),
-                        contentType,
-                        Files.size(coords.path)
-                    ),
-                    FileInputStream(file)
-                )
-            }
-        } finally {
-            lock.readLock().unlock()
+    override fun getObject(coords: StorageCoords) = lock.readLock().protect {
+        val metadata = getMetadataUnsafe(coords)
+        if (metadata != null) {
+            StorageResult(
+                metadata,
+                FileInputStream(coords.path.toFile())
+            )
+        } else {
+            null
         }
-
-        return null
     }
 
-    override fun getMetadata(coords: StorageCoords): StorageMetadata? = getObject(coords)?.metadata
+    override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
     override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
-        coords.path.toFile().mkdirs()
         var tempFile: File? = null
         try {
             tempFile = File.createTempFile("howl", "partial")
@@ -63,18 +51,57 @@ class LocalStorage(private val config: Config) : Storage {
         return true
     }
 
-    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(backendKey)
-
-    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
-        try {
-            lock.writeLock().lock()
-            Files.deleteIfExists(coords.path)
-            Files.move(from, coords.path)
-            contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
-        } finally {
-            lock.writeLock().unlock()
+    override fun copyObject(source: StorageCoords, dest: StorageCoords) = lock.writeLock().protect {
+        if (Files.exists(source.path)) {
+            prepareDestinationUnsafe(dest)
+            Files.copy(source.path, dest.path)
+            contentTypes[dest] = contentTypes[source]
+                ?: Files.probeContentType(source.path)
+                ?: DEFAULT_CONTENT_TYPE
+            getMetadataUnsafe(dest)
+        } else {
+            null
         }
     }
+
+    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
+        lock.writeLock().protect {
+            prepareDestinationUnsafe(coords)
+            Files.move(from, coords.path)
+            contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+        }
+    }
+
+    private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
+        val file = coords.path.toFile()
+        val contentType = contentTypes[coords]
+        // Testing both is overkill, but whatever
+        return if ((contentType != null) && file.exists()) {
+            StorageMetadata(
+                Files.getLastModifiedTime(coords.path).toInstant(),
+                contentType,
+                Files.size(coords.path)
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun prepareDestinationUnsafe(coords: StorageCoords) {
+        coords.path.parent.toFile().mkdirs()
+        Files.deleteIfExists(coords.path)
+    }
+
+    private fun <R> Lock.protect(block: () -> R): R {
+        try {
+            lock()
+            return block()
+        } finally {
+            unlock()
+        }
+    }
+
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(backendKey)
 
     companion object {
         private val DEFAULT_CONTENT_TYPE = "application/octet-stream"

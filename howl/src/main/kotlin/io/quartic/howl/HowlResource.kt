@@ -107,8 +107,8 @@ class HowlResource(
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
             .header(CONTENT_TYPE, metadata.contentType)
-            .header(LAST_MODIFIED, DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
-                .format(metadata.lastModified))
+            .header(LAST_MODIFIED,
+                DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
 
 

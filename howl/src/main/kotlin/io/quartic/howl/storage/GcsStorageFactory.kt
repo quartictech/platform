@@ -75,10 +75,7 @@ class GcsStorageFactory {
             val metadata = getMetadata(coords)
 
             if (content != null) {
-                StorageResult(
-                    metadata!!,
-                    content
-                )
+                StorageResult(metadata!!, content)
             } else {
                 null
             }
@@ -107,6 +104,10 @@ class GcsStorageFactory {
                 .execute()
 
             return true
+        }
+
+        override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? {
+            TODO()
         }
 
         private fun <T> wrapGcsException(block: () -> T): T? = try {

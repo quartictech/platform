@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.Parameter
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -20,12 +21,12 @@ import java.util.*
 import javax.ws.rs.core.MediaType
 
 @RunWith(Parameterized::class)
-class StorageFactoryShould {
-    @Parameterized.Parameter
+class StorageShould {
+    @Parameter
     lateinit var storageFactory: (File) -> Storage
 
     // Needed to keep junit happy
-    @Parameterized.Parameter(1)
+    @Parameter(1)
     lateinit var name: String
 
     @Rule
@@ -33,6 +34,18 @@ class StorageFactoryShould {
     val folder = TemporaryFolder()
 
     private val storage by lazy { storageFactory(folder.root) }
+
+    // TODO - get object that was put
+    // TODO - return null if object not found
+    // TODO - get metadata that was put
+    // TODO - return null if metadata not found
+    // TODO - get metadata that was not put (TODO - is this actually a thing?)
+    // TODO - get overwritten object
+    // TODO - return metadata of copied object
+    // TODO - fail to copy if source doesn't exist (i.e. return null)
+    // TODO - get object that was copied
+    // TODO - ensure objects with separate coords are separate
+
 
     @Test
     fun get_object_that_was_put() {
@@ -127,8 +140,8 @@ class StorageFactoryShould {
         @Parameterized.Parameters(name = "type: {1}")
         @JvmStatic
         fun parameters() = listOf(
-            arrayOf(gcs , "gcs"),
-            arrayOf(s3, "s3"),
+//            arrayOf(gcs , "gcs"),
+//            arrayOf(s3, "s3"),
             arrayOf(local, "local"))
 
         private val codec = SecretsCodec(DEV_MASTER_KEY_BASE64)
@@ -147,7 +160,7 @@ class StorageFactoryShould {
             GcsStorageFactory().create(
                 GcsStorageFactory.Config("howl-test.quartic.io",
                     GcsStorageFactory.Credentials.ServiceAccountJsonKey(
-                        StorageFactoryShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
+                        StorageShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
                     )
                 )
             )

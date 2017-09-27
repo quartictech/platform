@@ -21,12 +21,18 @@ class RoutingStorage(
         }
     }
 
-    override fun getObject(coords: StorageCoords) = dests[coords.targetNamespace]?.getObject(coords)
+    override fun getObject(coords: StorageCoords) =
+        dests[coords.targetNamespace]?.getObject(coords)
 
-    override fun getMetadata(coords: StorageCoords) = dests[coords.targetNamespace]?.getMetadata(coords)
+    override fun getMetadata(coords: StorageCoords) =
+        dests[coords.targetNamespace]?.getMetadata(coords)
 
     override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) =
         dest(coords)?.putObject(coords, contentLength, contentType, inputStream) ?: false
+
+    // TODO - enforce matching targetNamespace (maybe restructure StorageCoords accordingly)
+    override fun copyObject(source: StorageCoords, dest: StorageCoords) =
+        dests[source.targetNamespace]?.copyObject(source, dest)
 
     private fun dest(coords: StorageCoords): Storage? {
         val dest = dests[coords.targetNamespace]
