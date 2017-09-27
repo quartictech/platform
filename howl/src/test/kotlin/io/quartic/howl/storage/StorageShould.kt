@@ -52,7 +52,7 @@ class StorageShould {
         val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putObject(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
         storage.getObject(coords).use {
             it!!
@@ -66,7 +66,7 @@ class StorageShould {
         val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putObject(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(-1, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
     }
 
     @Test
@@ -88,7 +88,7 @@ class StorageShould {
         val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(null, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
         val metadata = storage.getObject(coords)!!.metadata
         assertThat(metadata.contentLength, equalTo(12L))
         assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
@@ -101,9 +101,9 @@ class StorageShould {
         val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
-        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
+        storage.putObject(null, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
         val data2 = "Goodbye world!"
-        storage.putObject(coords, null, MediaType.TEXT_PLAIN, data2.byteInputStream())
+        storage.putObject(null, MediaType.TEXT_PLAIN, data2.byteInputStream(), coords)
 
         storage.getObject(coords).use {
             it!!
@@ -119,8 +119,8 @@ class StorageShould {
         val coordsB = Managed(namespace, "hello2.txt")
         val dataA = "Hello world!"
         val dataB = "Goodbye world!"
-        storage.putObject(coordsA, null, MediaType.TEXT_PLAIN, dataA.byteInputStream())
-        storage.putObject(coordsB, null, MediaType.TEXT_PLAIN, dataB.byteInputStream())
+        storage.putObject(null, MediaType.TEXT_PLAIN, dataA.byteInputStream(), coordsA)
+        storage.putObject(null, MediaType.TEXT_PLAIN, dataB.byteInputStream(), coordsB)
 
         storage.getObject(coordsA).use {
             it!!

@@ -16,7 +16,7 @@ interface Storage {
     fun getMetadata(coords: StorageCoords): StorageMetadata?
 
     // Exception indicates some other error
-    fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream)
+    fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords)
 
     // Null indicates source not found, exception indicates some other error
     fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata?

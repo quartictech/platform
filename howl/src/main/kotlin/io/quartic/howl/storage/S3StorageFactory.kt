@@ -68,7 +68,7 @@ class S3StorageFactory(
         }
 
         // TODO - need to catch exceptions here
-        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) {
+        override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
             inputStream.use { s ->
                 val metadata = ObjectMetadata()
                 if (contentLength != null && contentLength > 0) {

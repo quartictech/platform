@@ -4,6 +4,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
+import io.quartic.howl.HowlResource.Companion.UNMANAGED_SOURCE_KEY_HEADER
 import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage
@@ -49,14 +50,14 @@ class HowlResourceShould {
 
         val byteArrayOutputStream = ByteArrayOutputStream()
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
-            val inputStream = invocation.getArgument<InputStream>(3)
+            val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             true
         }
 
         request("foo/managed/bar/thing").put(Entity.text(data))
 
-        verify(storage).putObject(eq(Managed("bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(data.size), eq(MediaType.TEXT_PLAIN), any(), eq(Managed("bar", "thing")))
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -67,7 +68,7 @@ class HowlResourceShould {
 
         val byteArrayOutputStream = ByteArrayOutputStream()
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
-            val inputStream = invocation.getArgument<InputStream>(3)
+            val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
             true
         }
@@ -75,8 +76,17 @@ class HowlResourceShould {
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, equalTo(HowlStorageId("42")))
-        verify(storage).putObject(eq(Managed("bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(data.size), eq(MediaType.TEXT_PLAIN), any(), eq(Managed("bar", "42")))
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
+    }
+
+    @Test
+    fun copy_object_on_put_with_source_key_header() {
+        request("foo/managed/bar/thing")
+            .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
+            .put(Entity.text(""))
+
+        verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"))
     }
 
     @Test
@@ -95,7 +105,7 @@ class HowlResourceShould {
 
         request("foo/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putObject(eq(Managed("thing", "69")), eq(-1), eq(null), any())
+        verify(storage).putObject(eq(-1), eq(null), any(), eq(Managed("thing", "69")))
     }
 
     @Test

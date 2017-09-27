@@ -42,7 +42,7 @@ class HowlResource(
             @Produces(MediaType.APPLICATION_JSON)
             fun uploadAnonymousObject(@Context request: HttpServletRequest): HowlStorageId {
                 val howlStorageId = howlStorageIdGenerator.get()
-                uploadObjectOrThrow(Managed(identityNamespace, howlStorageId.uid), request)
+                uploadObject(request, Managed(identityNamespace, howlStorageId.uid))
                 return howlStorageId
             }
         }
@@ -65,16 +65,33 @@ class HowlResource(
 
         private inner class WritableObjectResource(coords: StorageCoords) : ReadableObjectResource(coords) {
             @PUT
-            fun uploadObject(@Context request: HttpServletRequest) = uploadObjectOrThrow(coords, request)
+            fun uploadOrCopyObject(
+                @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
+                @Context request: HttpServletRequest
+            ) = if (unmanagedSourceKey != null) {
+                copyObject(Unmanaged(unmanagedSourceKey), coords)
+            } else {
+                uploadObject(request, coords)
+            }
         }
 
-        private fun uploadObjectOrThrow(coords: StorageCoords, request: HttpServletRequest) {
+        private fun copyObject(source: StorageCoords, dest: StorageCoords): Response = try {
+            storage.copyObject(source, dest)
+            Response.ok().build()
+        } catch (e: Exception) {
+            Response.serverError().build()
+        }
+
+        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords): Response = try {
             storage.putObject(
-                coords,
-                request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
-                request.contentType,
-                request.inputStream
+                request.contentLength,
+                request.contentType, // TODO: what if this is bigger than MAX_VALUE?
+                request.inputStream,
+                dest
             )
+            Response.ok().build()
+        } catch (e: Exception) {
+            Response.serverError().build()  // TODO - should provide a useful diagnostic
         }
     }
 
@@ -84,4 +101,8 @@ class HowlResource(
             .header(LAST_MODIFIED,
                 DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
+
+    companion object {
+        const val UNMANAGED_SOURCE_KEY_HEADER = "x-unmanaged-source-key"
+    }
 }
