@@ -7,6 +7,7 @@ import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
+import io.quartic.howl.storage.StorageFactory
 import org.apache.commons.io.IOUtils
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -34,11 +35,18 @@ class HowlResource(
 
         @HEAD
         @Path("/unmanaged/{key}")
-        @Produces(MediaType.APPLICATION_JSON)
         fun getUnmanagedMetadata(@PathParam("key") key: String) = getMetadata(Unmanaged(key))
 
         @Path("/managed/{identity-namespace}")
         fun managedResource(@PathParam("identity-namespace") identityNamespace: String) = object : Any() {
+
+            @GET
+            @Path("/{key}")
+            fun downloadManagedObject(@PathParam("key") key: String) = downloadObject(Managed(identityNamespace, key))
+
+            @HEAD
+            @Path("/{key}")
+            fun getManagedMetadata(@PathParam("key") key: String) = getMetadata(Managed(identityNamespace, key))
 
             @POST
             @Produces(MediaType.APPLICATION_JSON)
@@ -53,17 +61,6 @@ class HowlResource(
             fun uploadManagedObject(@PathParam("key") key: String, @Context request: HttpServletRequest) {
                 uploadObjectOrThrow(identityNamespace, key, request)
             }
-
-            @GET
-            @Path("/{key}")
-            fun downloadManagedObject(@PathParam("key") key: String) =
-                downloadObject(Managed(identityNamespace, key))
-
-            @HEAD
-            @Path("/{key}")
-            @Produces(MediaType.APPLICATION_JSON)
-            fun getManagedMetadata(@PathParam("key") key: String) =
-                getMetadata(Managed(identityNamespace, key))
 
             private fun uploadObjectOrThrow(
                 identityNamespace: String,

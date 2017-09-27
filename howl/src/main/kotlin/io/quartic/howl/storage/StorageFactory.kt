@@ -1,7 +1,6 @@
-package io.quartic.howl
+package io.quartic.howl.storage
 
 import io.quartic.common.logging.logger
-import io.quartic.howl.storage.*
 
 class StorageFactory(
     gcsFactory: GcsStorageFactory,

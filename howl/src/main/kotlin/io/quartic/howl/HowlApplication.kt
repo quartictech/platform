@@ -8,6 +8,7 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.howl.HowlConfiguration.AwsConfiguration
 import io.quartic.howl.storage.GcsStorageFactory
 import io.quartic.howl.storage.S3StorageFactory
+import io.quartic.howl.storage.StorageFactory
 
 class HowlApplication : ApplicationBase<HowlConfiguration>() {
     public override fun runApplication(configuration: HowlConfiguration, environment: Environment) {
