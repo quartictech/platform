@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.CopyObjectRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
+import io.quartic.common.logging.logger
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
@@ -63,6 +64,7 @@ class S3Storage(
         private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
     }
 
+    private val LOG by logger()
     private val s3 by lazy(s3Supplier)
 
     override fun getObject(coords: StorageCoords): StorageResult? = wrapS3Exception {
@@ -94,8 +96,13 @@ class S3Storage(
         // instead.  To mitigate the potential race condition, we enforce an ETag constraint, and keep looping
         // until it's met.
         var result: StorageMetadata? = null
+        var attempts = 1
         while (result == null) {
+            if (attempts > 1) {
+                LOG.info("Attempt #${attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
+            }
             result = attemptSafeCopy(source, dest)
+            attempts++
         }
         result
     }
