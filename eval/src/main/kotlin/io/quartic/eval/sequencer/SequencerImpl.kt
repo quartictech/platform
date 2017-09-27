@@ -2,11 +2,9 @@ package io.quartic.eval.sequencer
 
 import io.quartic.common.coroutines.use
 import io.quartic.common.logging.logger
-import io.quartic.common.model.CustomerId
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
-import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
@@ -17,7 +15,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Result
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
-import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async

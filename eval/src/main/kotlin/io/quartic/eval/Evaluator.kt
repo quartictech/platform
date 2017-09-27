@@ -16,7 +16,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
-import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
@@ -53,7 +53,7 @@ class Evaluator(
     suspend fun evaluateAsync(build: BuildContext) = async(CommonPool) {
         val triggerType = getTriggerType(build.trigger)
 
-        sequencer.sequence(build.trigger, build.build, build.customer) {
+        sequencer.sequence(build) {
             val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
                 success(github
                     .accessTokenAsync(build.customer.githubInstallationId)

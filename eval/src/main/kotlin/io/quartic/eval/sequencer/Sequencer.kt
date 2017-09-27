@@ -6,7 +6,7 @@ import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
 
 interface Sequencer {
-    suspend fun sequence(context: BuildBootstrap.BuildContext, block: suspend SequenceBuilder.() -> Unit)
+    suspend fun sequence(context: BuildInitiator.BuildContext, block: suspend SequenceBuilder.() -> Unit)
 
     interface SequenceBuilder {
         val container: QubeContainerProxy

@@ -5,7 +5,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.Notifier
 import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
@@ -37,7 +37,6 @@ class SequencerImplShould {
         sequencer.sequence(buildContext) {}    // Do nothing
 
         val buildId = uuid(100)
-        verify(database).insertBuild(buildId, CustomerId(999), "lovely")
         verify(database).insertEvent(eq(uuid(101)), eq(TriggerReceived(details.toDatabaseModel())), any(), eq(buildId))
         verify(database).insertEvent(eq(uuid(102)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId))
         verify(database).insertEvent(eq(uuid(103)), eq(BUILD_SUCCEEDED), any(), eq(buildId))
@@ -241,15 +240,15 @@ class SequencerImplShould {
         on { id } doReturn CustomerId(999)
     }
 
-
-    private val buildRow = mock<BuildRow> {
-        on { buildNumber } doReturn 1234
-    }
-    private val buildContext = BuildContext(details, customer, buildRow)
-
     private fun uuid(x: Int) = UUID(0, x.toLong())
 
     private var uuid = 100
+
+    private val buildRow = mock<BuildRow> {
+        on { id } doReturn uuid(uuid)
+        on { buildNumber } doReturn 1234
+    }
+    private val buildContext = BuildContext(details, customer, buildRow)
 
     private val qubeContainer = mock<QubeContainerProxy> {
         on { id } doReturn uuid(9999)

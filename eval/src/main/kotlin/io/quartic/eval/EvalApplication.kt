@@ -5,8 +5,8 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.eval.database.Database
 import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.sequencer.BuildBootstrap
-import io.quartic.eval.sequencer.BuildBootstrap.BuildContext
+import io.quartic.eval.sequencer.BuildInitiator
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
@@ -22,7 +22,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
 
         with(environment.jersey()) {
             register(EvalResource(
-                bootstrap(configuration, database),
+                buildInitiator(configuration, database),
                 evaluator(configuration, database).channel)
             )
             register(QueryResource(database))
@@ -39,7 +39,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         }
     }
 
-    private fun bootstrap(config: EvalConfiguration, database: Database) = BuildBootstrap(
+    private fun buildInitiator(config: EvalConfiguration, database: Database) = BuildInitiator(
         database,
         clientBuilder.retrofit(config.registryUrl)
     )

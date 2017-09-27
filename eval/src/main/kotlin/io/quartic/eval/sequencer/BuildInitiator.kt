@@ -14,7 +14,7 @@ import kotlinx.coroutines.experimental.run
 import retrofit2.HttpException
 import java.util.*
 
-class BuildBootstrap(
+class BuildInitiator(
     private val database: Database,
     private val registry: RegistryServiceClient,
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
