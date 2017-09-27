@@ -18,7 +18,6 @@ import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.config.RegisterColumnMapper
 import org.jdbi.v3.sqlobject.config.RegisterColumnMappers
 import org.jdbi.v3.sqlobject.customizer.Bind
-import org.jdbi.v3.sqlobject.customizer.Define
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
 import java.sql.ResultSet
@@ -32,16 +31,6 @@ import java.util.*
     RegisterColumnMapper(CustomerIdColumnMapper::class),
     RegisterColumnMapper(BuildEventColumnMapper::class))
 interface Database : SqlObject {
-
-    data class BuildRow(
-        val id: UUID,
-        @ColumnName("customer_id")
-        val customerId: CustomerId,
-        val branch: String,
-        @ColumnName("build_number")
-        val buildNumber: Long
-    )
-
     data class EventRow(
         val id: UUID,
         @ColumnName("build_id")
@@ -50,7 +39,7 @@ interface Database : SqlObject {
         val payload: BuildEvent
     )
 
-    data class BuildStatusRow(
+    data class BuildRow(
         val id: UUID,
         @ColumnName("build_number")
         val buildNumber: Long,
@@ -139,13 +128,13 @@ interface Database : SqlObject {
        """)
         .bind("customer_id", customerId)
         .bind("build_number", buildNumber)
-        .mapTo(BuildStatusRow::class.java)
+        .mapTo(BuildRow::class.java)
         .toList()
 
-    fun getBuild(buildId: UUID): BuildStatusRow = handle.createQuery(BUILD_SQL)
+    fun getBuild(buildId: UUID): BuildRow = handle.createQuery(BUILD_SQL)
         .define("predicate", "build.id = :build_id")
         .bind("build_id", buildId)
-        .mapTo(BuildStatusRow::class.java)
+        .mapTo(BuildRow::class.java)
         .findOnly()
 
     companion object {

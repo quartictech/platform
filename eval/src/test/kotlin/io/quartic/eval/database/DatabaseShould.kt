@@ -5,7 +5,6 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
@@ -56,7 +55,7 @@ class DatabaseShould {
     fun insert_build() {
         insertBuild(buildId)
         assertThat(DATABASE.getBuild(buildId), equalTo(
-            Database.BuildStatusRow(buildId, 1, branch, customerId, "running", null, null)))
+            Database.BuildRow(buildId, 1, branch, customerId, "running", null, null)))
     }
 
     @Test

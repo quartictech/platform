@@ -263,7 +263,7 @@ class EvaluatorShould {
     }
 
 
-    val buildRow = Database.BuildStatusRow(UUID.randomUUID(), 100, "develop", customer.id, "running",null, null)
+    val buildRow = Database.BuildRow(UUID.randomUUID(), 100, "develop", customer.id, "running",null, null)
     val evaluateBuild = BuildContext(webhookTrigger, customer, buildRow)
     val executeBuild = BuildContext(manualTrigger, customer, buildRow)
 

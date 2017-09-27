@@ -25,7 +25,7 @@ class BuildInitiator(
     data class BuildContext(
         val trigger: BuildTrigger,
         val customer: Customer,
-        val build: Database.BuildStatusRow
+        val build: Database.BuildRow
     )
 
     suspend fun start(trigger: BuildTrigger): BuildContext? {

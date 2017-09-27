@@ -68,7 +68,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
         .map { it.toBuild() }
 
-    private fun Database.BuildStatusRow.toBuild() = Build(
+    private fun Database.BuildRow.toBuild() = Build(
         id = this.id,
         buildNumber = this.buildNumber,
         branch = this.branch,

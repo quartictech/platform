@@ -9,8 +9,6 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.CoreMatchers
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.*
 import java.util.*
 import javax.ws.rs.WebApplicationException
@@ -51,7 +49,7 @@ class TriggerResourceShould {
 
     private val trigger = mock<BuildTrigger.GithubWebhook>()
     private val buildInitiator = mock<BuildInitiator>()
-    private val build = mock<Database.BuildStatusRow> {
+    private val build = mock<Database.BuildRow> {
         on { id } doReturn UUID(0, 100)
     }
     private val buildContext = mock<BuildInitiator.BuildContext> {
