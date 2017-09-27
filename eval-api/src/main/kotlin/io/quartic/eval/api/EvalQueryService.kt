@@ -47,7 +47,8 @@ interface EvalQueryService {
     ): Build
 
     @javax.ws.rs.GET
-    @javax.ws.rs.Path("query/build_by_id/{build_id}")
+    @javax.ws.rs.Path("/build_by_id/{build_id}")
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     fun getBuildById(
         @PathParam("build_id") buildId: UUID
     ): Build

@@ -9,6 +9,8 @@ apply plugin: KotlinPlugin
 dependencies {
     compile project(":common-core")
     compile project(":eval-api")
+
+    runtime "ch.qos.logback:logback-classic:1.2.3"
 }
 
 mainClassName = "io.quartic.integration.Hammer"
