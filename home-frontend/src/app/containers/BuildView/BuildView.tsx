@@ -47,17 +47,19 @@ class BuildView extends React.Component<IProps, IState> {
 
   private renderLogLine(event) {
     return (
-      <tr>
+      <tr key={event.id}>
         <td className={s.logTimestamp}>{this.formatTime(event.time)}</td>
         <td style={this.logStyle(event)}>{event.message}</td>
       </tr>
     );
   }
 
-  private renderLogs(events) {
+  private renderLogs(logEvents) {
     return (
       <table>
-      {events.map(event => this.renderLogLine(event))}
+        <tbody>
+          {logEvents.map(event => this.renderLogLine(event))}
+        </tbody>
       </table>
     );
   }
@@ -72,7 +74,7 @@ class BuildView extends React.Component<IProps, IState> {
   private groupByPhase(events: BuildEvent[]) {
     const groupedEvents = _.groupBy(events, event => event.phase_id);
     return _.mapObject(groupedEvents, (val, _) =>
-      val.filter(event => event.type === "log").sort((a, b) => a.time - b.time));
+      val.sort((a, b) => a.time - b.time));
   }
 
   private formatTime = time => moment.unix(time).format("YYYY-MM-DD HH:mm:ss");
@@ -85,49 +87,65 @@ class BuildView extends React.Component<IProps, IState> {
     });
   }
 
-  private renderPhase(phase, events, phaseIntent) {
-    if (events.length === 0) {
-      return (
-        <div key={phase.phase_id} className={s.phaseItem}>
+  private getPhaseIntent = (completedEvent) => {
+    if (completedEvent) {
+      switch (completedEvent.result.__typename) {
+        case "Success": return Intent.SUCCESS;
+        case "UserError":
+        case "InternalError":
+          return Intent.DANGER;
+      }
+    }
+    return Intent.NONE;
+  }
+
+  private expandButton = phase => (
+    <Button
+      className="pt-minimal pt-intent-primary"
+      style={{ float: "right" }}
+      onClick={() => this.onPhaseClick(phase.phase_id)}
+    >
+      Expand
+    </Button>
+  )
+
+  private renderPhase(phase, events, phaseIntent?) {
+    const logEvents = events.filter(event => event.type === "log");
+    const completedEvent = events
+      .filter(event => event.type === "phase_completed")[0];
+    const intent = phaseIntent || this.getPhaseIntent(completedEvent);
+
+    const hasUserError = completedEvent &&
+      completedEvent.result &&
+      completedEvent.result.__typename === "UserError";
+    const hasLogEvents = logEvents.length > 0;
+
+    const expandable = logEvents.length > 0 || hasUserError;
+
+    return (
+      <div key={phase.phase_id} className={s.phaseItem}>
+        <div className={s.phaseHeader}>
+          {expandable ? this.expandButton(phase) : null}
           <span className={s.phaseTitle}>
-            <Tag className={classNames(Classes.MINIMAL, s.phaseTitleTag)} intent={phaseIntent}>
+            <Tag className={classNames(Classes.MINIMAL, s.phaseTitleTag)} intent={intent}>
               {this.formatTime(phase.time)}
             </Tag>
             <b> {phase.description}</b>
-          </span>
+            </span>
         </div>
-      );
-    } else {
-      return (
-        <div key={phase.phase_id} className={s.phaseItem}>
-          <div className={s.phaseHeader}>
-            <Button
-              className="pt-minimal pt-intent-primary"
-              style={{ float: "right" }}
-              onClick={() => this.onPhaseClick(phase.phase_id)}
-            >
-              Expand
-            </Button>
-            <span className={s.phaseTitle}>
-              <Tag className={classNames(Classes.MINIMAL, s.phaseTitleTag)} intent={phaseIntent}>
-                {this.formatTime(phase.time)}
-              </Tag>
-              <b> {phase.description}</b>
-              </span>
-          </div>
-          <Collapse isOpen={this.state.openPhases[phase.phase_id]}>
-            <pre className={s.bash}>{this.renderLogs(events)}</pre>
-          </Collapse>
-        </div>
-      );
-    }
+        <Collapse isOpen={this.state.openPhases[phase.phase_id]}>
+          {hasLogEvents ? <pre className={s.bash}>{this.renderLogs(logEvents)}</pre> : null}
+          {hasUserError ? <pre className={s.userError}>{completedEvent.result.error}</pre> : null}
+        </Collapse>
+      </div>
+    );
   }
 
   private renderPhases(events) {
     const phases = this.orderPhases(events);
     const eventsByPhase = this.groupByPhase(events);
     return phases.map(phase =>
-      this.renderPhase(phase, eventsByPhase[phase.phase_id], Intent.NONE),
+      this.renderPhase(phase, eventsByPhase[phase.phase_id]),
     );
   }
 
@@ -135,6 +153,7 @@ class BuildView extends React.Component<IProps, IState> {
     return events.filter(event => event.type === "trigger_received")
       .map(event => this.renderPhase(
         {
+          phase_id: event.id,
           time: event.time,
           description: `Build triggered by ${event.trigger_type}. Awaiting container...`,
         },
@@ -183,7 +202,10 @@ const query = gql`
           id, description, phase_id, time, type
         }
         ... on PhaseCompleted {
-          id, phase_id, time, type
+          id, phase_id, time, type,
+          result {
+            ... on UserError { error }
+          }
         }
         ... on TriggerReceived {
           id, trigger_type, time, type
