@@ -57,7 +57,10 @@ class GraphQLResourceShould {
 
     private val events = listOf<ApiBuildEvent>(
         ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
-            ApiPhaseCompletedResult.Success(), Instant.now(), UUID.randomUUID())
+            ApiPhaseCompletedResult.Success(), Instant.now(), UUID.randomUUID()),
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
+            ApiPhaseCompletedResult.UserError("noob"), Instant.now(), UUID.randomUUID())
+
     )
 
     private val eval = mock<EvalQueryServiceClient> {
@@ -133,6 +136,9 @@ class GraphQLResourceShould {
                     events {
                         ... on PhaseCompleted {
                             phase_id
+                            result {
+                                ... on UserError { error }
+                            }
                         }
                     }
                 }
