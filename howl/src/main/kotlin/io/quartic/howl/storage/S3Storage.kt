@@ -5,23 +5,23 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
 import com.amazonaws.regions.AwsRegionProvider
 import com.amazonaws.regions.DefaultAwsRegionProviderChain
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.CopyObjectRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
 
 // http://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html#ConsistencyModel is relevant here
 class S3Storage(
-    private val config: Config,
-    private val stsClient: AWSSecurityTokenService,
-    private val secretsCodec: SecretsCodec
+    private val bucket: UnsafeSecret,
+    s3Supplier: () -> AmazonS3
 ) : Storage {
 
     data class Config(
@@ -46,23 +46,24 @@ class S3Storage(
             stsClient.sessionToken  // Validate the creds by doing something with the client
         }
 
-        fun create(config: Config) = S3Storage(config, stsClient, secretsCodec)
+        fun create(config: Config) = S3Storage(config.bucketEncrypted.decrypt()) {
+            val stsProvider = STSAssumeRoleSessionCredentialsProvider
+                .Builder(config.roleArnEncrypted.decrypt().veryUnsafe, ROLE_SESSION_NAME)
+                .withExternalId(config.externalIdEncrypted.decrypt().veryUnsafe)
+                .withStsClient(stsClient)
+                .build()
+
+            AmazonS3ClientBuilder
+                .standard()
+                .withCredentials(stsProvider)
+                .withRegion(config.region)
+                .build()
+        }
+
+        private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
     }
 
-    private val s3 by lazy {
-        val stsProvider = STSAssumeRoleSessionCredentialsProvider.Builder(config.roleArnEncrypted.decrypt().veryUnsafe, ROLE_SESSION_NAME)
-            .withExternalId(config.externalIdEncrypted.decrypt().veryUnsafe)
-            .withStsClient(stsClient)
-            .build()
-
-        AmazonS3ClientBuilder
-            .standard()
-            .withCredentials(stsProvider)
-            .withRegion(config.region)
-            .build()
-    }
-
-    private val bucket = config.bucketEncrypted.decrypt()
+    private val s3 by lazy(s3Supplier)
 
     override fun getObject(coords: StorageCoords): StorageResult? = wrapS3Exception {
         val s3Object = s3.getObject(bucket.veryUnsafe, coords.backendKey)
@@ -134,8 +135,6 @@ class S3Storage(
             null
         }
     }
-
-    private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
 
     companion object {
         private val ROLE_SESSION_NAME = "quartic"

@@ -24,7 +24,7 @@ import java.util.*
 import javax.ws.rs.core.MediaType
 
 @RunWith(Parameterized::class)
-class StorageShould {
+class AllStorageTypesShould {
     @Parameter
     lateinit var storageFactory: (File) -> Storage
 
@@ -160,7 +160,7 @@ class StorageShould {
             GcsStorage.Factory().create(
                 GcsStorage.Config("howl-test.quartic.io",
                     ServiceAccountJsonKey(
-                        StorageShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
+                        AllStorageTypesShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
                     )
                 )
             )
