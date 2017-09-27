@@ -6,8 +6,8 @@ import com.amazonaws.regions.AwsRegionProvider
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.howl.HowlConfiguration.AwsConfiguration
-import io.quartic.howl.storage.GcsStorageFactory
-import io.quartic.howl.storage.S3StorageFactory
+import io.quartic.howl.storage.GcsStorage
+import io.quartic.howl.storage.S3Storage
 import io.quartic.howl.storage.StorageFactory
 
 class HowlApplication : ApplicationBase<HowlConfiguration>() {
@@ -16,15 +16,15 @@ class HowlApplication : ApplicationBase<HowlConfiguration>() {
     }
 
     private fun storageFactory(configuration: HowlConfiguration) = StorageFactory(
-        GcsStorageFactory(),
+        GcsStorage.Factory(),
         s3StorageFactory(configuration.aws),
         configuration.namespaces
     )
 
     private fun s3StorageFactory(config: AwsConfiguration?) = if (config == null) {
-        S3StorageFactory(secretsCodec)
+        S3Storage.Factory(secretsCodec)
     } else {
-        S3StorageFactory(
+        S3Storage.Factory(
             secretsCodec,
             AWSStaticCredentialsProvider(
                 BasicAWSCredentials(

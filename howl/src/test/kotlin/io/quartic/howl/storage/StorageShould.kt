@@ -4,7 +4,7 @@ import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.howl.api.model.StorageMetadata
-import io.quartic.howl.storage.GcsStorageFactory.Credentials.ServiceAccountJsonKey
+import io.quartic.howl.storage.GcsStorage.Config.Credentials.ServiceAccountJsonKey
 import io.quartic.howl.storage.StorageCoords.Managed
 import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
@@ -14,6 +14,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
+import org.junit.runners.Parameterized.Parameters
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -137,7 +138,7 @@ class StorageShould {
     private val coords = Managed(namespace, "hello.txt")
 
     companion object {
-        @Parameterized.Parameters(name = "type: {1}")
+        @Parameters(name = "type: {1}")
         @JvmStatic
         fun parameters() = listOf(
             arrayOf(gcs , "gcs"),
@@ -147,18 +148,17 @@ class StorageShould {
         private val codec = SecretsCodec(DEV_MASTER_KEY_BASE64)
 
         private val s3 = { _: File ->
-            S3StorageFactory(codec)
-                .create(S3StorageFactory.Config(
-                    "eu-west-1",
-                    codec.encrypt(UnsafeSecret("test-howl")),
-                    codec.encrypt(UnsafeSecret("arn:aws:iam::555071496850:role/Test-Bucket-Accessor")),
-                    codec.encrypt(UnsafeSecret("696969"))
-                ))
+            S3Storage.Factory(codec).create(S3Storage.Config(
+                "eu-west-1",
+                codec.encrypt(UnsafeSecret("test-howl")),
+                codec.encrypt(UnsafeSecret("arn:aws:iam::555071496850:role/Test-Bucket-Accessor")),
+                codec.encrypt(UnsafeSecret("696969"))
+            ))
         }
 
         private val gcs = { _: File ->
-            GcsStorageFactory().create(
-                GcsStorageFactory.Config("howl-test.quartic.io",
+            GcsStorage.Factory().create(
+                GcsStorage.Config("howl-test.quartic.io",
                     ServiceAccountJsonKey(
                         StorageShould::class.java.classLoader.getResource("howl-test-gcs.json").readText()
                     )
