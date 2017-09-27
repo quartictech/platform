@@ -9,10 +9,11 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
-import io.quartic.eval.api.model.*
+import io.quartic.eval.api.model.ApiDag
+import io.quartic.eval.api.model.BuildTrigger
+import io.quartic.home.howl.HowlStreamingClient
 import io.quartic.home.model.*
-import io.quartic.howl.api.HowlService
-import io.quartic.howl.api.HowlStorageId
+import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import retrofit2.HttpException
@@ -29,7 +30,7 @@ import javax.ws.rs.core.MediaType
 @Path("/")
 class HomeResource(
     private val catalogue: CatalogueClient,
-    private val howl: HowlService,
+    private val howl: HowlStreamingClient,
     private val evalQuery: EvalQueryServiceClient,
     private val evalTrigger: EvalTriggerServiceClient,
     private val registry: RegistryServiceClient

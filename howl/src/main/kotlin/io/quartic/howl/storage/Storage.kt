@@ -1,15 +1,10 @@
 package io.quartic.howl.storage
 
+import io.quartic.howl.api.model.StorageMetadata
 import java.io.IOException
 import java.io.InputStream
-import java.time.Instant
 
 interface Storage {
-    data class StorageMetadata(
-        val lastModified: Instant,
-        val contentType: String,
-        val contentLength: Long
-    )
 
     data class StorageResult(val metadata: StorageMetadata, val inputStream: InputStream) : AutoCloseable {
         override fun close() = inputStream.close()

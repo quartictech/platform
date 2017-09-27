@@ -150,7 +150,7 @@ class EvaluatorShould {
 
     @Test
     fun only_execute_steps_that_survived_pruning() {
-        whenever(pruner.acceptorFor(any())).thenReturn { it == stepY.toDatabaseModel() }
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
 
         execute()
 
@@ -162,7 +162,7 @@ class EvaluatorShould {
 
     @Test
     fun produce_node_execution_artifacts_according_to_pruning() {
-        whenever(pruner.acceptorFor(any())).thenReturn { it == stepY.toDatabaseModel() }
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
 
         execute()
 
@@ -300,7 +300,7 @@ class EvaluatorShould {
     private val extractDag = mock<(List<Node>) -> DagResult>()
 
     private val pruner = mock<Pruner> {
-        on { acceptorFor(any()) } doReturn { true }
+        onGeneric { runBlocking { shouldRetain(any(), any()) } } doReturn true
     }
 
     private val sequencer = spy(MySequencer())
@@ -308,8 +308,8 @@ class EvaluatorShould {
     private val evaluator = Evaluator(
         sequencer,
         github,
-        extractDag,
         pruner,
+        extractDag,
         quartyBuilder
     )
 

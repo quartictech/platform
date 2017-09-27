@@ -4,11 +4,12 @@ import com.nhaarman.mockito_kotlin.*
 import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
-import io.quartic.howl.api.HowlStorageId
+import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.storage.Storage
 import io.quartic.howl.storage.StorageCoords
 import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
+import io.quartic.howl.api.model.StorageMetadata
 import org.apache.commons.io.IOUtils
 import org.glassfish.jersey.test.grizzly.GrizzlyWebTestContainerFactory
 import org.hamcrest.CoreMatchers.equalTo
@@ -110,7 +111,7 @@ class HowlResourceShould {
     fun return_headers_on_head() {
         val instant = Instant.now()
         whenever(storage.getMetadata(any())).thenReturn(
-            Storage.StorageMetadata(
+            StorageMetadata(
                 instant,
                 MediaType.TEXT_PLAIN,
                 3
@@ -128,7 +129,7 @@ class HowlResourceShould {
         val data = "wat".toByteArray()
         whenever(storage.getData(any())).thenReturn(
             Storage.StorageResult(
-                Storage.StorageMetadata(
+                StorageMetadata(
                     Instant.now(),
                     MediaType.TEXT_PLAIN,
                     3),

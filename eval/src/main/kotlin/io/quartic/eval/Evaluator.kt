@@ -41,8 +41,8 @@ import java.util.concurrent.CompletableFuture
 class Evaluator(
     private val sequencer: Sequencer,
     private val github: GitHubInstallationClient,
+    private val dagPruner: Pruner,
     private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
-    private val dagPruner: Pruner = Pruner(),
     private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
 ) {
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
@@ -82,7 +82,6 @@ class Evaluator(
                 // Only do this for manual launch
                 if (triggerType == TriggerType.EXECUTE) {
                     (dagResult as DagResult.Valid)
-                    val acceptor = dagPruner.acceptorFor(dagResult.dag)
 
                     dagResult.dag
                         .forEach { node ->
@@ -91,7 +90,7 @@ class Evaluator(
                                 is Node.Raw -> "Acquiring raw data"
                             }
                             phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                if (acceptor(node)) {
+                                if (dagPruner.shouldRetain(build.customer, node)) {
                                     extractResultFrom(quarty, Execute(node.id, build.customer.namespace)) {
                                         successWithArtifact(NodeExecution(skipped = false), Unit)
                                     }

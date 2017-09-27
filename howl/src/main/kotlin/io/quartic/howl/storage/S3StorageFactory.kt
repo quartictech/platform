@@ -8,11 +8,10 @@ import com.amazonaws.regions.DefaultAwsRegionProviderChain
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectMetadata
-import com.amazonaws.services.s3.model.S3Object
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.howl.storage.Storage.StorageMetadata
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.InputStream
 
