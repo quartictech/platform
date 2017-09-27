@@ -7,18 +7,18 @@ import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.howl.HowlConfiguration.AwsConfiguration
 import io.quartic.howl.storage.GcsStorageFactory
-import io.quartic.howl.storage.RoutingStorage
 import io.quartic.howl.storage.S3StorageFactory
 
 class HowlApplication : ApplicationBase<HowlConfiguration>() {
     public override fun runApplication(configuration: HowlConfiguration, environment: Environment) {
-        val storage = RoutingStorage(
-            GcsStorageFactory(),
-            s3StorageFactory(configuration.aws),
-            configuration.namespaces
-        )
-        environment.jersey().register(HowlResource(storage))
+        environment.jersey().register(HowlResource(storageFactory(configuration)))
     }
+
+    private fun storageFactory(configuration: HowlConfiguration) = StorageFactory(
+        GcsStorageFactory(),
+        s3StorageFactory(configuration.aws),
+        configuration.namespaces
+    )
 
     private fun s3StorageFactory(config: AwsConfiguration?) = if (config == null) {
         S3StorageFactory(secretsCodec)

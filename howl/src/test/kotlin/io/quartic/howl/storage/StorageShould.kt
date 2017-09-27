@@ -49,7 +49,7 @@ class StorageShould {
 
     @Test
     fun get_object_that_was_put() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
         storage.putObject(coords, data.length, MediaType.TEXT_PLAIN, data.byteInputStream())
@@ -63,7 +63,7 @@ class StorageShould {
 
     @Test
     fun ignore_content_length_if_negative() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
         storage.putObject(coords, -1, MediaType.TEXT_PLAIN, data.byteInputStream())
@@ -71,21 +71,21 @@ class StorageShould {
 
     @Test
     fun return_null_if_key_not_found() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
 
         assertThat(storage.getObject(coords), nullValue())
     }
 
     @Test
     fun return_null_metadata_if_key_not_found() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
 
         assertThat(storage.getMetadata(coords), nullValue())
     }
 
     @Test
     fun store_metadata() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
         storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
@@ -98,7 +98,7 @@ class StorageShould {
 
     @Test
     fun overwrite_with_new_version() {
-        val coords = Managed("foo", UUID.randomUUID().toString(), "hello.txt")
+        val coords = Managed(UUID.randomUUID().toString(), "hello.txt")
         val data = "Hello world!"
 
         storage.putObject(coords, null, MediaType.TEXT_PLAIN, data.byteInputStream())
@@ -115,8 +115,8 @@ class StorageShould {
     @Test
     fun write_to_separate_objects_for_separate_coords() {
         val namespace = UUID.randomUUID().toString()
-        val coordsA = Managed("foo", namespace, "hello.txt")
-        val coordsB = Managed("foo", namespace,"hello2.txt")
+        val coordsA = Managed(namespace, "hello.txt")
+        val coordsB = Managed(namespace, "hello2.txt")
         val dataA = "Hello world!"
         val dataB = "Goodbye world!"
         storage.putObject(coordsA, null, MediaType.TEXT_PLAIN, dataA.byteInputStream())
@@ -140,8 +140,8 @@ class StorageShould {
         @Parameterized.Parameters(name = "type: {1}")
         @JvmStatic
         fun parameters() = listOf(
-//            arrayOf(gcs , "gcs"),
-//            arrayOf(s3, "s3"),
+            arrayOf(gcs , "gcs"),
+            arrayOf(s3, "s3"),
             arrayOf(local, "local"))
 
         private val codec = SecretsCodec(DEV_MASTER_KEY_BASE64)

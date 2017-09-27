@@ -29,12 +29,15 @@ import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
     private val storage = mock<Storage>()
+    private val router = mock<StorageFactory> {
+        on { createFor("foo") } doReturn storage
+    }
     private val idGen = mock<UidGenerator<HowlStorageId>>()
 
     @Rule
     @JvmField
     val resources = ResourceTestRule.builder()
-        .addResource(HowlResource(storage, idGen))
+        .addResource(HowlResource(router, idGen))
         // Needed for injecting HttpServletRequest with @Context to work in the resource
         .setTestContainerFactory(GrizzlyWebTestContainerFactory())
         .build()
@@ -52,7 +55,7 @@ class HowlResourceShould {
 
         request("foo/managed/bar/thing").put(Entity.text(data))
 
-        verify(storage).putObject(eq(Managed("foo", "bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(Managed("bar", "thing")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
 
@@ -71,8 +74,17 @@ class HowlResourceShould {
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
 
         assertThat(howlStorageId, equalTo(HowlStorageId("42")))
-        verify(storage).putObject(eq(Managed("foo", "bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
+        verify(storage).putObject(eq(Managed("bar", "42")), eq(data.size), eq(MediaType.TEXT_PLAIN), any())
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
+    }
+
+    @Test
+    fun throw_if_storage_not_present() {
+        whenever(router.createFor(any())).thenReturn(null)
+
+        assertThrows<NotFoundException> {
+            request("foo/managed/thing").post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
+        }
     }
 
     @Test
@@ -91,32 +103,26 @@ class HowlResourceShould {
         whenever(storage.putObject(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
-        request("test/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
+        request("foo/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header
 
-        verify(storage).putObject(eq(Managed("test", "thing", "69")), eq(-1), eq(null), any())
+        verify(storage).putObject(eq(Managed("thing", "69")), eq(-1), eq(null), any())
     }
 
     @Test
     fun return_unmanaged_object_on_get() {
-        assertGetBehavesCorrectly("foo/unmanaged/thing", Unmanaged("foo", "thing"))
+        assertGetBehavesCorrectly("foo/unmanaged/thing", Unmanaged("thing"))
     }
 
     @Test
     fun return_managed_object_on_get() {
-        assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("foo", "bar", "thing"))
+        assertGetBehavesCorrectly("foo/managed/bar/thing", Managed("bar", "thing"))
     }
 
     @Suppress("UNCHECKED_CAST")
     @Test
     fun return_metadata_on_head() {
         val instant = Instant.now()
-        whenever(storage.getMetadata(any())).thenReturn(
-            StorageMetadata(
-                instant,
-                MediaType.TEXT_PLAIN,
-                3
-            )
-        )
+        whenever(storage.getMetadata(any())).thenReturn(StorageMetadata(instant, MediaType.TEXT_PLAIN, 3))
 
         val response = request("foo/unmanaged/wat").head()
         val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
@@ -140,7 +146,7 @@ class HowlResourceShould {
         val response = request(path).get()
 
         val responseEntity = response.readEntity(ByteArray::class.java)
-        verify(storage).getObject(eq(expectedCoords))
+        verify(storage).getObject(expectedCoords)
         assertThat(responseEntity, equalTo(data))
     }
 
