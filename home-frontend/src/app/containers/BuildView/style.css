@@ -40,6 +40,14 @@ pre.bash {
   overflow: auto;
 }
 
+pre.userError {
+  margin-top: 10px;
+  background-color: #DB3737; /* blueprint red3 */
+  color: white;
+  font-size: medium;
+  overflow: auto;
+}
+
 .logTimestamp {
   color: gray;
   user-select: none;
