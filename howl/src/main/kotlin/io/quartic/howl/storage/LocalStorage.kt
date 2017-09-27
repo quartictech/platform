@@ -36,7 +36,7 @@ class LocalStorage(private val config: Config) : Storage {
 
     override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
-    override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+    override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) {
         var tempFile: File? = null
         try {
             tempFile = File.createTempFile("howl", "partial")
@@ -48,7 +48,6 @@ class LocalStorage(private val config: Config) : Storage {
                 tempFile.delete()
             }
         }
-        return true
     }
 
     override fun copyObject(source: StorageCoords, dest: StorageCoords) = lock.writeLock().protect {

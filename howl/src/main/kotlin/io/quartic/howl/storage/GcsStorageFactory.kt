@@ -94,7 +94,7 @@ class GcsStorageFactory {
             )
         }
 
-        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) {
             storage.objects()
                 .insert(
                     config.bucket,
@@ -102,8 +102,6 @@ class GcsStorageFactory {
                     InputStreamContent(contentType, inputStream)
                 )
                 .execute()
-
-            return true
         }
 
         override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? {

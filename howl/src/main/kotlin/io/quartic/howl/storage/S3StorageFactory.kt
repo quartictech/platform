@@ -68,7 +68,7 @@ class S3StorageFactory(
         }
 
         // TODO - need to catch exceptions here
-        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
+        override fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream) {
             inputStream.use { s ->
                 val metadata = ObjectMetadata()
                 if (contentLength != null && contentLength > 0) {
@@ -77,7 +77,6 @@ class S3StorageFactory(
                 metadata.contentType = contentType
                 s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata)
             }
-            return true
         }
 
         override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? = wrapS3Exception {

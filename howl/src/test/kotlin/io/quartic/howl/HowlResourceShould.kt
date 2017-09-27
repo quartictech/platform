@@ -87,20 +87,9 @@ class HowlResourceShould {
         }
     }
 
-    @Test
-    fun throw_if_storage_returns_false() {
-        whenever(storage.putObject(any(), any(), anyOrNull(), any())).thenReturn(false)
-        whenever(idGen.get()).thenReturn(HowlStorageId("69"))
-
-        assertThrows<NotFoundException> {
-            request("foo/managed/thing").post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
-        }
-    }
-
     // See https://github.com/quartictech/platform/pull/239
     @Test
     fun cope_with_missing_content_type() {
-        whenever(storage.putObject(any(), anyOrNull(), anyOrNull(), any())).thenReturn(true)
         whenever(idGen.get()).thenReturn(HowlStorageId("69"))
 
         request("foo/managed/thing").post(null, HowlStorageId::class.java)  // No entity -> missing Content-Type header

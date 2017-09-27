@@ -9,12 +9,15 @@ interface Storage {
         override fun close() = inputStream.close()
     }
 
+    // Null indicates not found, exception indicates some other error
     fun getObject(coords: StorageCoords): StorageResult?
 
+    // Null indicates not found, exception indicates some other error
     fun getMetadata(coords: StorageCoords): StorageMetadata?
 
-    // Null return indicates NotFound (TODO - wtf does that even mean?)
-    fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean
+    // Exception indicates some other error
+    fun putObject(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream)
 
+    // Null indicates source not found, exception indicates some other error
     fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata?
 }

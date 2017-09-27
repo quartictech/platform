@@ -70,14 +70,12 @@ class HowlResource(
                 key: String,
                 request: HttpServletRequest
             ) {
-                if (!storage.putObject(
+                storage.putObject(
                     Managed(identityNamespace, key),
                     request.contentLength, // TODO: what if this is bigger than MAX_VALUE?
                     request.contentType,
                     request.inputStream
-                )) {
-                    throw NotFoundException("Storage backend could not write file")
-                }
+                )
             }
         }
 
