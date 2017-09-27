@@ -7,7 +7,7 @@ import io.quartic.eval.Notifier.Event
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.Database.BuildRow
+import io.quartic.eval.database.Database.BuildStatusRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
@@ -244,7 +244,7 @@ class SequencerImplShould {
 
     private var uuid = 100
 
-    private val buildRow = mock<BuildRow> {
+    private val buildRow = mock<BuildStatusRow> {
         on { id } doReturn uuid(uuid)
         on { buildNumber } doReturn 1234
     }

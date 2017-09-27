@@ -8,6 +8,7 @@ import io.quartic.eval.api.model.ApiDag
 import io.quartic.eval.api.model.Build
 import retrofit2.http.GET
 import retrofit2.http.Path
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import javax.ws.rs.PathParam
 import javax.ws.rs.core.MediaType
@@ -46,6 +47,12 @@ interface EvalQueryService {
     ): Build
 
     @javax.ws.rs.GET
+    @javax.ws.rs.Path("query/build_by_id/{build_id}")
+    fun getBuildById(
+        @PathParam("build_id") buildId: UUID
+    ): Build
+
+    @javax.ws.rs.GET
     @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     @javax.ws.rs.Path("/build/{customer_id}/{build_number}/events")
     fun getBuildEvents(
@@ -76,6 +83,11 @@ interface EvalQueryServiceClient {
     fun getBuildAsync(
         @Path("customer_id") customerId: CustomerId,
         @Path("build_number") buildNumber: Long
+    ): CompletableFuture<Build>
+
+    @GET("query/build_by_id/{build_id}")
+    fun getBuildByIdAsync(
+        @Path("build_id") buildId: UUID
     ): CompletableFuture<Build>
 
     @GET("query/build/{customer_id}/{build_number}/events")

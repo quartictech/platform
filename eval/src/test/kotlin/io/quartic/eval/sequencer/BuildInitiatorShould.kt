@@ -47,7 +47,7 @@ class BuildInitiatorShould {
     private val repoId = 777L
     private val buildId = UUID(0, 100)
     private val branch = "develop"
-    private val build = Database.BuildRow(buildId, customerId, branch, 100)
+    private val build = Database.BuildStatusRow(buildId, 100, branch, customerId, "running", null, null)
 
     private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoId } doReturn repoId

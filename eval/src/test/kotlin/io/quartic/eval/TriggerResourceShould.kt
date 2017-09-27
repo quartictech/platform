@@ -51,7 +51,7 @@ class TriggerResourceShould {
 
     private val trigger = mock<BuildTrigger.GithubWebhook>()
     private val buildInitiator = mock<BuildInitiator>()
-    private val build = mock<Database.BuildRow> {
+    private val build = mock<Database.BuildStatusRow> {
         on { id } doReturn UUID(0, 100)
     }
     private val buildContext = mock<BuildInitiator.BuildContext> {

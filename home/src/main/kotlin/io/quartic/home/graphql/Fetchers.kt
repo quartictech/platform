@@ -31,8 +31,8 @@ fun io.quartic.eval.api.model.Build.toGraphQL(): Build =
         this.buildNumber,
         this.branch,
         this.status,
-        this.time.epochSecond,
-        this.trigger.toGraphQL(),
+        this.time?.epochSecond,
+        this.trigger?.toGraphQL(),
         emptyList())
 
 fun BuildTrigger.toGraphQL() = when (this) {

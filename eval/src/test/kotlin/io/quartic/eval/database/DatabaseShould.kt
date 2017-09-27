@@ -55,8 +55,8 @@ class DatabaseShould {
     @Test
     fun insert_build() {
         insertBuild(buildId)
-
-        assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
+        assertThat(DATABASE.getBuild(buildId), equalTo(
+            Database.BuildStatusRow(buildId, 1, branch, customerId, "running", null, null)))
     }
 
     @Test
@@ -215,12 +215,12 @@ class DatabaseShould {
     }
 
     @Test
-    fun filter_builds_without_trigger() {
+    fun include_builds_without_trigger() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
         DATABASE.insertBuild(buildId, customerId, branch)
         val builds = DATABASE.getBuilds(customerId)
-        assertThat(builds.size, equalTo(0))
+        assertThat(builds.size, equalTo(1))
     }
 
     private fun insertBuild(buildId: UUID, customerId: CustomerId = this.customerId) {

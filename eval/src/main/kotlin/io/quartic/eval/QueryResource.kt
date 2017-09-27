@@ -11,9 +11,12 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
+import java.util.*
 import javax.ws.rs.NotFoundException
 
 class QueryResource(private val database: Database) : EvalQueryService {
+
+
     override fun getBuild(customerId: CustomerId, buildNumber: Long): Build {
         val builds = database.getBuilds(customerId, buildNumber)
 
@@ -22,6 +25,10 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 "Build not found: customerId = ${customerId}, buildNumber=${buildNumber}"
             )
         } else return builds.first().toBuild()
+    }
+
+    override fun getBuildById(buildId: UUID): Build {
+        return database.getBuild(buildId).toBuild()
     }
 
     override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
@@ -66,7 +73,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
         buildNumber = this.buildNumber,
         branch = this.branch,
         customerId = this.customerId,
-        trigger = this.trigger.trigger.toApiModel(),
+        trigger = this.trigger?.trigger?.toApiModel(),
         status = this.status,
         time = this.time
     )

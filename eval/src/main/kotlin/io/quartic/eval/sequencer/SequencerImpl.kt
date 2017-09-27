@@ -7,7 +7,7 @@ import io.quartic.eval.Notifier.Event.Failure
 import io.quartic.eval.Notifier.Event.Success
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.Database.BuildRow
+import io.quartic.eval.database.Database.BuildStatusRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
@@ -39,7 +39,7 @@ class SequencerImpl(
         SequenceContext(context.trigger, context.build, context.customer).execute(block)
     }
 
-    private inner class SequenceContext(private val trigger: BuildTrigger, private val build: BuildRow, private val customer: Customer) {
+    private inner class SequenceContext(private val trigger: BuildTrigger, private val build: Database.BuildStatusRow, private val customer: Customer) {
         private val buildId = uuidGen()
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
@@ -126,7 +126,7 @@ class SequencerImpl(
         }
 
 
-        private suspend fun notifyComplete(build: BuildRow, completionEvent: BuildCompleted) {
+        private suspend fun notifyComplete(build: BuildStatusRow, completionEvent: BuildCompleted) {
             notifier.notifyComplete(
                 trigger,
                 customer,

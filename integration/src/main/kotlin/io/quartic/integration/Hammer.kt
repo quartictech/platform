@@ -1,41 +1,47 @@
 package io.quartic.integration
 
 import io.quartic.common.client.ClientBuilder
+import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
+import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
 import java.io.File
 import java.net.URI
 import java.time.Instant
+import java.util.*
 
 object Hammer {
     val uri = URI.create("http://localhost:8210/api")
+    val LOG by logger()
 
     @JvmStatic
     fun main(args: Array<String>) {
         val clientBuilder = ClientBuilder(Hammer::class.java)
         val eval = clientBuilder.retrofit<EvalTriggerServiceClient>(uri)
+        val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(uri)
 
-        val output = File("output.csv").printWriter()
-        var count = 0
+        val run = 10
+        val builds = mutableSetOf<UUID>()
 
-        while (true) {
-            count += 1
+        0.until(run).forEach {
             try {
-                eval.triggerAsync(BuildTrigger.Manual(
+                val buildId = eval.triggerAsync(BuildTrigger.Manual(
                     "mchammer",
                     Instant.now(),
                     CustomerId(115),
-                    "master",
+                    "develop",
                     BuildTrigger.TriggerType.EVALUATE
                 )).get()
-                output.write("${count}, 0\n")
+                LOG.info("[$buildId] Created build")
+                builds.add(buildId)
             }
             catch (e: Exception) {
-                output.write("${count}, 1\n")
+                LOG.error("Exception while creating build")
             }
 
-            output.flush()
+            builds.forEach { buildId ->
+            }
 
             Thread.sleep(5000)
         }

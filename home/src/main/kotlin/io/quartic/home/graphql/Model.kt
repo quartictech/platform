@@ -19,10 +19,10 @@ data class Build(
     val status: String,
 
     @GraphQLField
-    val time: Long,
+    val time: Long?,
 
     @GraphQLField
-    val trigger: Trigger,
+    val trigger: Trigger?,
 
     @GraphQLField
     @GraphQLDataFetcher(EventsFetcher::class)
