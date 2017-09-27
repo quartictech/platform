@@ -32,7 +32,7 @@ class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHubClient
 
     data class Result(
         val data: Map<String, *>,
-        val errors: List<GraphQLError>
+        val errors: List<GraphQLError>?
     )
 
     private val gql: GraphQL
@@ -58,7 +58,15 @@ class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHubClient
             LOG.error("Errors: {}", executionResult.errors)
         }
 
-        return Result(executionResult.getData(), sanitiseErrors(executionResult.errors))
+        val sanitisedErrors = sanitiseErrors(executionResult.errors)
+        return Result(
+            executionResult.getData(),
+            // Apollo seems to expect this to be null when polling is enabled
+            if (sanitisedErrors.isEmpty())
+                null
+            else
+                sanitisedErrors
+        )
     }
 
     private fun sanitiseErrors(unsanitised: List<GraphQLError>): List<GraphQLError> {
