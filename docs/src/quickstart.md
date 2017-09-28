@@ -24,8 +24,10 @@ To simply get started, we recommend doing one of the following:
 
 - upload some data from the frontend. This data will then be available via the data URL displayed on the dataset for use in your pipeline.
 
-- (more advanced) define a raw dataset. This requires [configuring an S3 bucket](/configuring-s3) for the platform.
-Then you can reference a data file in the bucket using the `@raw` decorator as follows:
+- Define a raw dataset. This requires [configuring an S3 bucket](/configuring-s3) for the platform.
+
+### Defining raw datasets
+Once a bucket has been configured, you can reference a data file in the bucket using the `@raw` decorator as follows:
 
 ```py
 from quartic.incubating import raw, FromBucket
