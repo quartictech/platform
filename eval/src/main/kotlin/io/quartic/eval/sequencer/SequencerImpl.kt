@@ -41,7 +41,6 @@ class SequencerImpl(
         private val buildId = uuidGen()
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
-            insert(TriggerReceived(context.trigger.toDatabaseModel()))
             notifier.notifyQueue(context.trigger)
             val completionEvent = executeInContainer(block)
             insert(completionEvent)

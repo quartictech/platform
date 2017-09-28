@@ -40,8 +40,8 @@ class BuildInitiator(
 
     private suspend fun insertBuild(customerId: CustomerId, trigger: BuildTrigger) = run(threadPool) {
         val buildId = uuidGen()
-        database.insertBuild(buildId, customerId, trigger.branch())
-        database.getBuild(buildId)
+        val eventId = uuidGen()
+        database.createBuild(buildId, eventId, customerId, trigger)
     }
 
     private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(

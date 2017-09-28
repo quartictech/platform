@@ -29,7 +29,7 @@ class BuildInitiatorShould {
             initiator.start(trigger)
         }
 
-        verify(database).insertBuild(buildId, customer.id, "develop")
+        verify(database).createBuild(uuid, uuid, customer.id, trigger)
     }
 
     @Test
@@ -45,9 +45,9 @@ class BuildInitiatorShould {
 
     private val customerId = CustomerId(100L)
     private val repoId = 777L
-    private val buildId = UUID(0, 100)
+    private val uuid = UUID(0, 100)
     private val branch = "develop"
-    private val build = Database.BuildRow(buildId, customerId, branch, 100)
+    private val build = Database.BuildRow(uuid, customerId, branch, 100)
 
     private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoId } doReturn repoId
@@ -64,8 +64,8 @@ class BuildInitiatorShould {
     }
 
     private val database = mock<Database> {
-        on { getBuild(any()) } doReturn build
+        on { createBuild(any(), any(), any(), any()) } doReturn build
     }
 
-    private val initiator = BuildInitiator(database, registry, uuidGen = { buildId })
+    private val initiator = BuildInitiator(database, registry, uuidGen = { uuid })
 }
