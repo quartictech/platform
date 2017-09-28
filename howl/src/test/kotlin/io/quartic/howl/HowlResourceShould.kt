@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
     private val storage = mock<Storage>()
-    private val router = mock<StorageFactory> {
+    private val storageFactory = mock<StorageFactory> {
         on { createFor("foo") } doReturn storage
     }
     private val idGen = mock<UidGenerator<HowlStorageId>>()
@@ -40,7 +40,7 @@ class HowlResourceShould {
     @Rule
     @JvmField
     val resources = ResourceTestRule.builder()
-        .addResource(HowlResource(router, idGen))
+        .addResource(HowlResource(storageFactory, idGen))
         // Needed for injecting HttpServletRequest with @Context to work in the resource
         .setTestContainerFactory(GrizzlyWebTestContainerFactory())
         .build()
@@ -105,7 +105,7 @@ class HowlResourceShould {
 
     @Test
     fun throw_not_found_if_storage_not_present() {
-        whenever(router.createFor(any())).thenReturn(null)
+        whenever(storageFactory.createFor(any())).thenReturn(null)
 
         assertThrows<NotFoundException> {
             request("foo/managed/thing").post(Entity.text("noobs".toByteArray()), HowlStorageId::class.java)
