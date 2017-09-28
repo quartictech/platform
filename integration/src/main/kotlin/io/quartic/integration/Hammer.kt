@@ -45,15 +45,25 @@ object Hammer {
     fun main(args: Array<String>) {
         val builds = launchBatch(10)
 
+        val status = mutableMapOf<UUID, ApiBuildEvent>()
+
         while (builds.isNotEmpty()) {
             builds.retainAll { buildId ->
                 val build = evalQuery.getBuildByIdAsync(buildId).get()
 
-
                 if (build.status == "running") {
                     true
                 } else {
-                    build.events.filter { event -> event is ApiBuildEvent.}
+                    val completionEvents = build.events.filter { event ->
+                        event is ApiBuildEvent.BuildFailed || event is ApiBuildEvent.BuildSucceeded
+                    }
+
+                    if (completionEvents.isEmpty()) {
+                        true
+                    } else {
+                        status[buildId] = completionEvents.first()
+                        false
+                    }
                 }
             }
 

@@ -48,6 +48,11 @@ sealed class ApiBuildEvent {
         override val id: UUID
     ): ApiBuildEvent()
 
+    data class BuildSucceeded(
+        override val time: Instant,
+        override val id: UUID
+    ): ApiBuildEvent()
+
     data class BuildFailed(
         val description: String,
         override val time: Instant,

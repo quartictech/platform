@@ -28,9 +28,10 @@ class QueryResource(private val database: Database) : EvalQueryService {
         } else return builds.first().toBuild()
     }
 
-    override fun getBuildById(buildId: UUID): Build {
-        return database.getBuild(buildId).toBuild()
-    }
+    override fun getBuildById(buildId: UUID): Build =
+        database.getBuild(buildId).toBuild().let { build ->
+            build.copy(events = getBuildEvents(build.customerId, build.buildNumber))
+        }
 
     override fun getBuildEvents(customerId: CustomerId, buildNumber: Long): List<ApiBuildEvent> =
         database.getEventsForBuild(customerId, buildNumber)
@@ -72,6 +73,10 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
         is BuildFailed -> ApiBuildEvent.BuildFailed(
             this.payload.description,
+            this.time,
+            this.id
+        )
+        is BuildSucceeded -> ApiBuildEvent.BuildSucceeded(
             this.time,
             this.id
         )
