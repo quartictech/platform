@@ -122,5 +122,4 @@ Executing the pipeline produces datasets at each step and is triggered from the 
 Congrats! You've just built and run your first data pipeline with monitoring, automation,
 version control, and provenance.
 
-Next, we suggest you move on to the slightly longer guide to learn about the DAG, and revisit any topics
-highlighted above to understand more about the platform.
+For questions or troubleshooting, [send us an email](mailto:support@quartic.io).
