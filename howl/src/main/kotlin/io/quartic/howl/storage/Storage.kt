@@ -1,7 +1,6 @@
 package io.quartic.howl.storage
 
 import io.quartic.howl.api.model.StorageMetadata
-import java.io.IOException
 import java.io.InputStream
 
 interface Storage {
@@ -10,13 +9,15 @@ interface Storage {
         override fun close() = inputStream.close()
     }
 
-    @Throws(IOException::class)
-    fun getData(coords: StorageCoords): StorageResult?
+    // Null indicates not found, exception indicates some other error
+    fun getObject(coords: StorageCoords): StorageResult?
 
-    @Throws(IOException::class)
+    // Null indicates not found, exception indicates some other error
     fun getMetadata(coords: StorageCoords): StorageMetadata?
 
-    // Null return indicates NotFound (TODO - wtf does that even mean?)
-    @Throws(IOException::class)
-    fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean
+    // Exception indicates some other error
+    fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords)
+
+    // Null indicates source not found, exception indicates some other error
+    fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata?
 }

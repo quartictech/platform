@@ -66,7 +66,6 @@ class HomeResourceShould {
     @Test
     fun create_dataset() {
         whenever(catalogue.registerDatasetAsync(any(), any())).thenReturn(completedFuture(mock()))
-        whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
 
         resource.createDataset(arlo, CreateDatasetRequest(mock(), "yeah"))
 
