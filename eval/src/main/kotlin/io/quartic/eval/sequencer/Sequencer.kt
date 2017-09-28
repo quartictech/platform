@@ -1,14 +1,12 @@
 package io.quartic.eval.sequencer
 
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
-import io.quartic.registry.api.model.Customer
 
 interface Sequencer {
-    suspend fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit)
+    suspend fun sequence(context: BuildInitiator.BuildContext, block: suspend SequenceBuilder.() -> Unit)
 
     interface SequenceBuilder {
         val container: QubeContainerProxy

@@ -3,10 +3,11 @@ package io.quartic.eval
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.qube.QubeProxy
+import io.quartic.eval.sequencer.BuildInitiator
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.SequencerImpl
 import io.quartic.eval.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
@@ -27,22 +28,29 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val database = database(configuration, environment)
 
         with(environment.jersey()) {
-            register(EvalResource(evaluator(configuration, database).channel))
+            register(TriggerResource(
+                buildInitiator(configuration, database),
+                evaluator(configuration, database).channel)
+            )
             register(QueryResource(database))
         }
     }
 
-    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildTrigger> {
+    private fun evaluator(config: EvalConfiguration, database: Database): ActorJob<BuildContext> {
         val evaluator = Evaluator(
             sequencer(config, database),
-            clientBuilder.retrofit(config.registryUrl),
             github(config),
             pruner(config)
         )
         return actor(CommonPool, UNLIMITED) {
-            for (trigger in channel) evaluator.evaluateAsync(trigger)
+            for (build in channel) evaluator.evaluateAsync(build)
         }
     }
+
+    private fun buildInitiator(config: EvalConfiguration, database: Database) = BuildInitiator(
+        database,
+        clientBuilder.retrofit(config.registryUrl)
+    )
 
     private fun pruner(config: EvalConfiguration) = Pruner(
         clientBuilder.retrofit(config.catalogueUrl),

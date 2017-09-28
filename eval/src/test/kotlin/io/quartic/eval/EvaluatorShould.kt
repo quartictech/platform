@@ -8,6 +8,7 @@ import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
@@ -17,6 +18,7 @@ import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
@@ -34,7 +36,6 @@ import io.quartic.quarty.api.model.Pipeline.Source.Bucket
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
-import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
@@ -42,29 +43,14 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.hasItem
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Instant
-import java.util.concurrent.CompletableFuture
+import java.util.*
 import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
-
-    @Test
-    fun run_multiple_evaluations_concurrently() = runBlocking {
-        whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
-        whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
-
-        val a = evaluator.evaluateAsync(webhookTrigger)
-        val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
-
-        b.join()    // But we can still complete this one
-
-        assertFalse(a.isCompleted)
-    }
-
     @Test
     fun use_the_correct_phase_descriptions() {
         execute()
@@ -128,17 +114,6 @@ class EvaluatorShould {
         execute()
 
         assertThat(sequencer.results, hasItem(UserError<Any>(OtherException("badness"))))
-    }
-
-    @Test
-    fun do_nothing_if_customer_lookup_failed() {
-        whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
-
-        evaluate()
-
-        runBlocking {
-            verify(sequencer, times(0)).sequence(any(), any(), any())
-        }
     }
 
     @Test
@@ -217,11 +192,11 @@ class EvaluatorShould {
     }
 
     private fun execute() = runBlocking {
-        evaluator.evaluateAsync(manualTrigger).join()
+        evaluator.evaluateAsync(executeBuild).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(webhookTrigger).join()
+        evaluator.evaluateAsync(evaluateBuild).join()
     }
 
     private val customerNamespace = "raging"
@@ -260,6 +235,8 @@ class EvaluatorShould {
         rawWebhook = emptyMap()
     )
 
+
+
     private val manualTrigger = Manual(
         "me",
         Instant.now(),
@@ -279,20 +256,21 @@ class EvaluatorShould {
     )
 
     private val customer = mock<Customer> {
+        on { id } doReturn customerId
         on { namespace } doReturn customerNamespace
         on { githubRepoId } doReturn githubRepoId
         on { githubInstallationId } doReturn githubInstallationId
     }
 
+
+    val buildRow = Database.BuildRow(UUID.randomUUID(), customer.id, "develop", 100)
+    val evaluateBuild = BuildContext(webhookTrigger, customer, buildRow)
+    val executeBuild = BuildContext(manualTrigger, customer, buildRow)
+
     private val nodes = listOf(rawX, stepY)
     private val pipeline = Pipeline(nodes)
     private val dag = mock<Dag> {
         on { iterator() } doReturn nodes.map{ it.toDatabaseModel() }.iterator()
-    }
-
-    private val registry = mock<RegistryServiceClient> {
-        on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
-        on { getCustomerByIdAsync(customerId) } doReturn completedFuture(customer)
     }
 
     private val quartyContainer = mock<QubeContainerProxy> {
@@ -329,7 +307,6 @@ class EvaluatorShould {
 
     private val evaluator = Evaluator(
         sequencer,
-        registry,
         github,
         pruner,
         extractDag,
@@ -341,7 +318,7 @@ class EvaluatorShould {
         val throwables = mutableListOf<Throwable>()
         val descriptions = mutableListOf<String>()
 
-        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        suspend override fun sequence(context: BuildContext, block: suspend SequenceBuilder.() -> Unit) {
             block(MySequenceBuilder())
         }
 
