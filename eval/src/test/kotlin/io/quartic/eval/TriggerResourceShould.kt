@@ -13,6 +13,7 @@ import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.*
 import java.util.*
+import javax.ws.rs.NotFoundException
 import javax.ws.rs.WebApplicationException
 import javax.ws.rs.container.AsyncResponse
 
@@ -45,7 +46,8 @@ class TriggerResourceShould {
             verifyZeroInteractions(channel)
             verify(response, timeout(500)).resume(captor.capture())
 
-            assertThat(captor.value as WebApplicationException, CoreMatchers.isA(WebApplicationException::class.java))
+            assertThat(captor.value as NotFoundException,
+                CoreMatchers.isA(NotFoundException::class.java))
         }
     }
 

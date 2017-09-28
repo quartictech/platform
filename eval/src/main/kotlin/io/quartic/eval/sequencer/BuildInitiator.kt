@@ -49,7 +49,7 @@ class BuildInitiator(
             when (trigger) {
                 is GithubWebhook ->
                     registry.getCustomerAsync(null, trigger.repoId)
-                is io.quartic.eval.api.model.BuildTrigger.Manual ->
+                is Manual ->
                     registry.getCustomerByIdAsync(trigger.customerId)
             }.await()
         },

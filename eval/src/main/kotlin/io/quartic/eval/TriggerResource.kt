@@ -6,10 +6,7 @@ import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.SendChannel
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
-import javax.ws.rs.WebApplicationException
+import javax.ws.rs.*
 import javax.ws.rs.container.AsyncResponse
 import javax.ws.rs.container.Suspended
 import javax.ws.rs.core.MediaType
@@ -27,7 +24,7 @@ class TriggerResource(private val buildInitiator: BuildInitiator, private val ch
                 channel.send(build)
                 response.resume(build.build.id)
             } else {
-                response.resume(WebApplicationException("No customer matching trigger"))
+                response.resume(NotFoundException("No customer matching trigger"))
             }
         }
     }
