@@ -4,6 +4,8 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.TriggerReceived
+import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.runBlocking
@@ -51,7 +53,7 @@ class BuildInitiatorShould {
     private val uuid = UUID(0, 100)
     private val branch = "develop"
     private val build = Database.BuildRow(uuid, 100, branch, customerId,
-        "running", Instant.now(), null)
+        "running", Instant.now(), mock())
 
     private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoId } doReturn repoId
@@ -70,7 +72,6 @@ class BuildInitiatorShould {
     private val database = mock<Database> {
         on { createBuild(any(), any(), any(), any(), any()) } doReturn build
     }
-
 
     private val initiator = BuildInitiator(database, registry,
         uuidGen = { uuid },

@@ -19,8 +19,8 @@ data class Build(
     val buildNumber: Long,
     val branch: String,
     val customerId: CustomerId,
-    val trigger: BuildTrigger?,
+    val trigger: BuildTrigger,
     val status: String,
-    val time: Instant?,
+    val time: Instant,
     val events: List<ApiBuildEvent> = emptyList()
 )

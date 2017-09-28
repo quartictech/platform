@@ -50,8 +50,8 @@ interface Database : SqlObject {
         @ColumnName("customer_id")
         val customerId: CustomerId,
         val status: String,
-        val time: Instant?,
-        val trigger: TriggerReceived?
+        val time: Instant,
+        val trigger: TriggerReceived
     )
 
     class TriggerReceivedColumnMapper : ColumnMapper<TriggerReceived> {
@@ -170,7 +170,8 @@ interface Database : SqlObject {
                 eterm.payload @> '{"type": "build_failed"}'
             )
         )
-        LEFT JOIN event etrigger ON
+        -- builds should always have a trigger!
+        INNER JOIN event etrigger ON
             etrigger.build_id = build.id AND
             etrigger.payload @> '{"type": "trigger_received"}'
         WHERE

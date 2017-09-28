@@ -26,7 +26,6 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
-import java.time.ZonedDateTime
 import java.util.*
 
 class DatabaseShould {
@@ -45,17 +44,7 @@ class DatabaseShould {
         timestamp = Instant.MIN,
         rawWebhook = emptyMap()
     )
-    val buildTrigger = BuildTrigger.GithubWebhook(
-        trigger.deliveryId,
-        trigger.repoId,
-        trigger.ref,
-        trigger.commit,
-        trigger.timestamp,
-        trigger.repoName,
-        trigger.repoOwner,
-        trigger.installationId,
-        trigger.rawWebhook
-    )
+    val buildTrigger = trigger.toApiModel()
     private val uuidGen = UuidGen()
     private val buildId = uuidGen()
     private val eventId = uuidGen()
@@ -70,8 +59,15 @@ class DatabaseShould {
     @Test
     fun insert_build() {
         insertBuild(buildId)
-        assertThat(DATABASE.getBuild(buildId), equalTo(
-            Database.BuildRow(buildId, 1, branch, customerId, "running", null, null)))
+        val build = DBI.open().createQuery("SELECT * FROM build WHERE id = :build_id")
+            .bind("build_id", buildId)
+            .mapToMap()
+            .findOnly()
+
+        assertThat(build["id"] as UUID, equalTo(buildId))
+        assertThat(build["customer_id"] as Long, equalTo(customerId.uid.toLong()))
+        assertThat(build["build_number"] as Long, equalTo(1L))
+        assertThat(build["branch"] as String, equalTo("develop"))
     }
 
     @Test
@@ -164,14 +160,16 @@ class DatabaseShould {
 
         (1..10).forEach { count ->
             val idA = uuidGen()
-            insertBuild(idA)
+            val eventId = uuidGen()
+            createBuild(idA, eventId, customerId)
 
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
             val idB = uuidGen()
-            insertBuild(idB, otherCustomerId)
+            val otherEventId = uuidGen()
+            createBuild(idB, otherEventId, otherCustomerId)
 
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
@@ -243,13 +241,14 @@ class DatabaseShould {
         assertThat(builds.size, equalTo(1))
     }
 
+    // NOTE: This shouldn't happen in practice as we create the trigger with the build
     @Test
-    fun include_builds_without_trigger() {
+    fun not_include_builds_without_trigger() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
         DATABASE.insertBuild(buildId, customerId, branch)
         val builds = DATABASE.getBuilds(customerId)
-        assertThat(builds.size, equalTo(1))
+        assertThat(builds.size, equalTo(0))
     }
 
     private fun insertBuild(buildId: UUID, customerId: CustomerId = this.customerId) {

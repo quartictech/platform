@@ -98,7 +98,7 @@ class QueryResource(private val database: Database) : EvalQueryService {
         buildNumber = this.buildNumber,
         branch = this.branch,
         customerId = this.customerId,
-        trigger = this.trigger?.trigger?.toApiModel(),
+        trigger = this.trigger.trigger.toApiModel(),
         status = this.status,
         time = this.time
     )
