@@ -16,6 +16,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
 import io.quartic.eval.sequencer.Sequencer.PhaseResult
@@ -27,13 +28,11 @@ import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
-import io.quartic.registry.api.RegistryServiceClient
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.runBlocking
 import org.apache.http.client.utils.URIBuilder
-import retrofit2.HttpException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 
@@ -41,7 +40,6 @@ import java.util.concurrent.CompletableFuture
 // TODO - timeouts
 class Evaluator(
     private val sequencer: Sequencer,
-    private val registry: RegistryServiceClient,
     private val github: GitHubInstallationClient,
     private val dagPruner: Pruner,
     private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
@@ -52,56 +50,55 @@ class Evaluator(
         is GithubWebhook -> TriggerType.EVALUATE
     }
 
-    suspend fun evaluateAsync(trigger: BuildTrigger) = async(CommonPool) {
-        val triggerType = getTriggerType(trigger)
-        val customer = getCustomer(trigger)
+    suspend fun evaluateAsync(build: BuildContext) = async(CommonPool) {
+        val triggerType = getTriggerType(build.trigger)
 
-        if (customer != null) {
-            sequencer.sequence(trigger, customer) {
-                val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
-                    success(github
-                        .accessTokenAsync(customer.githubInstallationId)
-                        .awaitWrapped("acquiring access token from GitHub"))
+        sequencer.sequence(build) {
+            val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
+                success(github
+                    .accessTokenAsync(build.customer.githubInstallationId)
+                    .awaitWrapped("acquiring access token from GitHub"))
+            }
+
+            val repo: Repository = phase("Fetching repository details") {
+                success(github
+                    .getRepositoryAsync(build.customer.githubRepoId, token)
+                    .awaitWrapped("fetching repository details from GitHub"))
+            }
+
+            quartyBuilder(container.hostname).use { quarty ->
+                phase<Unit>("Cloning and preparing repository") {
+                    extractResultFrom(quarty, Initialise(cloneUrl(repo.cloneUrl, token), commit(build.trigger))) {
+                        success(Unit)
+                    }
                 }
 
-                val repo: Repository = phase("Fetching repository details") {
-                    success(github
-                        .getRepositoryAsync(customer.githubRepoId, token)
-                        .awaitWrapped("fetching repository details from GitHub"))
+                val dagResult = phase<DagResult>("Evaluating DAG") {
+                    extractResultFrom(quarty, Evaluate()) {
+                        extractDagFromPipeline(it)
+                    }
                 }
 
-                quartyBuilder(container.hostname).use { quarty ->
-                    phase<Unit>("Cloning and preparing repository") {
-                        extractResultFrom(quarty, Initialise(cloneUrl(repo.cloneUrl, token), commit(trigger))) {
-                            success(Unit)
-                        }
-                    }
+                // Only do this for manual launch
+                if (triggerType == TriggerType.EXECUTE) {
+                    (dagResult as DagResult.Valid)
 
-                    val dagResult = phase<DagResult>("Evaluating DAG") {
-                        extractResultFrom(quarty, Evaluate()) {
-                            extractDagFromPipeline(it)
-                        }
-                    }
-
-                    // Only do this for manual launch
-                    if (triggerType == TriggerType.EXECUTE) {
-                        (dagResult as DagResult.Valid).dag
-                            .forEach { node ->
-                                val action = when (node) {
-                                    is Node.Step -> "Executing step"
-                                    is Node.Raw -> "Acquiring raw data"
-                                }
-                                phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                    if (dagPruner.shouldRetain(customer, node)) {
-                                        extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
-                                            successWithArtifact(NodeExecution(skipped = false), Unit)
-                                        }
-                                    } else {
-                                        successWithArtifact(NodeExecution(skipped = true), Unit)
+                    dagResult.dag
+                        .forEach { node ->
+                            val action = when (node) {
+                                is Node.Step -> "Executing step"
+                                is Node.Raw -> "Acquiring raw data"
+                            }
+                            phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
+                                if (dagPruner.shouldRetain(build.customer, node)) {
+                                    extractResultFrom(quarty, Execute(node.id, build.customer.namespace)) {
+                                        successWithArtifact(NodeExecution(skipped = false), Unit)
                                     }
+                                } else {
+                                    successWithArtifact(NodeExecution(skipped = true), Unit)
                                 }
                             }
-                    }
+                        }
                 }
             }
         }
@@ -143,30 +140,6 @@ class Evaluator(
         LOG.error("Error parsing Quarty response: ${raw}")
         throw EvaluatorException("Error parsing Quarty response", getRootCause(e))
     }
-
-    private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(
-        block = {
-            when (trigger) {
-                is GithubWebhook ->
-                    registry.getCustomerAsync(null, trigger.repoId)
-                is Manual ->
-                    registry.getCustomerByIdAsync(trigger.customerId)
-            }.await()
-        },
-        onThrow = { t ->
-            if (t is HttpException && t.code() == 404) {
-                when (trigger) {
-                    is GithubWebhook ->
-                        LOG.warn("No customer found for webhook (repoId = ${trigger.repoId})")
-                    is Manual ->
-                        LOG.warn("No customer found for manual trigger (customerId = ${trigger.customerId})")
-                }
-            } else {
-                LOG.error("Error while communicating with Registry", t)
-            }
-            null
-        }
-    )
 
     private suspend fun <T> CompletableFuture<T>.awaitWrapped(action: String) = cancellable(
         block = { await() },
