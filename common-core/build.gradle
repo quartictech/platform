@@ -8,10 +8,7 @@ apply plugin: KotlinPlugin
 
 dependencies {
     compile libraries.guava
-    compile libraries.websocket
     compile libraries.coroutines
-    compile libraries.tyrus.client
-    runtime libraries.tyrus.containerClient
 
     compile "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}"
     compile "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
@@ -19,12 +16,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${versions.jackson}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
 
-    compile "io.github.openfeign:feign-core:${versions.feign}"
-    compile("io.github.openfeign:feign-jaxrs:${versions.feign}") {
-        exclude group: "javax.ws.rs", module: "jsr311-api"      // This is JAX-RS 1.0, which conflicts with Jersey reliance on 2.0
-    }
-    compile "io.github.openfeign:feign-jackson:${versions.feign}"
-    compile "io.github.openfeign:feign-slf4j:${versions.feign}"
+    compile "org.slf4j:slf4j-api:1.7.25"
     compile "commons-io:commons-io:2.5"
     compile libraries.commonsCodec
     compile "com.squareup.okhttp3:okhttp:3.8.1"
@@ -37,8 +29,6 @@ dependencies {
     testCompile project(":common-test")
     testCompile libraries.testCommon
     testCompile libraries.wiremock
-    testCompile libraries.tyrus.server
-    testCompile libraries.tyrus.containerServer
     testCompile libraries.dropwizard.core  // For correct JAX-RS headers
 }
 

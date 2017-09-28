@@ -1,26 +1,18 @@
 package io.quartic.eval.database.model
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME
 import io.quartic.common.model.CustomerId
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.Bucket
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
+import io.quartic.eval.database.model.LegacyPhaseCompleted.*
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.InternalError
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -80,72 +72,27 @@ class CurrentBuildSucceeded : BuildCompleted()
 data class CurrentBuildFailed(val description: String) : BuildCompleted()
 data class CurrentContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 data class CurrentPhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
-data class CurrentPhaseCompleted(val phaseId: UUID, val result: Result) : BuildEvent() {
+data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(Success::class, name = "success"),
-        Type(InternalError::class, name = "internal_error"),
-        Type(UserError::class, name = "user_error")
+        Type(Result.Success::class, name = "success"),
+        Type(Result.InternalError::class, name = "internal_error"),
+        Type(Result.UserError::class, name = "user_error")
     )
     sealed class Result {
         data class Success(val artifact: Artifact? = null) : Result()
-        data class InternalError(val throwable: Throwable) : Result()
-        data class UserError(val detail: Any?) : Result()
+        class InternalError : Result()
+        data class UserError(val info: V5.UserErrorInfo): Result()
     }
 
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
-        Type(EvaluationOutput::class, name = "evaluation_output")
+        Type(Artifact.EvaluationOutput::class, name = "evaluation_output"),
+        Type(Artifact.NodeExecution::class, name = "node_execution")
     )
     sealed class Artifact {
-        data class EvaluationOutput(val nodes: List<Node>) : Artifact()
-    }
-
-    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
-    @JsonSubTypes(
-        Type(Step::class, name = "step"),
-        Type(Raw::class, name = "raw")
-    )
-    sealed class Node {
-        abstract val id: String
-        abstract val info: LexicalInfo
-        abstract val inputs: List<V1.Dataset>
-        abstract val output: V1.Dataset
-
-        data class Step(
-            override val id: String,
-            override val info: LexicalInfo,
-            override val inputs: List<V1.Dataset>,
-            override val output: V1.Dataset
-        ) : Node()
-
-        data class Raw(
-            override val id: String,
-            override val info: LexicalInfo,
-            val source: Source,
-            override val output: V1.Dataset
-        ) : Node() {
-            @JsonIgnore
-            override val inputs = emptyList<V1.Dataset>()
-        }
-    }
-
-    data class LexicalInfo(
-        val name: String,
-        val description: String?,
-        val file: String,
-        val lineRange: List<Int>
-    )
-
-    @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
-    @JsonSubTypes(
-        Type(Bucket::class, name = "bucket")
-    )
-    sealed class Source {
-        data class Bucket(
-            val key: String,
-            val name: String? = null   // null means default bucket
-        ) : Source()
+        data class EvaluationOutput(val nodes: List<V2.Node>) : Artifact()
+        data class NodeExecution(val skipped: Boolean) : Artifact()
     }
 }
 
@@ -161,7 +108,7 @@ typealias BuildSucceeded = CurrentBuildSucceeded
 typealias BuildFailed = CurrentBuildFailed
 typealias ContainerAcquired = CurrentContainerAcquired
 typealias PhaseStarted = CurrentPhaseStarted
-typealias PhaseCompleted = CurrentPhaseCompleted
+typealias PhaseCompleted = PhaseCompletedV6
 typealias LogMessageReceived = CurrentLogMessageReceived
 
 
@@ -172,15 +119,16 @@ typealias LogMessageReceived = CurrentLogMessageReceived
 // To make testing easier given one can't have zero-arg data classes
 val BUILD_CANCELLED = BuildCancelled()
 val BUILD_SUCCEEDED = BuildSucceeded()
+val INTERNAL_ERROR = InternalError()
 
 fun Pipeline.Node.toDatabaseModel() = when (this) {
-    is Pipeline.Node.Step -> Step(
+    is Pipeline.Node.Step -> V2.Node.Step(
         id = id,
         info = info.toDatabaseModel(),
         inputs = inputs.map { it.toDatabaseModel() },
         output = output.toDatabaseModel()
     )
-    is Pipeline.Node.Raw -> Raw(
+    is Pipeline.Node.Raw -> V2.Node.Raw(
         id = id,
         info = info.toDatabaseModel(),
         source = source.toDatabaseModel(),
@@ -188,7 +136,7 @@ fun Pipeline.Node.toDatabaseModel() = when (this) {
     )
 }
 
-fun Pipeline.LexicalInfo.toDatabaseModel() = LexicalInfo(
+fun Pipeline.LexicalInfo.toDatabaseModel() = V2.LexicalInfo(
     name = name,
     description = description,
     file = file,
@@ -201,7 +149,7 @@ fun Pipeline.Dataset.toDatabaseModel() = V1.Dataset(
 )
 
 fun Pipeline.Source.toDatabaseModel() = when (this) {
-    is Pipeline.Source.Bucket -> Bucket(
+    is Pipeline.Source.Bucket -> V2.Source.Bucket(
         name = name,
         key = key
     )

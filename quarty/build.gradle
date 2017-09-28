@@ -1,39 +1,104 @@
+import org.apache.tools.ant.util.TeeOutputStream
+
 plugins {
     id "java"
     id "idea"
 }
 
 
-def venvDir = file(".env")
-def pythonExecutable = file("${venvDir}/bin/python")
-def distDir = file("$buildDir/dist")
+ext.venvDir = file("${buildDir}/virtualenv")
+ext.distDir = file("${buildDir}/dist")
+ext.testResultsDir = file("${buildDir}/test-results")
+ext.lintDir = file("${buildDir}/lint")
 
-// TODO - we'll need to set PYTHONPATH if this gets more advanced
+String fromVenv(String name) {
+    return file("${ext.venvDir}/bin/${name}")
+}
 
-task createVirtualenv(type: Exec) {
+// We can't run pip separately because it also mutates contents of venvDir
+task createVirtualenvAndInstallDeps(type: Exec) {
     group               "Python"
-    description         "Creates virtualenv"
+    description         "Creates virtualenv and installs dependencies via Pip."
+
+    inputs.file         "install.sh"
+    inputs.file         "requirements.in"
+    inputs.file         "setup.py"
+    inputs.file         "setup.cfg"
+    inputs.file         "requirements.txt"  // This is also an output file, but whatever
 
     outputs.dir         venvDir
+    outputs.cacheIf     { true }
 
     commandLine         "python3", "-m", "venv", venvDir
+
+    doLast {
+        exec {
+            commandLine "bash", "install.sh", "${venvDir}"
+        }
+    }
 }
 
 task dist(type: Exec) {
     group               "Python"
-    description         "Creates source distribution"
+    description         "Creates source distribution."
 
-    dependsOn           createVirtualenv
+    dependsOn           createVirtualenvAndInstallDeps
 
     inputs.file         "setup.py"
+    inputs.file         "setup.cfg"
     inputs.file         "README"
     inputs.dir          "src"
 
     outputs.file        "${distDir}/quarty-${version}.tar.gz"
     outputs.cacheIf     { true }
 
-    commandLine         pythonExecutable, "setup.py", "--no-user-cfg", "-q", "sdist", "--dist-dir", distDir
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "sdist", "--dist-dir", distDir
 }
+
+// TODO - eliminate java plugin so we can define this as regular "test" task
+task pythonTest(type: Exec) {
+    group               "Python"
+    description         "Runs Python unit tests."
+
+    dependsOn           createVirtualenvAndInstallDeps
+
+    inputs.file         "setup.py"
+    inputs.file         "setup.cfg"
+    inputs.dir          "src"
+    inputs.dir          "tests"
+
+    outputs.dir         testResultsDir
+    outputs.cacheIf     { true }
+
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "test", "--addopts", "--junitxml=${testResultsDir}/pytest.xml"
+}
+
+task lint(type: Exec) {
+    group               "Python"
+    description         "Runs Python linter."
+
+    dependsOn           createVirtualenvAndInstallDeps
+
+    inputs.file         "setup.py"
+    inputs.file         "setup.cfg"
+    inputs.file         ".pylintrc"
+    inputs.dir          "src"
+    inputs.dir          "tests"
+
+    outputs.dir         lintDir
+    outputs.cacheIf     { true }
+
+    commandLine         fromVenv("python"), "setup.py", "--no-user-cfg", "-q", "lint"
+
+    // See https://stackoverflow.com/a/27053294/129570
+    doFirst {
+        lintDir.mkdirs()
+        standardOutput = new TeeOutputStream(new FileOutputStream(file("${lintDir}/lint.out")), System.out)
+    }
+}
+
+test.dependsOn(pythonTest)
+check.dependsOn(lint)
 
 jar {
     from(dist) {
@@ -44,5 +109,6 @@ jar {
 idea {
     module {
         excludeDirs += file(".env")
+        excludeDirs += file(".eggs")
     }
 }

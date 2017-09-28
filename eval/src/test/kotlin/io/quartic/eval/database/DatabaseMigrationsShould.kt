@@ -6,25 +6,17 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.bindJson
 import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.BUILD_SUCCEEDED
-import io.quartic.eval.database.model.BuildSucceeded
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Raw
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Source.Bucket
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V1
-import io.quartic.eval.database.model.PhaseCompleted
+import io.quartic.eval.database.model.*
+import io.quartic.eval.database.model.LegacyPhaseCompleted.*
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
+import io.quartic.eval.database.model.PhaseCompletedV6.Result
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.isA
 import org.jdbi.v3.core.Jdbi
+import org.junit.*
 import org.junit.Assert.assertThat
-import org.junit.BeforeClass
-import org.junit.ClassRule
-import org.junit.FixMethodOrder
-import org.junit.Test
 import org.junit.runners.MethodSorters
 import java.sql.Timestamp
 import java.time.Instant
@@ -33,6 +25,12 @@ import java.util.*
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 class DatabaseMigrationsShould {
     private val handle = DBI.open()
+
+    @After
+    fun after() {
+        DBI.open().createUpdate("DELETE FROM build").execute()
+        DBI.open().createUpdate("DELETE FROM event").execute()
+    }
 
     @Test
     fun v1_migrate() {
@@ -72,9 +70,7 @@ class DatabaseMigrationsShould {
                 )
             )
         )
-
-        val eventIdSucceeded = uuid(103)
-        insertEvent(eventIdSucceeded, UUID.randomUUID(), Instant.now(), BUILD_SUCCEEDED)
+        val otherEventId = insertOtherEvent()
 
         databaseVersion("2")
 
@@ -83,24 +79,24 @@ class DatabaseMigrationsShould {
             assertThat(this["build_id"] as UUID, equalTo(buildId))
             assertThat((this["time"] as Timestamp).toInstant(), equalTo(time))
             assertThat(OBJECT_MAPPER.readValue(this["payload"].toString()), equalTo(
-                PhaseCompleted(
+                V2(
                     phaseId = phaseId,
-                    result = Success(
-                        EvaluationOutput(listOf(
-                            Raw(
+                    result = V2.Result.Success(
+                        V2.Artifact.EvaluationOutput(listOf(
+                            V2.Node.Raw(
                                 id = "0",
-                                info = LexicalInfo(
+                                info = V2.LexicalInfo(
                                     name = "missing",
                                     description = "missing",
                                     file = "missing",
                                     lineRange = emptyList()
                                 ),
                                 output = V1.Dataset("y", "b"),
-                                source = Bucket("b")
+                                source = V2.Source.Bucket("b")
                             ),
-                            Step(
+                            V2.Node.Step(
                                 id = "123",
-                                info = LexicalInfo(
+                                info = V2.LexicalInfo(
                                     name = "alice",
                                     description = "foo",
                                     file = "foo.py",
@@ -109,9 +105,9 @@ class DatabaseMigrationsShould {
                                 inputs = emptyList(),
                                 output = V1.Dataset("x", "a")
                             ),
-                            Step(
+                            V2.Node.Step(
                                 id = "456",
-                                info = LexicalInfo(
+                                info = V2.LexicalInfo(
                                     name = "bob",
                                     description = "bar",
                                     file = "bar.py",
@@ -126,14 +122,177 @@ class DatabaseMigrationsShould {
             ))
         }
 
-        // Ensure that other rows aren't nuked
-        assertThat(OBJECT_MAPPER.readValue(getEventFields(eventIdSucceeded)["payload"].toString()), isA(BuildSucceeded::class.java))
+        assertThatOtherEventsArentNuked(otherEventId)
     }
 
     @Test
     fun v3_migrate() {
         databaseVersion("3")
     }
+
+    @Test
+    fun v4_migrate() {
+        val eventId = uuid(100)
+        val buildId = uuid(101)
+        val phaseId = uuid(102)
+        val time = Instant.now()
+        insertEvent(eventId, buildId, time,
+            V2(
+                phaseId = phaseId,
+                result = V2.Result.InternalError(RuntimeException("Load of rubbish"))
+            )
+        )
+        val otherEventId = insertOtherEvent()
+
+        databaseVersion("4")
+
+        @Suppress("UNCHECKED_CAST")
+        assertThat(readPayloadAs<V4>(eventId).result, isA(V4.Result.InternalError::class.java as Class<V4.Result>))
+        assertThatOtherEventsArentNuked(otherEventId)
+    }
+
+    @Test
+    fun v5_migrate() {
+        val eventId = uuid(103)
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+        insertEvent(eventId, buildId, time,
+            V4(
+                phaseId = phaseId,
+                result = V4.Result.UserError("wat")
+            )
+        )
+        val otherEventId = insertOtherEvent()
+        databaseVersion("5")
+
+        assertThat(readPayloadAs<V5>(eventId).result, equalTo(
+            V5.Result.UserError(
+                V5.UserErrorInfo.OtherException(
+                    mapOf("detail" to "wat")  // This is wrong - TODO - fix in v7
+                )
+            ) as V5.Result)
+        )
+        assertThatOtherEventsArentNuked(otherEventId)
+    }
+
+    @Test
+    fun v6_migrate_execution_phases() {
+        databaseVersion("5")
+
+
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+
+        val eventIdStart = uuid(103)
+        val eventStart = insertEvent(eventIdStart, buildId, time,
+            PhaseStarted(
+                phaseId = phaseId,
+                description = "Executing step for dataset foo"
+            )
+        )
+        val eventIdLog = uuid(106)
+        val eventLog = insertEvent(eventIdLog, buildId, time,
+            LogMessageReceived(
+                phaseId = phaseId,
+                stream = "Yeah",
+                message = "Right on"
+            )
+        )
+        val eventIdComplete = uuid(107)
+        insertEvent(eventIdComplete, buildId, time,
+            V5(
+                phaseId = phaseId,
+                result = V5.Result.Success()
+            )
+        )
+
+        databaseVersion("6")
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success(NodeExecution(skipped = false)) as Result))
+        // Check we didn't modify any other events
+        assertThat(readPayloadAs<PhaseStarted>(eventIdStart), equalTo(eventStart))
+        assertThat(readPayloadAs<LogMessageReceived>(eventIdLog), equalTo(eventLog))
+    }
+
+    @Test
+    fun v6_not_affect_non_execution_phases() {
+        databaseVersion("5")
+
+        val eventIdStart = uuid(103)
+        val buildId = uuid(104)
+        val phaseId = uuid(105)
+        val time = Instant.now()
+        insertEvent(eventIdStart, buildId, time,
+            PhaseStarted(
+                phaseId = phaseId,
+                description = "Something else"
+            )
+        )
+        val eventIdComplete = uuid(106)
+        insertEvent(eventIdComplete, buildId, time,
+            V5(
+                phaseId = phaseId,
+                result = V5.Result.Success()
+            )
+        )
+
+        databaseVersion("6")
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success() as Result))
+    }
+
+
+    @Test
+    fun v7_fix_bad_migration() {
+        databaseVersion("6")
+        val buildId = uuid(107)
+        val phaseId = uuid(108)
+        val badEventId = uuid(109)
+        insertEvent(badEventId, buildId, Instant.now(),
+            PhaseCompletedV6(
+                phaseId = phaseId,
+                result = PhaseCompletedV6.Result.UserError(
+                    V5.UserErrorInfo.OtherException(V5.UserErrorInfo.OtherException("noob"))
+                )
+            )
+        )
+
+        val goodEventId = uuid(110)
+        val goodEvent =
+            PhaseCompletedV6(
+                phaseId = phaseId,
+                result = PhaseCompletedV6.Result.UserError(
+                    V5.UserErrorInfo.OtherException("noob")
+                )
+            )
+        insertEvent(goodEventId, UUID.randomUUID(), Instant.now(), goodEvent)
+
+        val goodEventId2 = uuid(111)
+        val goodEvent2 = PhaseCompletedV6(
+            phaseId = UUID.randomUUID(),
+            result = PhaseCompletedV6.Result.UserError(
+                V5.UserErrorInfo.InvalidDag("noob dag", listOf())
+            )
+        )
+        insertEvent(goodEventId2, UUID.randomUUID(), Instant.now(), goodEvent2)
+
+        println(getEventFields(badEventId)["payload"].toString())
+        databaseVersion("7")
+        val expected = Result.UserError(V5.UserErrorInfo.OtherException("noob"))
+
+        assertThat(readPayloadAs<PhaseCompletedV6>(badEventId).result, equalTo(expected as PhaseCompletedV6.Result))
+        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId).result, equalTo(goodEvent.result))
+        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId2).result, equalTo(goodEvent2.result))
+    }
+
+    private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
+        assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
+    }
+
+    private inline fun <reified T : Any> readPayloadAs(eventId: UUID) =
+        OBJECT_MAPPER.readValue<T>(getEventFields(eventId)["payload"].toString())
 
     private fun getEventFields(eventId: UUID): Map<String, Any> {
         return handle.createQuery("""SELECT * FROM event WHERE id = :id""")
@@ -143,7 +302,13 @@ class DatabaseMigrationsShould {
             .single()
     }
 
-    private fun insertEvent(eventId: UUID, buildId: UUID, time: Instant, payload: Any) {
+    private fun insertOtherEvent(): UUID {
+        val eventIdSucceeded = UUID.randomUUID()
+        insertEvent(eventIdSucceeded, UUID.randomUUID(), Instant.now(), BUILD_SUCCEEDED)
+        return eventIdSucceeded
+    }
+
+    private fun insertEvent(eventId: UUID, buildId: UUID, time: Instant, payload: Any): Any {
         handle.createUpdate("""
             INSERT INTO event (id, build_id, payload, time)
                 VALUES (:id, :build_id, :payload, :time)
@@ -153,6 +318,7 @@ class DatabaseMigrationsShould {
             .bindJson("payload", payload)
             .bind("time", time)
             .execute()
+        return payload
     }
 
     private fun databaseVersion(version: String): Database = DatabaseBuilder

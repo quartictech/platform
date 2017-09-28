@@ -7,7 +7,7 @@ import * as classNames from "classnames";
 
 import * as moment from "moment";
 
-import { Button, Spinner, Classes, Intent } from "@blueprintjs/core";
+import { Button, Spinner, IconClasses, Classes, Intent } from "@blueprintjs/core";
 
 import { gql, graphql } from "react-apollo";
 import { createStructuredSelector } from "reselect";
@@ -36,7 +36,7 @@ export function isExecute(item: FeedItem): item is Execute {
 }
 
 class HomeView extends React.Component<IProps, {}> {
-  renderValidate(item: Validate) {
+  private renderValidate(item: Validate) {
     return (
       <div className={s.feedItem} key={item.id}>
         <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-upload")} />
@@ -59,7 +59,7 @@ class HomeView extends React.Component<IProps, {}> {
     );
   }
 
-  renderExecute(item: Execute) {
+  private renderExecute(item: Execute) {
     return (
       <div className={s.feedItem} key={item.id}>
         <span className={classNames(s.cardIcon, "pt-icon-large", "pt-icon-graph")} />
@@ -82,7 +82,7 @@ class HomeView extends React.Component<IProps, {}> {
     );
   }
 
-  renderItem = (item: FeedItem) => {
+  private renderItem = (item: FeedItem) => {
     if (isValidate(item)) {
       return this.renderValidate(item);
     } else if (isExecute(item)) {
@@ -92,25 +92,49 @@ class HomeView extends React.Component<IProps, {}> {
     }
   }
 
-  renderNoItems = () => (
+  private renderNonIdeal = (iconClass: string, title: String, description: JSX.Element) => (
     <div>
-      <div className={classNames("pt-non-ideal-state", s.noItems)}>
-        <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-lightbulb"/>
+      <div className={classNames(Classes.NON_IDEAL_STATE, s.noItems)}>
+        <div className={classNames(Classes.NON_IDEAL_STATE_VISUAL, Classes.NON_IDEAL_STATE_ICON)}>
+          <span className={classNames(Classes.ICON, iconClass)}/>
         </div>
-        <h4 className="pt-non-ideal-state-title">You haven't run any builds yet.</h4>
-        <div className="pt-non-ideal-state-description">
-          Push your code or
-              <a onClick={() => this.props.buildPipeline()}>
-              &nbsp;manually trigger&nbsp;
-              </a>
-          a build to get started.
+        <h4 className={Classes.NON_IDEAL_STATE_TITLE}>{title}</h4>
+        <div className={Classes.NON_IDEAL_STATE_DESCRIPTION}>
+          {description}
         </div>
       </div>
     </div>
   )
 
-  renderFeed = () => (
+  private renderError = () => this.renderNonIdeal(
+    IconClasses.WARNING_SIGN,
+    "An unexpected error has occurred.",
+    (
+      <span>
+        Please try again later or
+        &#32;
+        <a href="mailto:support@quartic.io">contact support</a>
+        &#32;
+        for assistance.
+      </span>
+    ),
+  )
+
+  private renderNoItems = () => this.renderNonIdeal(
+    IconClasses.LIGHTBULB,
+    "You haven't run any builds yet.",
+    (
+      <span>
+        Push your code or
+        &#32;
+        <a onClick={() => this.props.buildPipeline()}>manually trigger</a>
+        &#32;
+        a build to get started.
+      </span>
+    ),
+  )
+
+  private renderFeed = () => (
     <div>
       <Button
         text="Build pipeline"
@@ -126,8 +150,10 @@ class HomeView extends React.Component<IProps, {}> {
     </div>
   )
 
-  renderContainer() {
-    if (this.props.data.loading) {
+  private renderContainer() {
+    if (this.props.data.error) {
+      return this.renderError();
+    } else if (this.props.data.loading) {
       return (
         <div className={s.noItems}>
           <Spinner className={Classes.LARGE} />
@@ -177,7 +203,9 @@ const query = gql`{
   }
 }`;
 
-export default graphql(query)(connect(
+export default graphql(query, {
+  options: { pollInterval: 5000 },
+})(connect(
   mapStateToProps,
   mapDispatchToProps,
 )(HomeView));

@@ -6,10 +6,11 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType
-import io.quartic.github.GitHub
+import io.quartic.github.GitHubClient
 import io.quartic.github.GitHubUser
 import io.quartic.home.resource.GraphQLResource
 import org.hamcrest.CoreMatchers.equalTo
@@ -55,7 +56,11 @@ class GraphQLResourceShould {
     )
 
     private val events = listOf<ApiBuildEvent>(
-        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(), Instant.now(), UUID.randomUUID())
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
+            ApiPhaseCompletedResult.Success(), Instant.now(), UUID.randomUUID()),
+        ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
+            ApiPhaseCompletedResult.UserError("noob"), Instant.now(), UUID.randomUUID())
+
     )
 
     private val eval = mock<EvalQueryServiceClient> {
@@ -64,13 +69,13 @@ class GraphQLResourceShould {
         on { getBuildEventsAsync(any(), any()) } doReturn completedFuture(events)
     }
 
-    private val github = mock<GitHub> {
-        on { user(eq(111)) } doReturn GitHubUser(
+    private val github = mock<GitHubClient> {
+        on { userAsync(eq(111)) } doReturn completedFuture(GitHubUser(
             111,
             "bigmo",
             "Big Monad",
             URI.create("http://noob.gif")
-        )
+        ))
     }
 
     private val resource = GraphQLResource(eval, github)
@@ -80,7 +85,7 @@ class GraphQLResourceShould {
     fun list_builds() {
         val result = resource.execute(user, buildsRequest)
 
-        assertThat(result.errors, equalTo(emptyList()))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val feed = result.data["feed"] as List<Map<String, *>>
         assertThat(feed.size, equalTo(2))
@@ -91,7 +96,7 @@ class GraphQLResourceShould {
     fun fetch_build() {
         val result = resource.execute(user, buildRequest)
 
-        assertThat(result.errors.size, equalTo(0))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val data = result.data["build"] as Map<String, *>
         assertThat(data.keys, equalTo(setOf("id", "number", "events")))
@@ -101,7 +106,7 @@ class GraphQLResourceShould {
     fun fetch_profile() {
         val result = resource.execute(user, profileRequest)
 
-        assertThat(result.errors.size, equalTo(0))
+        assertThat(result.errors, nullValue())
         @Suppress("UNCHECKED_CAST")
         val data: Map<String, Any> = result.data["profile"] as Map<String, Any>
         val expected: Map<String, Any> = mapOf("name" to "Big Monad", "avatarUrl" to "http://noob.gif")
@@ -114,7 +119,7 @@ class GraphQLResourceShould {
 
         val result = resource.execute(user, buildsRequest)
 
-        assertThat(result.errors.map { it.message }, not(hasItem(containsString("badness"))))
+        assertThat(result.errors!!.map { it.message }, not(hasItem(containsString("badness"))))
     }
 
     private val buildsRequest = GraphQLResource.Request("""
@@ -131,6 +136,9 @@ class GraphQLResourceShould {
                     events {
                         ... on PhaseCompleted {
                             phase_id
+                            result {
+                                ... on UserError { error }
+                            }
                         }
                     }
                 }

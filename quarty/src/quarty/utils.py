@@ -35,5 +35,3 @@ async def run_subprocess_checked(cmd, exception, **kwargs):
     rc = await _run_subprocess(cmd, **kwargs)
     if rc != 0:
         raise QuartyException(exception)
-
-

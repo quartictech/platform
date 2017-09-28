@@ -53,8 +53,6 @@ export interface UiAction {
 }
 
 export interface Ui {
-  namespace: string;
-  searchString: string;
   activeModal: string;
 }
 
@@ -71,6 +69,7 @@ export interface FeedItem {
 
 export interface BuildEvent {
   type: string;
+  id: string;
   time: number;
   phase_id: string;
   stream?: string;

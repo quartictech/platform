@@ -30,6 +30,7 @@ class DatasetsView extends React.Component<IProps, IState> {
     this.props.fetchDatasets();
   }
 
+
   render() {
     return (
       <DocumentTitle title="Quartic - Datasets">
@@ -39,10 +40,10 @@ class DatasetsView extends React.Component<IProps, IState> {
             createDataset={this.props.createDataset}
             closeNewDatasetClick={this.props.closeNewDatasetModal}
           />
+
           <div className={s.main}>
             <div className={s.center}>
               <DatasetList
-                searchString={this.props.ui.searchString}
                 datasets={this.props.datasets}
                 showNewDatasetModal={this.props.showNewDatasetModal}
               />

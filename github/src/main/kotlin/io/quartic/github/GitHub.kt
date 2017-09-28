@@ -1,12 +1,11 @@
 package io.quartic.github
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import feign.Headers
-import feign.Param
-import feign.RequestLine
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
 import org.apache.http.client.utils.URIBuilder
+import retrofit2.http.*
 import java.net.URI
-import javax.ws.rs.core.MediaType
+import java.util.concurrent.CompletableFuture
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,26 +29,41 @@ data class AccessToken(
     val errorDescription: String?
 )
 
-interface GitHubOAuth {
-    @RequestLine("POST /login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&redirect_uri={redirect_uri}&code={code}")
-    @Headers("Accept: ${MediaType.APPLICATION_JSON}")
-    fun accessToken(@Param("client_id") clientId: String,
-                    @Param("client_secret") clientSecret: String,
-                    @Param("redirect_uri") redirectUri: String,
-                    @Param("code") code: String): AccessToken
+@Retrofittable
+interface GitHubOAuthClient {
+    @POST("login/oauth/access_token")
+    @retrofit2.http.Headers("Accept: application/json")
+    fun accessTokenAsync(
+        @Query("client_id") clientId: String,
+        @Query("client_secret") clientSecret: String,
+        @Query("redirect_uri") redirectUri: String,
+        @Query("code") code: String
+    ): CompletableFuture<AccessToken>
 }
 
-interface GitHub {
-    @RequestLine("GET /user/{userId}")
-    fun user(@Param("userId") userId: Int): GitHubUser
+@Retrofittable
+interface GitHubClient {
+    @GET("user/{userId}")
+    @retrofit2.http.Headers("Accept: application/json")
+    fun userAsync(
+        @Path("userId") userId: Int
+    ): CompletableFuture<GitHubUser>
 
-    @RequestLine("GET /user")
-    @Headers("Authorization: token {oauthToken}")
-    fun user(@Param("oauthToken") oauthToken: String): GitHubUser
+    @GET("user")
+    @retrofit2.http.Headers("Accept: application/json")
+    fun userAsync(
+        @Header("Authorization") auth: AuthToken
+    ): CompletableFuture<GitHubUser>
 
-    @RequestLine("GET /user/orgs")
-    @Headers("Authorization: token {oauthToken}")
-    fun organizations(@Param("oauthToken") oauthToken: String): List<GitHubOrganization>
+    @GET("user/orgs")
+    @retrofit2.http.Headers("Accept: application/json")
+    fun organizationsAsync(
+        @Header("Authorization") auth: AuthToken
+    ): CompletableFuture<List<GitHubOrganization>>
+}
+
+data class AuthToken(private val token: String) {
+    override fun toString() = "token ${token}"
 }
 
 fun oauthUrl(

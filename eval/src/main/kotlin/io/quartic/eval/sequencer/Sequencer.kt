@@ -1,13 +1,12 @@
 package io.quartic.eval.sequencer
 
-import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
-import io.quartic.registry.api.model.Customer
 
 interface Sequencer {
-    suspend fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit)
+    suspend fun sequence(context: BuildInitiator.BuildContext, block: suspend SequenceBuilder.() -> Unit)
 
     interface SequenceBuilder {
         val container: QubeContainerProxy
@@ -21,13 +20,13 @@ interface Sequencer {
         fun success(output: R): PhaseResult<R> = Success(output)
         fun successWithArtifact(artifact: Artifact, output: R): PhaseResult<R> = SuccessWithArtifact(artifact, output)
         fun internalError(throwable: Throwable): PhaseResult<R> = InternalError(throwable)
-        fun userError(detail: Any?): PhaseResult<R> = UserError(detail)
+        fun userError(info: UserErrorInfo): PhaseResult<R> = UserError(info)
     }
 
     sealed class PhaseResult<out R> {
         data class Success<out R>(val output: R) : PhaseResult<R>()
         data class SuccessWithArtifact<out R>(val artifact: Artifact, val output: R) : PhaseResult<R>()
         data class InternalError<out R>(val throwable: Throwable) : PhaseResult<R>()
-        data class UserError<out R>(val detail: Any?) : PhaseResult<R>()
+        data class UserError<out R>(val info: UserErrorInfo): PhaseResult<R>()
     }
 }

@@ -1,7 +1,7 @@
 package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
@@ -10,9 +10,10 @@ import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
-import io.quartic.home.model.CreateDatasetRequest
+import io.quartic.eval.api.model.ApiDag
+import io.quartic.home.howl.HowlStreamingClient
+import io.quartic.home.model.*
 import io.quartic.home.resource.HomeResource
-import io.quartic.howl.api.HowlService
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import org.hamcrest.core.IsEqual.equalTo
@@ -39,12 +40,12 @@ class HomeResourceShould {
     private val bar = DatasetNamespace("bar")
 
     private val datasets = mapOf(
-            foo to mapOf(DatasetId("a") to mock<DatasetConfig>(), DatasetId("b") to mock<DatasetConfig>()),
-            bar to mapOf(DatasetId("c") to mock<DatasetConfig>(), DatasetId("e") to mock<DatasetConfig>())
+        foo to mapOf(DatasetId("a") to mock<DatasetConfig>(), DatasetId("b") to mock<DatasetConfig>()),
+        bar to mapOf(DatasetId("c") to mock<DatasetConfig>(), DatasetId("e") to mock<DatasetConfig>())
     )
 
-    private val catalogue = mock<CatalogueService>()
-    private val howl = mock<HowlService>()
+    private val catalogue = mock<CatalogueClient>()
+    private val howl = mock<HowlStreamingClient>()
     private val registry = mock<RegistryServiceClient>()
     private val evalQuery = mock<EvalQueryServiceClient>()
     private val evalTrigger = mock<EvalTriggerServiceClient>()
@@ -53,7 +54,7 @@ class HomeResourceShould {
 
     @Before
     fun before() {
-        whenever(catalogue.getDatasets()).thenReturn(datasets)
+        whenever(catalogue.getDatasetsAsync()).thenReturn(completedFuture(datasets))
         whenever(registry.getCustomerByIdAsync(CustomerId(5678))).thenReturn(completedFuture(quartic))
     }
 
@@ -64,20 +65,21 @@ class HomeResourceShould {
 
     @Test
     fun create_dataset() {
-        whenever(catalogue.registerDataset(any(), any())).thenReturn(mock())
-        whenever(howl.downloadManagedFile(any(), any(), any())).thenReturn("blah".byteInputStream())
+        whenever(catalogue.registerDatasetAsync(any(), any())).thenReturn(completedFuture(mock()))
 
         resource.createDataset(arlo, CreateDatasetRequest(mock(), "yeah"))
 
-        verify(catalogue).registerDataset(eq(foo), any())
+        verify(catalogue).registerDatasetAsync(eq(foo), any())
 
         // TODO - validate interaction with Howl, and 2nd param to registerDataset
     }
 
     @Test
     fun delete_dataset_if_namespace_authorised_and_dataset_exists() {
+        whenever(catalogue.deleteDatasetAsync(any(), any())).thenReturn(completedFuture(mock()))
+
         resource.deleteDataset(arlo, DatasetId("a"))
-        verify(catalogue).deleteDataset(foo, DatasetId("a"))
+        verify(catalogue).deleteDatasetAsync(foo, DatasetId("a"))
     }
 
     @Test
@@ -88,4 +90,66 @@ class HomeResourceShould {
     }
 
     // TODO - something for uploadFile
+
+    @Test
+    fun get_dag_in_cytoscape_format() {
+        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+            ApiDag(
+                listOf(
+                    ApiDag.Node("test", "A", emptyList()),
+                    ApiDag.Node("test", "B", emptyList()),
+                    ApiDag.Node("test", "C", emptyList()),
+                    ApiDag.Node("test", "D", listOf(0, 1)),
+                    ApiDag.Node("test", "E", listOf(1, 2, 3))
+                )
+            )
+        ))
+
+        assertThat(resource.getDag(arlo, 69), equalTo(
+            CytoscapeDag(
+                setOf(
+                    node("A", "raw"),
+                    node("B", "raw"),
+                    node("C", "raw"),
+                    node("D", "derived"),
+                    node("E", "derived")
+                ),
+                setOf(
+                    edge(0, "A", "D"),
+                    edge(1, "B", "D"),
+                    edge(2, "B", "E"),
+                    edge(3, "C", "E"),
+                    edge(4, "D", "E")
+                )
+            )
+        ))
+    }
+
+    @Test
+    fun show_nothing_for_null_namespace_in_dag() {
+        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+            ApiDag(
+                listOf(
+                    ApiDag.Node(null, "A", emptyList())     // Null!
+                )
+            )
+        ))
+
+        assertThat(resource.getDag(arlo, 69), equalTo(
+            CytoscapeDag(
+                setOf(
+                    node("A", "raw", "")        // Null becomes empty string
+                ),
+                emptySet()
+            )
+        ))
+    }
+
+    private fun node(id: String, type: String, namespace: String = "test") =
+        CytoscapeNode(CytoscapeNodeData("${namespace}::${id}", "${namespace}::${id}", type))
+
+    private fun edge(id: Long, source: String, target: String, namespace: String = "test") =
+        CytoscapeEdge(CytoscapeEdgeData(id, "${namespace}::${source}", "${namespace}::${target}"))
+
+
 }

@@ -4,12 +4,21 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.exceptionalFuture
+import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node
+import io.quartic.eval.api.model.BuildTrigger.Manual
+import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
+import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.SuccessWithArtifact
@@ -27,7 +36,6 @@ import io.quartic.quarty.api.model.Pipeline.Source.Bucket
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
-import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.produce
@@ -35,29 +43,14 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.hasItem
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
 import java.time.Instant
-import java.util.concurrent.CompletableFuture
+import java.util.*
 import java.util.concurrent.CompletableFuture.completedFuture
 
 class EvaluatorShould {
-
-    @Test
-    fun run_multiple_evaluations_concurrently() = runBlocking {
-        whenever(registry.getCustomerAsync(null, 5678)).thenReturn(CompletableFuture()) // This one blocks indefinitely
-        whenever(registry.getCustomerAsync(null, 7777)).thenReturn(exceptionalFuture())
-
-        val a = evaluator.evaluateAsync(webhookTrigger)
-        val b = evaluator.evaluateAsync(webhookTrigger.copy(repoId = 7777))
-
-        b.join()                                                // But we can still complete this one
-
-        assertFalse(a.isCompleted)
-    }
-
     @Test
     fun use_the_correct_phase_descriptions() {
         execute()
@@ -88,16 +81,17 @@ class EvaluatorShould {
     fun produce_success_if_everything_works() {
         execute()
 
-        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }), dag)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(EvaluationOutput(nodes.map { it.toDatabaseModel() }),
+            DagResult.Valid(dag))))
     }
 
     @Test
     fun produce_user_error_if_dag_is_invalid() {
-        whenever(extractDag(any())).doReturn(null as Dag?)
+        whenever(extractDag(any())).doReturn(DagResult.Invalid("Dag is das noob", listOf()))
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("DAG is invalid")))
+        assertThat(sequencer.results, hasItem(UserError<Any>(InvalidDag("Dag is das noob", listOf()))))
     }
 
     @Test
@@ -119,18 +113,7 @@ class EvaluatorShould {
 
         execute()
 
-        assertThat(sequencer.results, hasItem(UserError<Any>("badness")))
-    }
-
-    @Test
-    fun do_nothing_if_customer_lookup_failed() {
-        whenever(registry.getCustomerAsync(anyOrNull(), any())).thenReturn(exceptionalFuture())
-
-        evaluate()
-
-        runBlocking {
-            verify(sequencer, times(0)).sequence(any(), any(), any())
-        }
+        assertThat(sequencer.results, hasItem(UserError<Any>(OtherException("badness"))))
     }
 
     @Test
@@ -166,6 +149,28 @@ class EvaluatorShould {
     }
 
     @Test
+    fun only_execute_steps_that_survived_pruning() {
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
+
+        execute()
+
+        runBlocking {
+            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+            verify(quarty, times(1)).request(isA<Execute>(), any())
+        }
+    }
+
+    @Test
+    fun produce_node_execution_artifacts_according_to_pruning() {
+        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
+
+        execute()
+
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = true), Unit)))
+        assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = false), Unit)))
+    }
+
+    @Test
     fun execute_steps_from_dag_in_order() {
         execute()
 
@@ -187,11 +192,11 @@ class EvaluatorShould {
     }
 
     private fun execute() = runBlocking {
-        evaluator.evaluateAsync(manualTrigger).join()
+        evaluator.evaluateAsync(executeBuild).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(webhookTrigger).join()
+        evaluator.evaluateAsync(evaluateBuild).join()
     }
 
     private val customerNamespace = "raging"
@@ -230,12 +235,14 @@ class EvaluatorShould {
         rawWebhook = emptyMap()
     )
 
-    private val manualTrigger = BuildTrigger.Manual(
+
+
+    private val manualTrigger = Manual(
         "me",
         Instant.now(),
         customerId,
         "master",
-        BuildTrigger.TriggerType.EXECUTE
+        EXECUTE
     )
 
     private val repo = Repository(
@@ -249,20 +256,21 @@ class EvaluatorShould {
     )
 
     private val customer = mock<Customer> {
+        on { id } doReturn customerId
         on { namespace } doReturn customerNamespace
         on { githubRepoId } doReturn githubRepoId
         on { githubInstallationId } doReturn githubInstallationId
     }
 
+
+    val buildRow = Database.BuildRow(UUID.randomUUID(), customer.id, "develop", 100)
+    val evaluateBuild = BuildContext(webhookTrigger, customer, buildRow)
+    val executeBuild = BuildContext(manualTrigger, customer, buildRow)
+
     private val nodes = listOf(rawX, stepY)
     private val pipeline = Pipeline(nodes)
     private val dag = mock<Dag> {
         on { iterator() } doReturn nodes.map{ it.toDatabaseModel() }.iterator()
-    }
-
-    private val registry = mock<RegistryServiceClient> {
-        on { getCustomerAsync(null, 5678) } doReturn completedFuture(customer)
-        on { getCustomerByIdAsync(customerId) } doReturn completedFuture(customer)
     }
 
     private val quartyContainer = mock<QubeContainerProxy> {
@@ -289,14 +297,18 @@ class EvaluatorShould {
         on { invoke(containerHostname) } doReturn quarty
     }
 
-    private val extractDag = mock<(List<Node>) -> Dag?>()
+    private val extractDag = mock<(List<Node>) -> DagResult>()
+
+    private val pruner = mock<Pruner> {
+        onGeneric { runBlocking { shouldRetain(any(), any()) } } doReturn true
+    }
 
     private val sequencer = spy(MySequencer())
 
     private val evaluator = Evaluator(
         sequencer,
-        registry,
         github,
+        pruner,
         extractDag,
         quartyBuilder
     )
@@ -306,7 +318,7 @@ class EvaluatorShould {
         val throwables = mutableListOf<Throwable>()
         val descriptions = mutableListOf<String>()
 
-        suspend override fun sequence(trigger: BuildTrigger, customer: Customer, block: suspend SequenceBuilder.() -> Unit) {
+        suspend override fun sequence(context: BuildContext, block: suspend SequenceBuilder.() -> Unit) {
             block(MySequenceBuilder())
         }
 
@@ -337,6 +349,6 @@ class EvaluatorShould {
     }
 
     init {
-        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(dag)
+        whenever(extractDag(nodes.map { it.toDatabaseModel() })).thenReturn(DagResult.Valid(dag))
     }
 }

@@ -1,19 +1,22 @@
 package io.quartic.eval.database
 
+import com.nhaarman.mockito_kotlin.mock
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.CurrentPhaseCompleted.LexicalInfo
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Node.Step
-import io.quartic.eval.database.model.CurrentPhaseCompleted.Result.Success
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.LexicalInfo
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.nullValue
@@ -42,8 +45,20 @@ class DatabaseShould {
         timestamp = Instant.MIN,
         rawWebhook = emptyMap()
     )
+    val buildTrigger = BuildTrigger.GithubWebhook(
+        trigger.deliveryId,
+        trigger.repoId,
+        trigger.ref,
+        trigger.commit,
+        trigger.timestamp,
+        trigger.repoName,
+        trigger.repoOwner,
+        trigger.installationId,
+        trigger.rawWebhook
+    )
     private val uuidGen = UuidGen()
     private val buildId = uuidGen()
+    private val eventId = uuidGen()
     private val phaseId = uuidGen()
 
     @After
@@ -55,18 +70,33 @@ class DatabaseShould {
     @Test
     fun insert_build() {
         insertBuild(buildId)
-
         assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
     }
 
     @Test
-    fun insert_event() {
-        insertBuild(buildId)
-        insertEvent(buildId, successfulPhase(phaseId))
+    fun create_build() {
+        createBuild(buildId, eventId, customerId)
+        assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
+        assertThat(
+            DATABASE.getEventsForBuild(customerId, 1).map { it.payload },
+            contains(CurrentTriggerReceived(buildTrigger.toDatabaseModel()))
+                as Matcher<in List<BuildEvent>>
+        )
+    }
 
-        assertThat(DATABASE.getEventsForBuild(customerId, 1).map { it.payload }, contains(
+    @Test
+    fun insert_event() {
+        val eventId = UUID.randomUUID()
+        insertBuild(buildId)
+        insertEvent(buildId, successfulPhase(phaseId), id = { eventId })
+
+        val events = DATABASE.getEventsForBuild(customerId, 1)
+
+        assertThat(events.map { it.payload }, contains(
             successfulPhase(phaseId) as BuildEvent
         ))
+
+        assertThat(events.map { it.id }, equalTo(listOf(eventId)))
     }
 
     @Test
@@ -222,8 +252,13 @@ class DatabaseShould {
         DATABASE.insertBuild(buildId, customerId, branch)
     }
 
-    private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now()) {
-        DATABASE.insertEvent(uuidGen(), event, time, buildId)
+    private fun createBuild(buildId: UUID, eventId: UUID, customerId: CustomerId) {
+        DATABASE.createBuild(buildId, eventId, customerId, buildTrigger)
+    }
+
+    private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now(),
+                            id: () -> UUID = { uuidGen() }) {
+        DATABASE.insertEvent(id(), event, time, buildId)
     }
 
     private inner class UuidGen {

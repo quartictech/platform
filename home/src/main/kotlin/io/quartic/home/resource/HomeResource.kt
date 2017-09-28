@@ -1,7 +1,7 @@
 package io.quartic.home.resource
 
 import io.dropwizard.auth.Auth
-import io.quartic.catalogue.api.CatalogueService
+import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
@@ -9,10 +9,11 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.auth.User
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
+import io.quartic.eval.api.model.ApiDag
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.home.model.CreateDatasetRequest
-import io.quartic.howl.api.HowlService
-import io.quartic.howl.api.HowlStorageId
+import io.quartic.home.howl.HowlStreamingClient
+import io.quartic.home.model.*
+import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.registry.api.RegistryServiceClient
 import org.apache.commons.io.IOUtils.copy
 import retrofit2.HttpException
@@ -28,8 +29,8 @@ import javax.ws.rs.core.MediaType
 @PermitAll
 @Path("/")
 class HomeResource(
-    private val catalogue: CatalogueService,
-    private val howl: HowlService,
+    private val catalogue: CatalogueClient,
+    private val howl: HowlStreamingClient,
     private val evalQuery: EvalQueryServiceClient,
     private val evalTrigger: EvalTriggerServiceClient,
     private val registry: RegistryServiceClient
@@ -37,8 +38,19 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDayAsync(user.customerId!!)
+    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDagAsync(user.customerId!!)
         .wrapNotFound("DAG", "latest")
+        .toCytoscape()
+
+    @GET
+    @Path("/dag/{build}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getDag(
+        @Auth user: User,
+        @PathParam("build") build: Long
+    ) = evalQuery.getDagAsync(user.customerId!!, build)
+        .wrapNotFound("DAG", build)
+        .toCytoscape()
 
     @POST
     @Path("/build")
@@ -57,22 +69,13 @@ class HomeResource(
         .wrapNotFound("Builds", user.customerId!!)
 
     @GET
-    @Path("/dag/{build}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getDag(
-        @Auth user: User,
-        @PathParam("build") build: Long
-    ) = evalQuery.getDagAsync(user.customerId!!, build)
-        .wrapNotFound("DAG", build)
-
-    @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
     fun getDatasets(
         @Auth user: User
     ): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
         val namespace = lookupNamespace(user)
-        return catalogue.getDatasets().filterKeys { namespace.namespace == it.namespace }
+        return catalogue.getDatasetsAsync().get().filterKeys { namespace.namespace == it.namespace }
     }
 
     @DELETE
@@ -89,7 +92,7 @@ class HomeResource(
         if (id !in datasets) {
             throw notFoundException("Dataset", id.uid)
         }
-        catalogue.deleteDataset(namespace, id)
+        catalogue.deleteDatasetAsync(namespace, id).get()
     }
 
     @POST
@@ -109,7 +112,7 @@ class HomeResource(
                 DEFAULT_MIME_TYPE
             )
         )
-        return catalogue.registerDataset(namespace, datasetConfig).id
+        return catalogue.registerDatasetAsync(namespace, datasetConfig).get().id
     }
 
     @POST
@@ -120,7 +123,7 @@ class HomeResource(
         @Context request: HttpServletRequest
     ): HowlStorageId {
         val namespace = lookupNamespace(user)
-        return howl.uploadAnonymousFile(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
+        return howl.uploadAnonymousObject(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
             try {
                 copy(request.inputStream, outputStream)
             } catch (e: Exception) {
@@ -147,6 +150,35 @@ class HomeResource(
         val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
         return DatasetNamespace(customer.namespace)
     }
+
+    private fun ApiDag.toCytoscape() = CytoscapeDag(toCytoscapeNodes(), toCytoscapeEdges())
+
+    private fun ApiDag.toCytoscapeNodes() = nodes.map {
+        CytoscapeNode(
+            CytoscapeNodeData(
+                id = it.fullyQualifiedName,
+                title = it.fullyQualifiedName,
+                type = if (it.sources.isEmpty()) "raw" else "derived"
+            )
+        )
+    }.toSet()
+
+    private fun ApiDag.toCytoscapeEdges(): Set<CytoscapeEdge> {
+        var i = 0L
+        return nodes.flatMap { node ->
+            node.sources.map { source ->
+                CytoscapeEdge(
+                    CytoscapeEdgeData(
+                        id = i++,
+                        source = nodes[source].fullyQualifiedName,
+                        target = node.fullyQualifiedName
+                    )
+                )
+            }
+        }.toSet()
+    }
+
+    private val ApiDag.Node.fullyQualifiedName get() = "${namespace ?: ""}::${datasetId}"
 
     companion object {
         private val DEFAULT_MIME_TYPE = "application/octet-stream"

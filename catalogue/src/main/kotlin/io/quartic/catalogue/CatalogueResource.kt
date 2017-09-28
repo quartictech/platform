@@ -1,21 +1,14 @@
 package io.quartic.catalogue
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import io.quartic.catalogue.api.CatalogueService
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.catalogue.database.Database
-import io.quartic.common.logging.logger
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import java.time.Clock
-import javax.websocket.CloseReason
-import javax.websocket.Endpoint
-import javax.websocket.EndpointConfig
-import javax.websocket.Session
 import javax.ws.rs.BadRequestException
 import javax.ws.rs.NotFoundException
 
@@ -24,10 +17,7 @@ class CatalogueResource(
     private val database: Database,
     private val didGenerator: UidGenerator<DatasetId> = randomGenerator(::DatasetId),
     private val clock: Clock = Clock.systemUTC()
-) : Endpoint(), CatalogueService {
-    private val LOG by logger()
-    private val sessions = mutableSetOf<Session>()    // TODO: extend ResourceManagingEndpoint instead
-
+) : CatalogueService {
     override fun registerDataset(namespace: DatasetNamespace, config: DatasetConfig): DatasetCoordinates {
         return registerOrUpdateDataset(namespace, didGenerator.get(), config)
     }
@@ -45,7 +35,6 @@ class CatalogueResource(
             id = id.uid,
             config = withRegisteredTimestamp(config)
         )
-        updateClients()
         return coords
     }
 
@@ -76,33 +65,5 @@ class CatalogueResource(
             namespace = namespace.namespace,
             id = id.uid
         )
-
-        updateClients()
-    }
-
-    @Synchronized
-    override fun onOpen(session: Session, config: EndpointConfig) {
-        LOG.info("[{}] Open", session.id)
-        updateClient(session, getDatasets())
-        sessions.add(session)
-    }
-
-    @Synchronized
-    override fun onClose(session: Session?, closeReason: CloseReason?) {
-        LOG.info("[{}] Close", session!!.id)
-        sessions.remove(session)
-    }
-
-    private fun updateClients() {
-        val datasets = getDatasets()
-        sessions.forEach { session -> updateClient(session, datasets) }
-    }
-
-    private fun updateClient(session: Session, datasets: Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>) {
-        try {
-            session.asyncRemote.sendText(OBJECT_MAPPER.writeValueAsString(datasets))
-        } catch (e: JsonProcessingException) {
-            LOG.error("Error producing JSON", e)
-        }
     }
 }

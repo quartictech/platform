@@ -17,7 +17,6 @@ const style = require("./style.css");
 const logo = require("./quartic.svg");
 
 interface IProps {
-  searchBoxChange: any;
   onLogOutClick: () => void;
   profile?: Profile;
 }
@@ -25,11 +24,6 @@ interface IProps {
 class Header extends React.Component<IProps, {}> {
   constructor(props: IProps) {
     super(props);
-    this.onSearch = this.onSearch.bind(this);
-  }
-
-  onSearch(e) {
-    this.props.searchBoxChange(e.target.value);
   }
 
   render() {
@@ -52,15 +46,12 @@ class Header extends React.Component<IProps, {}> {
               role="presentation"
             />
           </Link>
-          <input
-            className="pt-input"
-            placeholder="Search datasets..."
-            type="text"
-            onChange={this.onSearch}
-          />
-
-          <span className={Classes.NAVBAR_DIVIDER} />
-
+          <Link
+            className="pt-button pt-minimal pt-icon-feed"
+            to="/"
+          >
+            Activity
+          </Link>
           <Link
             className="pt-button pt-minimal pt-icon-database"
             to="/datasets"

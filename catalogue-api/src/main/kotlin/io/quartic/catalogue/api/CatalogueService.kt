@@ -1,71 +1,97 @@
 package io.quartic.catalogue.api
 
-import feign.Headers
-import feign.Param
-import feign.RequestLine
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetCoordinates
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
-import javax.ws.rs.*
+import io.quartic.common.client.ClientBuilder.Companion.Jaxable
+import io.quartic.common.client.ClientBuilder.Companion.Retrofittable
+import retrofit2.http.*
+import java.util.concurrent.CompletableFuture
 import javax.ws.rs.core.MediaType
 
-@Path("/datasets")
+@Jaxable
+@javax.ws.rs.Path("/datasets")
 interface CatalogueService {
     /**
      * Registers a dataset in a specified namespace, and assigns it a randomly-chosen [DatasetId].
      */
-    @RequestLine("POST /datasets/{namespace}", decodeSlash=false)
-    @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
-    @POST
-    @Path("/{namespace}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.POST
+    @javax.ws.rs.Path("/{namespace}")
+    @javax.ws.rs.Consumes(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     fun registerDataset(
-            @Param("namespace") @PathParam("namespace") namespace: DatasetNamespace,
-            config: DatasetConfig
+        @javax.ws.rs.PathParam("namespace") namespace: DatasetNamespace,
+        config: DatasetConfig
     ): DatasetCoordinates
 
     /**
      * Registers a dataset (or updates an existing dataset) in a specified namespace, with a specified [DatasetId].
      */
-    @RequestLine("PUT /datasets/{namespace}/{id}", decodeSlash=false)
     @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
-    @PUT
-    @Path("/{namespace}/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.PUT
+    @javax.ws.rs.Path("/{namespace}/{id}")
+    @javax.ws.rs.Consumes(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     fun registerOrUpdateDataset(
-            @Param("namespace") @PathParam("namespace") namespace: DatasetNamespace,
-            @Param("id")        @PathParam("id") id: DatasetId,
-            config: DatasetConfig
+        @javax.ws.rs.PathParam("namespace") namespace: DatasetNamespace,
+        @javax.ws.rs.PathParam("id") id: DatasetId,
+        config: DatasetConfig
     ): DatasetCoordinates
 
     // TODO: get namespaces
 
     // In an ideal world this would be Map<DatasetCoordinates, DatasetConfig>, but can't have that as a key in JSON
-    @RequestLine("GET /datasets", decodeSlash=false)
     @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.GET
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     fun getDatasets(): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>
 
-    @RequestLine("GET /datasets/{namespace}/{id}", decodeSlash=false)
     @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
-    @GET
-    @Path("/{namespace}/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @javax.ws.rs.GET
+    @javax.ws.rs.Path("/{namespace}/{id}")
+    @javax.ws.rs.Produces(MediaType.APPLICATION_JSON)
     fun getDataset(
-            @Param("namespace") @PathParam("namespace") namespace: DatasetNamespace,
-            @Param("id")        @PathParam("id") id: DatasetId
+        @javax.ws.rs.PathParam("namespace") namespace: DatasetNamespace,
+        @javax.ws.rs.PathParam("id") id: DatasetId
     ): DatasetConfig
 
-    @RequestLine("DELETE /datasets/{namespace}/{id}", decodeSlash=false)
     @Headers("Content-Type: " + MediaType.APPLICATION_JSON)
-    @DELETE
-    @Path("/{namespace}/{id}")
+    @javax.ws.rs.DELETE
+    @javax.ws.rs.Path("/{namespace}/{id}")
     fun deleteDataset(
-            @Param("namespace") @PathParam("namespace") namespace: DatasetNamespace,
-            @Param("id")        @PathParam("id") id: DatasetId
+        @javax.ws.rs.PathParam("namespace") namespace: DatasetNamespace,
+        @javax.ws.rs.PathParam("id") id: DatasetId
     )
+}
+
+@Retrofittable
+interface CatalogueClient {
+    @POST("datasets/{namespace}")
+    fun registerDatasetAsync(
+        @Path("namespace") namespace: DatasetNamespace,
+        @Body config: DatasetConfig
+    ): CompletableFuture<DatasetCoordinates>
+
+    @PUT("datasets/{namespace}/{id}")
+    fun registerOrUpdateDatasetAsync(
+        @Path("namespace") namespace: DatasetNamespace,
+        @Path("id") id: DatasetId,
+        @Body config: DatasetConfig
+    ): CompletableFuture<DatasetCoordinates>
+
+    @GET("datasets")
+    fun getDatasetsAsync(): CompletableFuture<Map<DatasetNamespace, Map<DatasetId, DatasetConfig>>>
+
+    @GET("datasets/{namespace}/{id}")
+    fun getDatasetAsync(
+        @Path("namespace") namespace: DatasetNamespace,
+        @Path("id") id: DatasetId
+    ): CompletableFuture<DatasetConfig>
+
+    @DELETE("datasets/{namespace}/{id}")
+    fun deleteDatasetAsync(
+        @Path("namespace") namespace: DatasetNamespace,
+        @Path("id") id: DatasetId
+    ): CompletableFuture<Unit>
 }

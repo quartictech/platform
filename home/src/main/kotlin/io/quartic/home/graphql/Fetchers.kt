@@ -3,6 +3,7 @@ package io.quartic.home.graphql
 import graphql.schema.DataFetcher
 import graphql.schema.DataFetchingEnvironment
 import io.quartic.eval.api.model.ApiBuildEvent
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.BuildTrigger
 
 abstract class Fetcher<T> : DataFetcher<T> {
@@ -64,7 +65,25 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
     )
     is ApiBuildEvent.PhaseCompleted -> BuildEvent.PhaseCompleted(
         this.id,
+        when (this.result) {
+            is ApiPhaseCompletedResult.Success ->
+                PhaseCompletedResult.Success()
+            is ApiPhaseCompletedResult.UserError ->
+                PhaseCompletedResult.UserError((this.result as ApiPhaseCompletedResult.UserError).error)
+            is ApiPhaseCompletedResult.InternalError ->
+                PhaseCompletedResult.InternalError()
+        },
         this.phaseId.toString(),
+        this.time
+    )
+    is ApiBuildEvent.TriggerReceived -> BuildEvent.TriggerReceived(
+        this.triggerType,
+        this.id,
+        this.time
+    )
+    is ApiBuildEvent.BuildFailed -> BuildEvent.BuildFailed(
+        this.description,
+        this.id,
         this.time
     )
     else ->
@@ -73,7 +92,7 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
 
 class UserFetcher: Fetcher<User>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): User {
-        val githubUser = context.github.user((context.user.id.toInt()))
+        val githubUser = context.github.userAsync((context.user.id.toInt())).get()
         return User(githubUser.name, githubUser.avatarUrl.toString())
     }
 }

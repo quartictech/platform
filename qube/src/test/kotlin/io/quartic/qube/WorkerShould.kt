@@ -8,39 +8,43 @@ import io.quartic.qube.api.QubeResponse.Terminated
 import io.quartic.qube.api.model.ContainerSpec
 import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.api.model.PodSpec
-import io.quartic.qube.pods.*
+import io.quartic.qube.pods.KubernetesClient
+import io.quartic.qube.pods.PodKey
+import io.quartic.qube.pods.QubeEvent
+import io.quartic.qube.pods.WorkerImpl
 import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
-import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import java.util.*
 
 class WorkerShould {
-    val client = mock<KubernetesClient>()
-    val podTemplate = PodBuilder()
+    private val client = mock<KubernetesClient>()
+    private val podTemplate = PodBuilder()
         .editOrNewSpec()
         .addNewContainer()
         .endContainer()
         .endSpec()
         .build()
 
-    val uuid = UUID.randomUUID()
-    val jobStore = mock<Database>()
-    val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true, { -> uuid })
+    private val uuid = UUID.randomUUID()
+    private val jobStore = mock<Database>()
+    private val worker = WorkerImpl(client, podTemplate, "noob", jobStore, 10, true, { -> uuid })
 
-    val key = PodKey(UUID.randomUUID(), "test")
-    val pod = PodBuilder(podTemplate)
+    private val key = PodKey(UUID.randomUUID(), "test")
+    private val pod = PodBuilder(podTemplate)
         .editOrNewMetadata()
         .withName("$uuid")
         .withNamespace("noob")
         .endMetadata()
         .editOrNewSpec()
+        .withNodeSelector(mapOf(WorkerImpl.NODE_POOL_LABEL_KEY to WorkerImpl.NODE_POOL_LABEL_VALUE))
         .withContainers(container("leet-band", 8000), container("awesome-music", 8001))
         .endSpec()
         .build()
-    val returnChannel = mock<Channel<QubeResponse>>()
-    val podEvents = Channel<Pod>(UNLIMITED)
-    val podSpec = PodSpec(listOf(
+    private val returnChannel = mock<Channel<QubeResponse>>()
+    private val podEvents = Channel<Pod>(UNLIMITED)
+    private val podSpec = PodSpec(listOf(
         ContainerSpec(
         "leet-band",
         "la-dispute-discography-docker:1",
@@ -227,13 +231,13 @@ class WorkerShould {
         }
     }
 
-    data class PodState(
+    private data class PodState(
         val running: Boolean,
         val ready: Boolean,
         val exitCode: Int? = null
     )
 
-    fun pods(vararg podStates: PodState) = PodBuilder(pod).editOrNewStatus()
+    private fun pods(vararg podStates: PodState) = PodBuilder(pod).editOrNewStatus()
         .withContainerStatuses(podStates.map { podState ->
             if (podState.running) {
                 ContainerStatusBuilder().withReady(podState.ready).editOrNewState()
@@ -250,25 +254,7 @@ class WorkerShould {
         .endStatus()
         .build()
 
-//    fun podTerminated(exitCode: List<Int?>) = PodBuilder(pod).editOrNewStatus()
-//        .withContainerStatuses(exitCode.map {
-//            if (it != null) {
-//                ContainerStatusBuilder().editOrNewState().editOrNewTerminated().withExitCode(it)
-//                    .withMessage("noobout")
-//                    .withReason("reason")
-//                    .endTerminated()
-//                    .endState().build()
-//            } else {
-//                ContainerStatusBuilder().withReady(true).editOrNewState().editOrNewRunning()
-//                    .withReason("reason")
-//                    .endTerminated()
-//                    .endState().build()
-//            }
-//            })
-//        .endStatus()
-//        .build()
-
-    fun container(name: String, port: Int) = ContainerBuilder()
+    private fun container(name: String, port: Int) = ContainerBuilder()
         .withName(name)
         .withImage("la-dispute-discography-docker:1")
         .withCommand(listOf("king-park"))

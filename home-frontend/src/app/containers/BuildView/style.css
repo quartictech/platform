@@ -12,12 +12,17 @@
   line-height: 30px;
 }
 
+.phaseTitleTag {
+  margin-right: 10px;
+  display: inline;
+}
+
 .phaseItem {
   padding-bottom: 5px;
   width: 100%;
   position: relative;
   padding-top: 5px;
-  border-bottom:0.1pt solid #CED9E0;
+  border-top:0.1pt solid #CED9E0;
   display: flex;
   flex-direction: column;
 }
@@ -33,4 +38,19 @@ pre.bash {
   color: white;
   font-size: medium;
   overflow: auto;
+}
+
+pre.userError {
+  margin-top: 10px;
+  background-color: #DB3737; /* blueprint red3 */
+  color: white;
+  font-size: medium;
+  overflow: auto;
+}
+
+.logTimestamp {
+  color: gray;
+  user-select: none;
+  cursor: default;
+  padding-right: 5px;
 }

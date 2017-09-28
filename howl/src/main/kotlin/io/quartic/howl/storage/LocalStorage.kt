@@ -1,8 +1,7 @@
 package io.quartic.howl.storage
 
-import io.quartic.howl.storage.Storage.*
-import io.quartic.howl.storage.StorageCoords.Managed
-import io.quartic.howl.storage.StorageCoords.Unmanaged
+import io.quartic.howl.api.model.StorageMetadata
+import io.quartic.howl.storage.Storage.StorageResult
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -11,68 +10,97 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
+/**
+ * Ephemeral local storage.
+ */
 class LocalStorage(private val config: Config) : Storage {
     data class Config(val dataDir: String = "./data") : StorageConfig
 
+    private val contentTypes = mutableMapOf<StorageCoords, String>()
     private val lock = ReentrantReadWriteLock()
 
-    override fun getData(coords: StorageCoords): StorageResult? {
-        try {
-            lock.readLock().lock()
-            val file = coords.path.toFile()
-            if (file.exists()) {
-                return StorageResult(
-                    StorageMetadata(
-                        Files.getLastModifiedTime(coords.path).toInstant(),
-                        Files.probeContentType(coords.path) ?: DEFAULT_CONTENT_TYPE,
-                        Files.size(coords.path)
-                    ),
-                    FileInputStream(file)
-                )
-            }
-        } finally {
-            lock.readLock().unlock()
+    override fun getObject(coords: StorageCoords) = lock.readLock().protect {
+        val metadata = getMetadataUnsafe(coords)
+        if (metadata != null) {
+            StorageResult(
+                metadata,
+                FileInputStream(coords.path.toFile())
+            )
+        } else {
+            null
         }
-
-        return null
     }
 
-    override fun getMetadata(coords: StorageCoords): StorageMetadata? = getData(coords)?.metadata
+    override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
-    override fun putData(coords: StorageCoords, contentLength: Int?, contentType: String?, inputStream: InputStream): Boolean {
-        coords.path.toFile().mkdirs()
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
         var tempFile: File? = null
         try {
             tempFile = File.createTempFile("howl", "partial")
             FileOutputStream(tempFile!!).use { fileOutputStream -> IOUtils.copy(inputStream, fileOutputStream) }
 
-            renameFile(tempFile.toPath(), coords.path)
+            commitFile(tempFile.toPath(), coords, contentType)
         } finally {
             if (tempFile != null) {
                 tempFile.delete()
             }
         }
-        return true
     }
 
-    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(
-        when (this) {
-            is Managed -> Paths.get(targetNamespace, "managed", identityNamespace, objectKey)
-            is Unmanaged -> Paths.get(targetNamespace, "unmanaged", objectKey)
+    override fun copyObject(source: StorageCoords, dest: StorageCoords) = lock.writeLock().protect {
+        if (Files.exists(source.path)) {
+            prepareDestinationUnsafe(dest)
+            Files.copy(source.path, dest.path)
+            contentTypes[dest] = contentTypes[source]
+                ?: Files.probeContentType(source.path)
+                ?: DEFAULT_CONTENT_TYPE
+            getMetadataUnsafe(dest)
+        } else {
+            null
         }
-    )
+    }
 
-    private fun renameFile(from: Path, to: Path) {
+    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
+        lock.writeLock().protect {
+            prepareDestinationUnsafe(coords)
+            Files.move(from, coords.path)
+            contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+        }
+    }
+
+    private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
+        val file = coords.path.toFile()
+        val contentType = contentTypes[coords]
+        // Testing both is overkill, but whatever
+        return if ((contentType != null) && file.exists()) {
+            StorageMetadata(
+                Files.getLastModifiedTime(coords.path).toInstant(),
+                contentType,
+                Files.size(coords.path)
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun prepareDestinationUnsafe(coords: StorageCoords) {
+        coords.path.parent.toFile().mkdirs()
+        Files.deleteIfExists(coords.path)
+    }
+
+    private fun <R> Lock.protect(block: () -> R): R {
         try {
-            lock.writeLock().lock()
-            Files.deleteIfExists(to)
-            Files.move(from, to)
+            lock()
+            return block()
         } finally {
-            lock.writeLock().unlock()
+            unlock()
         }
     }
+
+    private val StorageCoords.path get() = Paths.get(config.dataDir).resolve(backendKey)
 
     companion object {
         private val DEFAULT_CONTENT_TYPE = "application/octet-stream"
