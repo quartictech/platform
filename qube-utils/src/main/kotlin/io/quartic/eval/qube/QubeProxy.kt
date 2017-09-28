@@ -21,12 +21,10 @@ interface QubeProxy {
         override suspend fun close() = close.invoke()
     }
 
-    suspend fun createContainer(): QubeContainerProxy
+    suspend fun createContainer(pod: PodSpec): QubeContainerProxy
 
     companion object {
-        fun create(
-            client: WebsocketClient<QubeRequest, QubeResponse>,
-            pod: PodSpec
-        ) = QubeProxyImpl(client, pod)
+        fun create(client: WebsocketClient<QubeRequest, QubeResponse>) =
+            QubeProxyImpl(client)
     }
 }

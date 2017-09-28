@@ -62,7 +62,8 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     private fun sequencer(config: EvalConfiguration, database: Database) = SequencerImpl(
         qube(config),
         database,
-        notifier(config)
+        notifier(config),
+        injectPodEnvironment(config.qube.pod)
     )
 
     private fun notifier(config: EvalConfiguration) = Notifier(
@@ -79,8 +80,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
     )
 
     private fun qube(config: EvalConfiguration) = QubeProxy.create(
-        WebsocketClientImpl.create(config.qube.url),
-        injectPodEnvironment(config.qube.pod)
+        WebsocketClientImpl.create(config.qube.url)
     )
 
     private fun injectPodEnvironment(podSpec: PodSpec) =

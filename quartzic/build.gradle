@@ -1,0 +1,24 @@
+import io.quartic.gradle.kotlin.KotlinPlugin
+import io.quartic.gradle.service.ServicePlugin
+
+plugins {
+    id "com.palantir.configuration-resolver" version "0.2.0"
+}
+
+apply plugin: KotlinPlugin
+apply plugin: ServicePlugin
+
+service {
+    mainClassName = "io.quartic.glisten.QuartzicApplication"
+    memory = System.env.QUARTZIC_MEMORY ?: "64m"
+}
+
+dependencies {
+    compile project(":common-application")
+    compile project(":qube-utils")
+
+    compile "org.quartz-scheduler:quartz:2.2.1"
+    compile "org.quartz-scheduler:quartz-jobs:2.2.1"
+
+    testCompile project(":common-test")
+}

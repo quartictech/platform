@@ -38,15 +38,15 @@ class QubeProxyImplShould {
     }
 
     private val containerSpec = PodSpec(listOf(ContainerSpec("wat", "noobout:1", listOf("true"), 8080)))
-    private val qube = QubeProxyImpl(client, containerSpec) { uuid(nextUuid++) }
+    private val qube = QubeProxyImpl(client) { uuid(nextUuid++) }
 
     @Test
     fun generate_unique_uuids() {
         runOrTimeout {
             qubeIsConnected()
 
-            async(CommonPool) { qube.createContainer() }
-            async(CommonPool) { qube.createContainer() }
+            async(CommonPool) { qube.createContainer(containerSpec) }
+            async(CommonPool) { qube.createContainer(containerSpec) }
 
             assertThat(outbound.receive().name, equalTo(uuid(100)))
             assertThat(outbound.receive().name, equalTo(uuid(101)))
@@ -59,7 +59,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()
+            val container = qube.createContainer(containerSpec)
 
             assertThat(container.id, equalTo(containerId))
             assertThat(container.hostname, equalTo("noob"))
@@ -72,7 +72,9 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillFailToCreateAsync()
 
-            assertThrowsQubeException("Badness occurred") { qube.createContainer() }
+            assertThrowsQubeException("Badness occurred") {
+                qube.createContainer(containerSpec)
+            }
         }
     }
 
@@ -83,7 +85,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             val requests = qubeWillCreateAsync()
 
-            qube.createContainer()
+            qube.createContainer(containerSpec)
 
             assertThat(requests.await()[0] as Create, equalTo(Create(containerId, containerSpec)))
         }
@@ -95,7 +97,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()
+            val container = qube.createContainer(containerSpec)
 
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
 
@@ -109,8 +111,8 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync(2)
 
-            val containerA = qube.createContainer()
-            val containerB = qube.createContainer()
+            val containerA = qube.createContainer(containerSpec)
+            val containerB = qube.createContainer(containerSpec)
 
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Message 100")))
             events.send(MessageReceived(Terminated.Failed(uuid(101), "Message 101")))
@@ -126,14 +128,14 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync(2)
 
-            qube.createContainer()
+            qube.createContainer(containerSpec)
 
             repeat(4) {
                 events.send(MessageReceived(Terminated.Failed(uuid(100), "Yup")))
             }
             // Note the client doesn't attempt to receive the messages
 
-            qube.createContainer()  // This will timeout with a shallow channel
+            qube.createContainer(containerSpec)  // This will timeout with a shallow channel
         }
     }
 
@@ -145,7 +147,7 @@ class QubeProxyImplShould {
 
             // Note Qube doesn't attempt to receive the close messages, so will timeout with a shallow channel
             (0..3)
-                .map { qube.createContainer() }
+                .map { qube.createContainer(containerSpec) }
                 .forEach { it.close() }
         }
     }
@@ -156,7 +158,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            qube.createContainer().use {}   // Should autoclose
+            qube.createContainer(containerSpec).use {}   // Should autoclose
 
             assertThat(outbound.receive(), equalTo(Destroy(uuid(100)) as QubeRequest))
         }
@@ -168,7 +170,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()
+            val container = qube.createContainer(containerSpec)
             container.close()
             container.close()
 
@@ -184,7 +186,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()
+            val container = qube.createContainer(containerSpec)
             container.use {}   // Should autoclose
 
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
@@ -197,7 +199,7 @@ class QubeProxyImplShould {
     fun ignore_requests_until_connected() {
         runOrTimeout {
             val job = async(CommonPool) {
-                qube.createContainer()      // Blocks until connected
+                qube.createContainer(containerSpec)      // Blocks until connected
             }
 
             delay(50)
@@ -217,10 +219,10 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()      // Active
+            val container = qube.createContainer(containerSpec)      // Active
 
             val job = async(CommonPool) {
-                qube.createContainer()                  // Pending
+                qube.createContainer(containerSpec)                  // Pending
             }
 
             delay(50)
@@ -238,7 +240,7 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeWillCreateAsync()
 
-            val container = qube.createContainer()      // Active
+            val container = qube.createContainer(containerSpec)      // Active
 
             qubeIsDisconnected()
             qubeIsConnected()

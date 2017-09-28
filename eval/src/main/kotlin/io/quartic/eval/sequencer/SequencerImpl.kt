@@ -16,6 +16,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Result
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.qube.api.model.PodSpec
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
@@ -30,6 +31,7 @@ class SequencerImpl(
     private val qube: QubeProxy,
     private val database: Database,
     private val notifier: Notifier,
+    private val pod: PodSpec,
     private val clock: Clock = Clock.systemUTC(),
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) : Sequencer {
@@ -52,7 +54,7 @@ class SequencerImpl(
         }
 
         private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
-            qube.createContainer().use { container ->
+            qube.createContainer(pod).use { container ->
                 insert(ContainerAcquired(container.id, container.hostname))
                 notifier.notifyStart(trigger)
                 block(SequenceBuilderImpl(container))

@@ -1,0 +1,12 @@
+import io.quartic.gradle.kotlin.KotlinPlugin
+
+apply plugin: KotlinPlugin
+
+dependencies {
+    compile project(":common-core")
+    compile project(":qube-api")
+
+    compile libraries.vertx.core
+}
+
+
