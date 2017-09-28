@@ -5,12 +5,14 @@ import io.quartic.common.db.BindJson
 import io.quartic.common.db.CustomerIdColumnMapper
 import io.quartic.common.model.CustomerId
 import io.quartic.common.serdes.OBJECT_MAPPER
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database.*
 import io.quartic.eval.database.model.BuildEvent
 import io.quartic.eval.database.model.PhaseCompleted
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import io.quartic.eval.database.model.TriggerReceived
+import io.quartic.eval.database.model.toDatabaseModel
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
@@ -20,6 +22,7 @@ import org.jdbi.v3.sqlobject.config.RegisterColumnMappers
 import org.jdbi.v3.sqlobject.customizer.Bind
 import org.jdbi.v3.sqlobject.statement.SqlQuery
 import org.jdbi.v3.sqlobject.statement.SqlUpdate
+import org.jdbi.v3.sqlobject.transaction.Transaction
 import java.sql.ResultSet
 import java.time.Instant
 import java.util.*
@@ -100,6 +103,14 @@ interface Database : SqlObject {
         @Bind("customer_id") customerId: CustomerId
     ): Long?
 
+    @Transaction
+    fun createBuild(buildId: UUID, eventId: UUID, customerId: CustomerId,
+                    trigger: BuildTrigger, time: Instant): BuildRow {
+        insertBuild(buildId, customerId, trigger.branch())
+        insertEvent(eventId, TriggerReceived(trigger.toDatabaseModel()),
+            time, buildId)
+        return getBuild(buildId)
+    }
 
     @SqlUpdate("""
         with next as (select coalesce(max(build_number), 0) + 1 as build_number from build where customer_id=:customer_id)

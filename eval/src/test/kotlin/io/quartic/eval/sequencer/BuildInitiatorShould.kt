@@ -10,6 +10,9 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.*
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -29,7 +32,7 @@ class BuildInitiatorShould {
             initiator.start(trigger)
         }
 
-        verify(database).insertBuild(buildId, customer.id, "develop")
+        verify(database).createBuild(uuid, uuid, customer.id, trigger, Instant.MIN)
     }
 
     @Test
@@ -45,9 +48,10 @@ class BuildInitiatorShould {
 
     private val customerId = CustomerId(100L)
     private val repoId = 777L
-    private val buildId = UUID(0, 100)
+    private val uuid = UUID(0, 100)
     private val branch = "develop"
-    private val build = Database.BuildRow(buildId, 100, branch, customerId, "running", null, null)
+    private val build = Database.BuildRow(uuid, 100, branch, customerId,
+        "running", Instant.now(), null)
 
     private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoId } doReturn repoId
@@ -64,8 +68,11 @@ class BuildInitiatorShould {
     }
 
     private val database = mock<Database> {
-        on { getBuild(any()) } doReturn build
+        on { createBuild(any(), any(), any(), any(), any()) } doReturn build
     }
 
-    private val initiator = BuildInitiator(database, registry, uuidGen = { buildId })
+
+    private val initiator = BuildInitiator(database, registry,
+        uuidGen = { uuid },
+        clock = Clock.fixed(Instant.MIN, ZoneId.systemDefault()))
 }

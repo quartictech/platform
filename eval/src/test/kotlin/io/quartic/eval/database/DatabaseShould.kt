@@ -5,6 +5,7 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
+import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
@@ -13,6 +14,7 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.nullValue
@@ -24,11 +26,13 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
+import java.time.ZonedDateTime
 import java.util.*
 
 class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
+    private val sweetInstant = Instant.now()
 
     private val trigger = GithubWebhook(
         deliveryId = "deadbeef",
@@ -41,8 +45,20 @@ class DatabaseShould {
         timestamp = Instant.MIN,
         rawWebhook = emptyMap()
     )
+    val buildTrigger = BuildTrigger.GithubWebhook(
+        trigger.deliveryId,
+        trigger.repoId,
+        trigger.ref,
+        trigger.commit,
+        trigger.timestamp,
+        trigger.repoName,
+        trigger.repoOwner,
+        trigger.installationId,
+        trigger.rawWebhook
+    )
     private val uuidGen = UuidGen()
     private val buildId = uuidGen()
+    private val eventId = uuidGen()
     private val phaseId = uuidGen()
 
     @After
@@ -56,6 +72,20 @@ class DatabaseShould {
         insertBuild(buildId)
         assertThat(DATABASE.getBuild(buildId), equalTo(
             Database.BuildRow(buildId, 1, branch, customerId, "running", null, null)))
+    }
+
+    @Test
+    fun create_build() {
+        createBuild(buildId, eventId, customerId)
+        assertThat(DATABASE.getBuild(buildId), equalTo(
+            Database.BuildRow(buildId, 1, branch, customerId, "running",
+                sweetInstant, TriggerReceived(trigger))))
+
+        assertThat(
+            DATABASE.getEventsForBuild(customerId, 1).map { it.payload },
+            contains(CurrentTriggerReceived(buildTrigger.toDatabaseModel()))
+                as Matcher<in List<BuildEvent>>
+        )
     }
 
     @Test
@@ -224,6 +254,10 @@ class DatabaseShould {
 
     private fun insertBuild(buildId: UUID, customerId: CustomerId = this.customerId) {
         DATABASE.insertBuild(buildId, customerId, branch)
+    }
+
+    private fun createBuild(buildId: UUID, eventId: UUID, customerId: CustomerId) {
+        DATABASE.createBuild(buildId, eventId, customerId, buildTrigger, sweetInstant)
     }
 
     private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now(),

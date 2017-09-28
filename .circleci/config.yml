@@ -13,8 +13,8 @@ jobs:
       - restore_cache:
           keys:
             # Can't specify an exact match, so hopefully branch + latest is good enough
-            - platform-v5-{{ .Branch }}-gradle
-            - platform-v5-develop-gradle
+            - platform-v7-{{ .Branch }}-gradle
+            - platform-v7-develop-gradle
 
       # We don't run --parallel because of Kotlin compiler bugs (see e.g. https://youtrack.jetbrains.com/issue/KT-10028)
       - run:
@@ -26,7 +26,7 @@ jobs:
           command: find ~/.gradle -path ~/.gradle/daemon -prune -o -name '*' > ~/gradle.txt
 
       - save_cache:
-          key: platform-v5-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
+          key: platform-v7-{{ .Branch }}-gradle-{{ checksum "~/gradle.txt" }}
           paths:
             - ~/.gradle
 
