@@ -18,3 +18,5 @@ pip-compile
 temp_file=$(mktemp)
 sed "s|-e file://$(pwd)|-e .|" < requirements.txt > ${temp_file}
 mv ${temp_file} requirements.txt
+
+pip-sync
