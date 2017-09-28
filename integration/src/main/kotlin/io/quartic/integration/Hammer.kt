@@ -7,6 +7,9 @@ import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.BuildTrigger
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
 import java.net.URI
 import java.time.Instant
 import java.util.*
@@ -18,8 +21,14 @@ object Hammer {
     val eval = clientBuilder.retrofit<EvalTriggerServiceClient>(uri)
     val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(uri)
 
-    fun launchBatch(count: Int): MutableSet<UUID> {
-        val builds = mutableSetOf<UUID>()
+    data class BuildState(
+        val startTime: Instant? = null,
+        val endTime: Instant? = null,
+        val termination: ApiBuildEvent? = null
+    )
+
+    fun launchBatch(count: Int): MutableMap<UUID, BuildState> {
+        val builds = mutableMapOf<UUID, BuildState>()
 
         0.until(count).forEach {
             try {
@@ -27,12 +36,12 @@ object Hammer {
                     "mchammer",
                     Instant.now(),
 
-                    CustomerId(111),
+                    CustomerId(222),
                     "develop",
                     BuildTrigger.TriggerType.EVALUATE
                 )).get()
                 LOG.info("[$buildId] Created build")
-                builds.add(buildId)
+                builds[buildId] = BuildState(startTime = Instant.now())
             } catch (e: Exception) {
                 LOG.error("Exception while creating build")
             }
@@ -45,24 +54,24 @@ object Hammer {
     fun main(args: Array<String>) {
         val builds = launchBatch(10)
 
-        val status = mutableMapOf<UUID, ApiBuildEvent>()
+        while (true) {
+            val buildsLeft = builds.filter { it.value.endTime == null }
 
-        while (builds.isNotEmpty()) {
-            builds.retainAll { buildId ->
+            if (buildsLeft.isEmpty()) {
+                break
+            }
+
+            buildsLeft.forEach { buildId, state ->
                 val build = evalQuery.getBuildByIdAsync(buildId).get()
+                LOG.info("[${buildId}] ${build.status}")
 
-                if (build.status == "running") {
-                    true
-                } else {
+                if (build.status != "running") {
                     val completionEvents = build.events.filter { event ->
                         event is ApiBuildEvent.BuildFailed || event is ApiBuildEvent.BuildSucceeded
                     }
 
-                    if (completionEvents.isEmpty()) {
-                        true
-                    } else {
-                        status[buildId] = completionEvents.first()
-                        false
+                    if (completionEvents.isNotEmpty()) {
+                        builds.put(buildId, state.copy(endTime = Instant.now(), termination = completionEvents.first()))
                     }
                 }
             }
@@ -70,5 +79,16 @@ object Hammer {
             LOG.info("Waiting for 5s")
             Thread.sleep(5000)
         }
+
+        FileOutputStream("output.csv").use { output ->
+            val writer = output.writer()
+            builds.forEach { buildId, state ->
+                val startTime = state.startTime?.epochSecond
+                val endTime = state.endTime?.epochSecond
+                val termination = state?.termination?.javaClass?.simpleName
+                writer.write("$buildId,$startTime,$endTime,$termination\n")
+            }
+        }
+
     }
 }
