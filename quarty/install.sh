@@ -8,7 +8,8 @@ source ${VIRTUALENV_DIR}/bin/activate
 
 set -eu
 
-pip install pip-tools
+# 1.10.0 currently seems to break with "TypeError: unorderable types: InstallRequirement() < InstallRequirement()"
+pip install pip-tools==1.9.0
 
 export CUSTOM_COMPILE_COMMAND="./gradlew createVirtualenvAndInstallDeps"
 pip-compile
