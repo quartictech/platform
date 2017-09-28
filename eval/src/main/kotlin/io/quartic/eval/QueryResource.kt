@@ -4,6 +4,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.EvalQueryService
 import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.ApiDag
+import io.quartic.eval.api.model.ApiPhaseCompletedResult
 import io.quartic.eval.api.model.Build
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.*
@@ -44,6 +45,13 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
         is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
             this.payload.phaseId,
+            when (this.payload.result) {
+                is PhaseCompletedV6.Result.Success ->
+                    ApiPhaseCompletedResult.Success()
+                is PhaseCompletedV6.Result.UserError ->
+                    ApiPhaseCompletedResult.UserError(this.payload.result.info.toApi())
+                is PhaseCompletedV6.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
+            },
             this.time,
             this.id
         )
@@ -55,7 +63,19 @@ class QueryResource(private val database: Database) : EvalQueryService {
             this.time,
             this.id
         )
+        is BuildFailed -> ApiBuildEvent.BuildFailed(
+            this.payload.description,
+            this.time,
+            this.id
+        )
         else -> ApiBuildEvent.Other(this.time, this.id)
+    }
+
+    private fun LegacyPhaseCompleted.V5.UserErrorInfo.toApi() =  when(this) {
+        is LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag ->
+            this.error
+        is LegacyPhaseCompleted.V5.UserErrorInfo.OtherException ->
+            this.detail.toString()
     }
 
     override fun getBuilds(customerId: CustomerId) = database.getBuilds(customerId, null)
