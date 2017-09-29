@@ -12,9 +12,9 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
-import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy
+import io.quartic.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeException
 import io.quartic.qube.api.model.PodSpec
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool

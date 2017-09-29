@@ -1,0 +1,16 @@
+eval_url: http://localhost:8210/api
+qube_url: ws://localhost:8202
+
+jobs:
+  - name: test
+    cron_schedule: "* * * ? * *"
+    pod:
+      containers:
+       - name: quarty
+         image: quartic/backer-upper:4
+         command:
+          - "echo"
+          - "Hello"
+         port: 8080
+url:
+  port: 8230

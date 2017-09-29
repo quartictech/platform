@@ -1,12 +1,12 @@
-package io.quartic.eval.websocket
+package io.quartic.qube.websocket
 
 import com.google.common.base.Preconditions.checkState
 import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.websocket.WebsocketClient.Event
-import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.eval.websocket.WebsocketFactory.Websocket
+import io.quartic.qube.websocket.WebsocketClient.Event
+import io.quartic.qube.websocket.WebsocketClient.Event.*
+import io.quartic.qube.websocket.WebsocketFactory.Websocket
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED

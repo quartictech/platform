@@ -46,15 +46,15 @@ class WorkerShould {
     private val podEvents = Channel<Pod>(UNLIMITED)
     private val podSpec = PodSpec(listOf(
         ContainerSpec(
-        "leet-band",
-        "la-dispute-discography-docker:1",
-        listOf("king-park"),
-        8000),
+            "leet-band",
+            "la-dispute-discography-docker:1",
+            listOf("king-park"),
+            8000),
         ContainerSpec(
-        "awesome-music",
-        "la-dispute-discography-docker:1",
-        listOf("king-park"),
-        8001)
+            "awesome-music",
+            "la-dispute-discography-docker:1",
+            listOf("king-park"),
+            8001)
     ))
 
     init {

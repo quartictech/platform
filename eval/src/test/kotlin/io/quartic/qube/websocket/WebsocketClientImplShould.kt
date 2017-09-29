@@ -1,4 +1,4 @@
-package io.quartic.eval.websocket
+package io.quartic.qube.websocket
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
@@ -7,8 +7,8 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
-import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.eval.websocket.WebsocketFactory.Websocket
+import io.quartic.qube.websocket.WebsocketClient.Event.*
+import io.quartic.qube.websocket.WebsocketFactory.Websocket
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.runBlocking

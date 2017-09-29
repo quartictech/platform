@@ -2,9 +2,9 @@ package io.quartic.eval.quarty
 
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.quarty.QuartyProxy.State.*
-import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.eval.websocket.WebsocketClientImpl
+import io.quartic.qube.websocket.WebsocketClient
+import io.quartic.qube.websocket.WebsocketClient.Event.*
+import io.quartic.qube.websocket.WebsocketClientImpl
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import io.quartic.quarty.api.model.QuartyResponse.*

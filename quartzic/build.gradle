@@ -9,7 +9,7 @@ apply plugin: KotlinPlugin
 apply plugin: ServicePlugin
 
 service {
-    mainClassName = "io.quartic.glisten.QuartzicApplication"
+    mainClassName = "io.quartic.quartzic.QuartzicApplication"
     memory = System.env.QUARTZIC_MEMORY ?: "64m"
 }
 

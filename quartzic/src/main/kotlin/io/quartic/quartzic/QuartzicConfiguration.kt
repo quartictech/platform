@@ -12,6 +12,7 @@ data class JobConfiguration(
 
 data class QuartzicConfiguration(
     val qubeUrl: URI,
+    val evalUrl: URI,
     val jobs: List<JobConfiguration>
 ): ConfigurationBase()
 

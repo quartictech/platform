@@ -5,11 +5,11 @@ import io.quartic.common.application.ApplicationBase
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.eval.database.Database
 import io.quartic.eval.pruner.Pruner
-import io.quartic.eval.qube.QubeProxy
+import io.quartic.qube.QubeProxy
 import io.quartic.eval.sequencer.BuildInitiator
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.SequencerImpl
-import io.quartic.eval.websocket.WebsocketClientImpl
+import io.quartic.qube.websocket.WebsocketClientImpl
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.model.StorageMetadata

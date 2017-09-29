@@ -11,8 +11,8 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Result
-import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy
+import io.quartic.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.qube.api.model.PodSpec

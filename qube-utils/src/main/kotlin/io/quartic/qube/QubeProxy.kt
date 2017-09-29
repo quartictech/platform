@@ -1,7 +1,7 @@
-package io.quartic.eval.qube
+package io.quartic.qube
 
 import io.quartic.common.coroutines.SuspendedAutoCloseable
-import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.qube.websocket.WebsocketClient
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.model.PodSpec

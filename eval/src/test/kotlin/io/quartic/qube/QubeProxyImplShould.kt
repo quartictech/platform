@@ -1,14 +1,14 @@
-package io.quartic.eval.qube
+package io.quartic.qube
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.coroutines.use
-import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy.QubeException
 import io.quartic.eval.utils.runAndExpectToTimeout
 import io.quartic.eval.utils.runOrTimeout
-import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClient.Event
-import io.quartic.eval.websocket.WebsocketClient.Event.MessageReceived
+import io.quartic.qube.websocket.WebsocketClient
+import io.quartic.qube.websocket.WebsocketClient.Event
+import io.quartic.qube.websocket.WebsocketClient.Event.MessageReceived
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeRequest.Create
 import io.quartic.qube.api.QubeRequest.Destroy
