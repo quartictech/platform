@@ -9,5 +9,3 @@ dist/
 .env/
 test-reports/
 .vscode/.*
-
-requirements.workaround.txt

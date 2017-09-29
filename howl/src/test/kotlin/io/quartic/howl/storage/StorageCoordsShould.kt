@@ -6,15 +6,15 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
-class MappersShould {
+class StorageCoordsShould {
 
     @Test
     fun map_unmanaged_to_root_raw_key() {
-        assertThat(Unmanaged("target", "bar/baz").bucketKey, equalTo("raw/bar/baz"))
+        assertThat(Unmanaged("bar/baz").backendKey, equalTo("raw/bar/baz"))
     }
 
     @Test
     fun map_managed_to_dot_quartic_top_level_folder_with_identity_namespace() {
-        assertThat(Managed("target", "identity", "bar/baz").bucketKey, equalTo(".quartic/identity/bar/baz"))
+        assertThat(Managed("identity", "bar/baz").backendKey, equalTo(".quartic/identity/bar/baz"))
     }
 }

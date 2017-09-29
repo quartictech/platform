@@ -123,7 +123,7 @@ class HomeResource(
         @Context request: HttpServletRequest
     ): HowlStorageId {
         val namespace = lookupNamespace(user)
-        return howl.uploadAnonymousFile(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
+        return howl.uploadAnonymousObject(namespace.namespace, namespace.namespace, request.contentType) { outputStream ->
             try {
                 copy(request.inputStream, outputStream)
             } catch (e: Exception) {

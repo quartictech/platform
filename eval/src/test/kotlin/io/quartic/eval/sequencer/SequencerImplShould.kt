@@ -37,9 +37,8 @@ class SequencerImplShould {
     fun write_basic_sequence_to_db() = runBlocking {
         sequencer.sequence(buildContext) {}    // Do nothing
 
-        val buildId = uuid(100)
-        verify(database).insertEvent(eq(uuid(101)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId))
-        verify(database).insertEvent(eq(uuid(102)), eq(BUILD_SUCCEEDED), any(), eq(buildId))
+        verify(database).insertEvent(eq(uuid(100)), eq(ContainerAcquired(uuid(9999), "a.b.c")), any(), eq(buildId))
+        verify(database).insertEvent(eq(uuid(101)), eq(BUILD_SUCCEEDED), any(), eq(buildId))
     }
 
     @Test
@@ -52,8 +51,7 @@ class SequencerImplShould {
             } // Do nothing
         }
 
-        val buildId = uuid(100)
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId))
         verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success(artifact))), any(), eq(buildId))
     }
@@ -66,8 +64,7 @@ class SequencerImplShould {
             }
         }
 
-        val buildId = uuid(100)
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(PhaseStarted(phaseId, "Yes")), any(), eq(buildId))
         verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, Success())), any(), eq(buildId))
     }
@@ -81,7 +78,7 @@ class SequencerImplShould {
             }
         }
 
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), any(), any())
     }
 
@@ -94,7 +91,7 @@ class SequencerImplShould {
             }
         }
 
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(LogMessageReceived(phaseId, "foo", "bar")), eq(Instant.EPOCH), any())
     }
 
@@ -120,7 +117,7 @@ class SequencerImplShould {
             }
         }
 
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, INTERNAL_ERROR)), any(), any())
     }
 
@@ -139,7 +136,7 @@ class SequencerImplShould {
             }
         }
 
-        val phaseId = uuid(102)
+        val phaseId = uuid(101)
         verify(database).insertEvent(any(), eq(PhaseCompleted(phaseId, INTERNAL_ERROR)), any(), any())
     }
 
@@ -243,9 +240,10 @@ class SequencerImplShould {
     private fun uuid(x: Int) = UUID(0, x.toLong())
 
     private var uuid = 100
+    private val buildId = uuid(99)
 
     private val buildRow = mock<BuildRow> {
-        on { id } doReturn uuid(uuid)
+        on { id } doReturn buildId
         on { buildNumber } doReturn 1234
     }
     private val buildContext = BuildContext(details, customer, buildRow)

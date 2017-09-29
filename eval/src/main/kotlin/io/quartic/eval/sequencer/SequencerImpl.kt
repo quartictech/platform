@@ -40,7 +40,7 @@ class SequencerImpl(
     }
 
     private inner class SequenceContext(private val context: BuildContext) {
-        private val buildId = uuidGen()
+        private val buildId = context.build.id
 
         suspend fun execute(block: suspend SequenceBuilder.() -> Unit) {
             notifier.notifyQueue(context.trigger)
