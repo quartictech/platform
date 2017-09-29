@@ -38,7 +38,8 @@ object Hammer {
 
                     CustomerId(222),
                     "develop",
-                    BuildTrigger.TriggerType.EVALUATE
+                    BuildTrigger.TriggerType.EVALUATE,
+                    silent = true
                 )).get()
                 LOG.info("[$buildId] Created build")
                 builds[buildId] = BuildState(startTime = Instant.now())
@@ -52,7 +53,7 @@ object Hammer {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val builds = launchBatch(10)
+        val builds = launchBatch(100)
 
         while (true) {
             val buildsLeft = builds.filter { it.value.endTime == null }
@@ -71,6 +72,7 @@ object Hammer {
                     }
 
                     if (completionEvents.isNotEmpty()) {
+                        LOG.info("[$buildId] Completed")
                         builds.put(buildId, state.copy(endTime = Instant.now(), termination = completionEvents.first()))
                     }
                 }
@@ -81,12 +83,13 @@ object Hammer {
         }
 
         FileOutputStream("output.csv").use { output ->
-            val writer = output.writer()
-            builds.forEach { buildId, state ->
-                val startTime = state.startTime?.epochSecond
-                val endTime = state.endTime?.epochSecond
-                val termination = state?.termination?.javaClass?.simpleName
-                writer.write("$buildId,$startTime,$endTime,$termination\n")
+            output.writer().use { writer ->
+                builds.forEach { buildId, state ->
+                    val startTime = state.startTime?.epochSecond
+                    val endTime = state.endTime?.epochSecond
+                    val termination = state?.termination?.javaClass?.simpleName
+                    writer.write("$buildId,$startTime,$endTime,$termination\n")
+                }
             }
         }
 

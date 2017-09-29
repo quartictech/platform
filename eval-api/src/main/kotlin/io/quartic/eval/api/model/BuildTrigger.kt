@@ -40,7 +40,8 @@ sealed class BuildTrigger {
        val timestamp: Instant,
        val customerId: CustomerId,
        val branch: String,
-       val triggerType: TriggerType
+       val triggerType: TriggerType,
+       val silent: Boolean = false
     ): BuildTrigger() {
         override fun branch() = branch
     }

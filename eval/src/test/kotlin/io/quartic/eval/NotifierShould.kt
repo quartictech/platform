@@ -31,7 +31,12 @@ class NotifierShould {
         on { branch() } doReturn "develop"
     }
 
-    private  val manualTrigger  = mock<BuildTrigger.Manual>()
+    private  val manualTrigger  = mock<BuildTrigger.Manual> {
+        on { silent } doReturn false
+    }
+    private  val silentManualTrigger  = mock<BuildTrigger.Manual>() {
+        on { silent } doReturn true
+    }
 
     private val customer = mock<Customer> {
         on { subdomain } doReturn "noobhole"
@@ -79,6 +84,12 @@ class NotifierShould {
     fun not_send_pending_for_manual_trigger() {
         notifier.notifyStart(manualTrigger)
         verifyZeroInteractions(github)
+    }
+
+    @Test
+    fun not_notify_on_silent() {
+        notifier.notifyComplete(silentManualTrigger, customer, 100, Success("Hi"))
+        verifyZeroInteractions(hey)
     }
 
     @Test
