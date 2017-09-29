@@ -105,7 +105,7 @@ class GcsStorage(
         )
     }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String =
         storage.objects()
             .insert(
                 bucket,
@@ -113,7 +113,7 @@ class GcsStorage(
                 InputStreamContent(contentType, inputStream)
             )
             .execute()
-    }
+            .md5Hash
 
     // GCS ETags are not a pure function of object content, so the ETag of the destination after copying will not
     // be the same as the ETag of the source (which is what we need).

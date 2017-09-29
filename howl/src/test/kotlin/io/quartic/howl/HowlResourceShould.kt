@@ -25,9 +25,10 @@ import java.io.InputStream
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import javax.ws.rs.ClientErrorException
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
-import javax.ws.rs.core.HttpHeaders
+import javax.ws.rs.core.HttpHeaders.*
 import javax.ws.rs.core.MediaType
 
 class HowlResourceShould {
@@ -53,11 +54,12 @@ class HowlResourceShould {
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            true
+            "yeah-etag"
         }
 
-        request("foo/managed/bar/thing").put(Entity.text(data))
+        val etag = request("foo/managed/bar/thing").put(Entity.text(data), String::class.java)
 
+        assertThat(etag, equalTo("yeah-etag"))
         verify(storage).putObject(eq(data.size), eq(MediaType.TEXT_PLAIN), any(), eq(Managed("bar", "thing")))
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
@@ -71,7 +73,7 @@ class HowlResourceShould {
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            true
+            "yeah-etag"
         }
 
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
@@ -83,23 +85,50 @@ class HowlResourceShould {
 
     @Test
     fun copy_object_on_put_with_source_key_header() {
-        whenever(storage.copyObject(any(), any())).thenReturn(mock())
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
 
-        request("foo/managed/bar/thing")
+        val etag = request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-            .put(Entity.text(""), Unit::class.java)
+            .put(Entity.text(""), String::class.java)
 
+        assertThat(etag, equalTo("yeah-etag"))
         verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"))
     }
 
     @Test
+    fun copy_object_on_put_with_source_key_header_if_different_etag_specified() {
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
+
+        val etag = request("foo/managed/bar/thing")
+            .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
+            .header(IF_NONE_MATCH, "noob-etag")
+            .put(Entity.text(""), String::class.java)
+
+        assertThat(etag, equalTo("yeah-etag"))
+        verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"), "noob-etag")
+    }
+
+    @Test
+    fun throw_precondition_failed_if_matching_etag_specified() {
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
+
+        val ex = assertThrows<ClientErrorException> {
+            request("foo/managed/bar/thing")
+                .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
+                .header(IF_NONE_MATCH, "yeah-etag")
+                .put(Entity.text(""), String::class.java)
+        }
+        assertThat(ex.response.status, equalTo(412))
+    }
+
+    @Test
     fun throw_not_found_if_copy_source_not_present() {
-        whenever(storage.copyObject(any(), any())).thenReturn(null)
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn(null)
 
         assertThrows<NotFoundException> {
             request("foo/managed/bar/thing")
                 .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-                .put(Entity.text(""), Unit::class.java)
+                .put(Entity.text(""), String::class.java)
         }
     }
 
@@ -140,9 +169,9 @@ class HowlResourceShould {
 
         val response = request("foo/unmanaged/wat").head()
         val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
-        assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
-        assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
-        assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
+        assertThat(response.headers[CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
+        assertThat(response.headers[CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
+        assertThat(response.headers[LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
         // TODO - check for ETag header
     }
 

@@ -77,16 +77,15 @@ class S3Storage(
         storageMetadata(getRawMetadata(coords))
     }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String =
         inputStream.use { s ->
             val metadata = ObjectMetadata()
             if (contentLength != null && contentLength > 0) {
                 metadata.contentLength = contentLength.toLong()
             }
             metadata.contentType = contentType
-            s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata)
+            s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata).eTag
         }
-    }
 
     override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String? = wrapS3Exception {
         val copyRequest = CopyObjectRequest(

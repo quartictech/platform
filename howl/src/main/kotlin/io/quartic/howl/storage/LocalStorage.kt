@@ -39,17 +39,10 @@ class LocalStorage(private val config: Config) : Storage {
 
     override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
-        var tempFile: File? = null
-        try {
-            tempFile = File.createTempFile("howl", "partial")
-            FileOutputStream(tempFile!!).use { fileOutputStream -> IOUtils.copy(inputStream, fileOutputStream) }
-
-            commitFile(tempFile.toPath(), coords, contentType)
-        } finally {
-            if (tempFile != null) {
-                tempFile.delete()
-            }
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String {
+        return withTempFile { tmp ->
+            FileOutputStream(tmp).use { ostream -> IOUtils.copy(inputStream, ostream) }
+            commitFile(tmp.toPath(), coords, contentType)
         }
     }
 
@@ -69,12 +62,23 @@ class LocalStorage(private val config: Config) : Storage {
         }
     }
 
-    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
-        lock.writeLock().protect {
-            prepareDestinationUnsafe(coords)
-            Files.move(from, coords.path)
-            contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+    private fun <R> withTempFile(block: (File) -> R): R {
+        var file: File? = null
+        return try {
+            file = File.createTempFile("howl", "partial")
+            block(file)
+        } finally {
+            if (file != null) {
+                file.delete()
+            }
         }
+    }
+
+    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) = lock.writeLock().protect {
+        prepareDestinationUnsafe(coords)
+        Files.move(from, coords.path)
+        contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+        getEtagUnsafe(coords)
     }
 
     private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
