@@ -49,8 +49,8 @@ class QuartzicApplication : ApplicationBase<QuartzicConfiguration>() {
             }
 
             val trigger = TriggerBuilder.newTrigger()
-                .withSchedule(SimpleScheduleBuilder.repeatMinutelyForTotalCount(1))
-//                .withSchedule(CronScheduleBuilder.cronSchedule(jobConfig.cronSchedule))
+//                .withSchedule(SimpleScheduleBuilder.repeatMinutelyForTotalCount(1))
+                .withSchedule(CronScheduleBuilder.cronSchedule(jobConfig.cronSchedule))
                 .build()
 
             scheduler.scheduleJob(jobDetail, trigger)
