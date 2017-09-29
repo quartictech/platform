@@ -25,7 +25,10 @@ import java.io.InputStream
 import java.time.Instant
 
 // See https://cloud.google.com/storage/docs/consistency for the consistency model
-class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
+class GcsStorage(
+    private val bucket: String,
+    storageSupplier: () -> Storage
+) : io.quartic.howl.storage.Storage {
 
     data class Config(val bucket: String, val credentials: Credentials) : StorageConfig {
         @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -54,15 +57,10 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
     }
 
     class Factory {
-        fun create(config: Config) = GcsStorage(config)
-    }
-
-    private val LOG by logger()
-
-    private val storage by lazy {
-        val transport = GoogleNetHttpTransport.newTrustedTransport()
-        val jsonFactory = JacksonFactory()
-        var credential = config.credentials.getCredential(transport, jsonFactory)
+        fun create(config: Config) = GcsStorage(config.bucket) {
+            val transport = GoogleNetHttpTransport.newTrustedTransport()
+            val jsonFactory = JacksonFactory()
+            var credential = config.credentials.getCredential(transport, jsonFactory)
 
             // Depending on the environment that provides the default credentials (for
             // example: Compute Engine, App Engine), the credentials may require us to
@@ -72,13 +70,18 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
                 credential = credential.createScoped(StorageScopes.all())
             }
 
-        Storage.Builder(transport, jsonFactory, credential)
-            .setApplicationName("Quartic platform")
-            .build()
+            Storage.Builder(transport, jsonFactory, credential)
+                .setApplicationName("Quartic platform")
+                .build()
+        }
     }
 
+    private val LOG by logger()
+
+    private val storage by lazy(storageSupplier)
+
     override fun getObject(coords: StorageCoords) = wrapGcsException {
-        val get = storage.objects().get(config.bucket, coords.backendKey)
+        val get = storage.objects().get(bucket, coords.backendKey)
 
         val httpResponse = get.executeMedia()
         val content = httpResponse.content
@@ -105,7 +108,7 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
     override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
         storage.objects()
             .insert(
-                config.bucket,
+                bucket,
                 StorageObject().setName(coords.backendKey),
                 InputStreamContent(contentType, inputStream)
             )
@@ -133,21 +136,12 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
     }
 
     private fun copyIfSourceEtagMatches(source: StorageCoords, dest: StorageCoords, etag: String): StorageObject? {
-        val copy = storage.objects()
-            .copy(
-                config.bucket,
-                source.backendKey,
-                config.bucket,
-                dest.backendKey,
-                null
-            )
-
+        val copy = storage.objects().copy(bucket, source.backendKey, bucket, dest.backendKey, null)
         copy.requestHeaders["x-goog-copy-source-if-match"] = etag
         return copy.execute()
     }
 
-    private fun getStorageObject(coords: StorageCoords) =
-        storage.objects().get(config.bucket, coords.backendKey).execute()
+    private fun getStorageObject(coords: StorageCoords) = storage.objects().get(bucket, coords.backendKey).execute()
 
     private fun <T> wrapGcsException(block: () -> T): T? = try {
         block()
