@@ -2,7 +2,8 @@ eval_url: http://localhost:8210/api
 qube_url: ws://localhost:8202
 
 jobs:
-  - name: test
+  - type: qube
+    name: test
     cron_schedule: "* * * ? * *"
     pod:
       containers:
@@ -12,5 +13,14 @@ jobs:
           - "echo"
           - "Hello"
          port: 8080
+  - type: eval
+    name: eval-test
+    cron_schedule: "* * * ? * *"
+    trigger:
+      customer_id: 222
+      branch: develop
+      trigger_type: EVALUATE
+
+
 url:
   port: 8230

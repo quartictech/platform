@@ -2,6 +2,7 @@ package io.quartic.quartzic
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.qube.QubeProxy
 import io.quartic.qube.websocket.WebsocketClientImpl
 import org.quartz.*
@@ -10,20 +11,42 @@ import org.quartz.impl.StdSchedulerFactory
 class QuartzicApplication : ApplicationBase<QuartzicConfiguration>() {
     override fun runApplication(configuration: QuartzicConfiguration, environment: Environment) {
         val qube = qube(configuration)
-        val scheduler = configureScheduler(configuration, qube)
+        val eval = eval(configuration)
+        val scheduler = configureScheduler(configuration, qube, eval)
         scheduler.start()
     }
 
-    private fun configureScheduler(configuration: QuartzicConfiguration, qubeProxy: QubeProxy): Scheduler {
+    private fun eval(configuration: QuartzicConfiguration): EvalTriggerServiceClient =
+        clientBuilder.retrofit(
+            configuration.evalUrl
+        )
+
+    private fun configureScheduler(
+        configuration: QuartzicConfiguration,
+        qubeProxy: QubeProxy,
+        evalTriggerService: EvalTriggerServiceClient
+    ): Scheduler {
         val scheduler = StdSchedulerFactory.getDefaultScheduler()
-        scheduler.setJobFactory(QubeJobFactory(qubeProxy))
+        scheduler.setJobFactory(QuartzicJobFactory(qubeProxy, evalTriggerService))
 
         configuration.jobs.forEach { jobConfig ->
-            val jobData = JobDataMap(mapOf("pod" to jobConfig.pod))
-            val jobDetail = JobBuilder.newJob(QubeJob::class.java)
-                .withIdentity(jobConfig.name)
-                .setJobData(jobData)
-                .build()
+
+            val jobDetail = when (jobConfig) {
+                is JobConfiguration.QubeJobConfiguration -> {
+                    val jobData = JobDataMap(mapOf("pod" to jobConfig.pod))
+                    JobBuilder.newJob(QubeJob::class.java)
+                        .withIdentity(jobConfig.name)
+                        .setJobData(jobData)
+                        .build()
+                }
+                is JobConfiguration.EvalJobConfiguration -> {
+                    val jobData = JobDataMap(mapOf("trigger" to jobConfig.trigger))
+                    JobBuilder.newJob(EvalJob::class.java)
+                        .withIdentity(jobConfig.name)
+                        .setJobData(jobData)
+                        .build()
+                }
+            }
 
             val trigger = TriggerBuilder.newTrigger()
                 .withSchedule(SimpleScheduleBuilder.repeatMinutelyForTotalCount(1))

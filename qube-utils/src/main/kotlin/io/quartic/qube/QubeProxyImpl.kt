@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
 import io.quartic.qube.QubeProxy.QubeContainerProxy
 import io.quartic.qube.QubeProxy.QubeException
-import qube.QubeProxyImpl.ClientRequest.Create
-import qube.QubeProxyImpl.ClientRequest.Destroy
+import io.quartic.qube.QubeProxyImpl.ClientRequest.Create
+import io.quartic.qube.QubeProxyImpl.ClientRequest.Destroy
 import io.quartic.qube.websocket.WebsocketClient
 import io.quartic.qube.websocket.WebsocketClient.Event.*
 import io.quartic.qube.api.QubeRequest
