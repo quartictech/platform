@@ -136,20 +136,21 @@ class HowlResourceShould {
     @Test
     fun return_metadata_on_head() {
         val instant = Instant.now()
-        whenever(storage.getMetadata(any())).thenReturn(StorageMetadata(instant, MediaType.TEXT_PLAIN, 3))
+        whenever(storage.getMetadata(any())).thenReturn(StorageMetadata(instant, MediaType.TEXT_PLAIN, 3, "noob"))
 
         val response = request("foo/unmanaged/wat").head()
         val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
         assertThat(response.headers[HttpHeaders.CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
         assertThat(response.headers[HttpHeaders.CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
         assertThat(response.headers[HttpHeaders.LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
+        // TODO - check for ETag header
     }
 
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
         whenever(storage.getObject(any())).thenReturn(
             StorageResult(
-                StorageMetadata(Instant.now(), MediaType.TEXT_PLAIN, 3),
+                StorageMetadata(Instant.now(), MediaType.TEXT_PLAIN, 3, "noob"),
                 ByteArrayInputStream(data)
             )
         )

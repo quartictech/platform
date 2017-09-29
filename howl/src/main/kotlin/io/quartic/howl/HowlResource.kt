@@ -77,7 +77,8 @@ class HowlResource(
         }
 
         private fun copyObject(source: StorageCoords, dest: StorageCoords): Response = try {
-            if (storage.copyObject(source, dest) != null) {
+            // TODO - wire through If-None-Match
+            if (storage.copyObject(source, dest, null) != null) {
                 Response.ok().build()
             } else {
                 Response.status(NOT_FOUND).build()  // TODO: provide a useful message

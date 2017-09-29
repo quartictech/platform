@@ -2,6 +2,7 @@ package io.quartic.howl.storage
 
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
+import org.apache.commons.codec.digest.DigestUtils.md5Hex
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -12,6 +13,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
+
+
 
 /**
  * Ephemeral local storage.
@@ -50,14 +53,17 @@ class LocalStorage(private val config: Config) : Storage {
         }
     }
 
-    override fun copyObject(source: StorageCoords, dest: StorageCoords) = lock.writeLock().protect {
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?) = lock.writeLock().protect {
         if (Files.exists(source.path)) {
-            prepareDestinationUnsafe(dest)
-            Files.copy(source.path, dest.path)
-            contentTypes[dest] = contentTypes[source]
-                ?: Files.probeContentType(source.path)
-                ?: DEFAULT_CONTENT_TYPE
-            getMetadataUnsafe(dest)
+            val sourceEtag = getEtagUnsafe(source)
+            if (sourceEtag != oldEtag) {
+                prepareDestinationUnsafe(dest)
+                Files.copy(source.path, dest.path)
+                contentTypes[dest] = contentTypes[source]
+                    ?: Files.probeContentType(source.path)
+                    ?: DEFAULT_CONTENT_TYPE
+            }
+            sourceEtag
         } else {
             null
         }
@@ -79,12 +85,15 @@ class LocalStorage(private val config: Config) : Storage {
             StorageMetadata(
                 Files.getLastModifiedTime(coords.path).toInstant(),
                 contentType,
-                Files.size(coords.path)
+                Files.size(coords.path),
+                getEtagUnsafe(coords)
             )
         } else {
             null
         }
     }
+
+    private fun getEtagUnsafe(coords: StorageCoords) = FileInputStream(coords.path.toFile()).use(::md5Hex)
 
     private fun prepareDestinationUnsafe(coords: StorageCoords) {
         coords.path.parent.toFile().mkdirs()

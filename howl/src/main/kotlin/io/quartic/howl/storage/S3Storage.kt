@@ -11,7 +11,6 @@ import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.CopyObjectRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
-import io.quartic.common.logging.logger
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
@@ -64,7 +63,6 @@ class S3Storage(
         private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
     }
 
-    private val LOG by logger()
     private val s3 by lazy(s3Supplier)
 
     override fun getObject(coords: StorageCoords): StorageResult? = wrapS3Exception {
@@ -90,38 +88,19 @@ class S3Storage(
         }
     }
 
-    override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? = wrapS3Exception {
-        // CopyObjectResult doesn't have all the required metadata, so we have to do another API request here :(
-        // We can't query the destination metadata, because of eventual consistency.  So we query the source metadata
-        // instead.  To mitigate the potential race condition, we enforce an ETag constraint, and keep looping
-        // until it's met.
-        var result: StorageMetadata? = null
-        var attempts = 1
-        while (result == null) {
-            if (attempts > 1) {
-                LOG.info("Attempt #${attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
-            }
-            result = attemptSafeCopy(source, dest)
-            attempts++
-        }
-        result
-    }
-
-    private fun attemptSafeCopy(source: StorageCoords, dest: StorageCoords): StorageMetadata? {
-        val sourceMetadata = getRawMetadata(source)
-
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String? = wrapS3Exception {
         val copyRequest = CopyObjectRequest(
             bucket.veryUnsafe,
             source.backendKey,
             bucket.veryUnsafe,
             dest.backendKey
-        ).withMatchingETagConstraint(sourceMetadata.eTag)
+        )
 
-        return if (s3.copyObject(copyRequest) != null) {
-            storageMetadata(sourceMetadata)
-        } else {
-            null
+        if (oldEtag != null) {
+            copyRequest.withNonmatchingETagConstraint(oldEtag)
         }
+
+        s3.copyObject(copyRequest)?.eTag ?: oldEtag
     }
 
     private fun getRawMetadata(coords: StorageCoords) = s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey)
@@ -130,7 +109,8 @@ class S3Storage(
         StorageMetadata(
             objectMetadata.lastModified.toInstant(),
             objectMetadata.contentType,
-            objectMetadata.contentLength
+            objectMetadata.contentLength,
+            objectMetadata.eTag
         )
 
     private fun <T> wrapS3Exception(block: () -> T): T? = try {

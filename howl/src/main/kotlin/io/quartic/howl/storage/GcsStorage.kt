@@ -15,6 +15,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.StorageScopes
 import com.google.api.services.storage.model.StorageObject
+import io.quartic.common.logging.logger
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.GcsStorage.Config.Credentials.ApplicationDefault
 import io.quartic.howl.storage.GcsStorage.Config.Credentials.ServiceAccountJsonKey
@@ -56,6 +57,8 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
         fun create(config: Config) = GcsStorage(config)
     }
 
+    private val LOG by logger()
+
     private val storage by lazy {
         val transport = GoogleNetHttpTransport.newTrustedTransport()
         val jsonFactory = JacksonFactory()
@@ -94,8 +97,8 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
         StorageMetadata(
             Instant.ofEpochMilli(storageObject.updated.value),
             storageObject.contentType ?: DEFAULT_MIME_TYPE,
-            // Probably OK for now!
-            storageObject.getSize().toLong()
+            storageObject.getSize().toLong(),   // Probably OK for now!
+            storageObject.md5Hash   // We need the etag to be a function of content only
         )
     }
 
@@ -109,11 +112,28 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
             .execute()
     }
 
-    // According to https://cloud.google.com/storage/docs/consistency, GCS is strongly consistent.  So this
-    // read-metadata-after-write pair should be safe (so long as we don't have concurrent writers, which is not
-    // something we're considering as it will eventually be mitigated by namespaces/transactions).
-    override fun copyObject(source: StorageCoords, dest: StorageCoords): StorageMetadata? = wrapGcsException {
-        storage.objects()
+    // GCS ETags are not a pure function of object content, so the ETag of the destination after copying will not
+    // be the same as the ETag of the source (which is what we need).
+    // Thus we use object MD5 instead, and rely on a "safe copy" mechanism.
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?) = wrapGcsException {
+        var sourceObject = getStorageObject(source)
+
+        if (sourceObject.md5Hash != oldEtag) {
+            var attempts = 1
+            // We definitely need to do a copy, so now we keep attempting to copy until we guarantee we've copied
+            // a source object whose metadata we have.
+            while (copyIfSourceEtagMatches(source, dest, sourceObject.etag) == null) {
+                // Try again with updated source metadata
+                sourceObject = getStorageObject(source)
+                LOG.info("Attempt #${++attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
+            }
+        }
+
+        sourceObject.md5Hash
+    }
+
+    private fun copyIfSourceEtagMatches(source: StorageCoords, dest: StorageCoords, etag: String): StorageObject? {
+        val copy = storage.objects()
             .copy(
                 config.bucket,
                 source.backendKey,
@@ -121,8 +141,9 @@ class GcsStorage(private val config: Config) : io.quartic.howl.storage.Storage {
                 dest.backendKey,
                 null
             )
-            .execute()
-        getMetadata(dest)
+
+        copy.requestHeaders["x-goog-copy-source-if-match"] = etag
+        return copy.execute()
     }
 
     private fun getStorageObject(coords: StorageCoords) =
