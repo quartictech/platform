@@ -4,7 +4,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.dropwizard.testing.junit.ResourceTestRule
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
-import io.quartic.howl.HowlResource.Companion.UNMANAGED_SOURCE_KEY_HEADER
+import io.quartic.howl.api.HowlClient.Companion.UNMANAGED_SOURCE_KEY_HEADER
 import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage
@@ -57,9 +57,9 @@ class HowlResourceShould {
             "yeah-etag"
         }
 
-        val etag = request("foo/managed/bar/thing").put(Entity.text(data), String::class.java)
+        val eTag = request("foo/managed/bar/thing").put(Entity.text(data), String::class.java)
 
-        assertThat(etag, equalTo("yeah-etag"))
+        assertThat(eTag, equalTo("yeah-etag"))
         verify(storage).putObject(eq(data.size), eq(MediaType.TEXT_PLAIN), any(), eq(Managed("bar", "thing")))
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
@@ -87,11 +87,11 @@ class HowlResourceShould {
     fun copy_object_on_put_with_source_key_header() {
         whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
 
-        val etag = request("foo/managed/bar/thing")
+        val eTag = request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
             .put(Entity.text(""), String::class.java)
 
-        assertThat(etag, equalTo("yeah-etag"))
+        assertThat(eTag, equalTo("yeah-etag"))
         verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"))
     }
 
@@ -99,12 +99,12 @@ class HowlResourceShould {
     fun copy_object_on_put_with_source_key_header_if_different_etag_specified() {
         whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
 
-        val etag = request("foo/managed/bar/thing")
+        val eTag = request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
             .header(IF_NONE_MATCH, "noob-etag")
             .put(Entity.text(""), String::class.java)
 
-        assertThat(etag, equalTo("yeah-etag"))
+        assertThat(eTag, equalTo("yeah-etag"))
         verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"), "noob-etag")
     }
 

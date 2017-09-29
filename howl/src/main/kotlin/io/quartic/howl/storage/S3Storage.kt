@@ -87,7 +87,7 @@ class S3Storage(
             s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata).eTag
         }
 
-    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String? = wrapS3Exception {
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): String? = wrapS3Exception {
         val copyRequest = CopyObjectRequest(
             bucket.veryUnsafe,
             source.backendKey,
@@ -95,11 +95,11 @@ class S3Storage(
             dest.backendKey
         )
 
-        if (oldEtag != null) {
-            copyRequest.withNonmatchingETagConstraint(oldEtag)
+        if (oldETag != null) {
+            copyRequest.withNonmatchingETagConstraint(oldETag)
         }
 
-        s3.copyObject(copyRequest)?.eTag ?: oldEtag
+        s3.copyObject(copyRequest)?.eTag ?: oldETag
     }
 
     private fun getRawMetadata(coords: StorageCoords) = s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey)

@@ -118,14 +118,14 @@ class GcsStorage(
     // GCS ETags are not a pure function of object content, so the ETag of the destination after copying will not
     // be the same as the ETag of the source (which is what we need).
     // Thus we use object MD5 instead, and rely on a "safe copy" mechanism.
-    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?) = wrapGcsException {
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?) = wrapGcsException {
         var sourceObject = getStorageObject(source)
 
-        if (sourceObject.md5Hash != oldEtag) {
+        if (sourceObject.md5Hash != oldETag) {
             var attempts = 1
             // We definitely need to do a copy, so now we keep attempting to copy until we guarantee we've copied
             // a source object whose metadata we have.
-            while (copyIfSourceEtagMatches(source, dest, sourceObject.etag) == null) {
+            while (copyIfSourceETagMatches(source, dest, sourceObject.etag) == null) {
                 // Try again with updated source metadata
                 sourceObject = getStorageObject(source)
                 LOG.info("Attempt #${++attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
@@ -135,9 +135,9 @@ class GcsStorage(
         sourceObject.md5Hash
     }
 
-    private fun copyIfSourceEtagMatches(source: StorageCoords, dest: StorageCoords, etag: String): StorageObject? {
+    private fun copyIfSourceETagMatches(source: StorageCoords, dest: StorageCoords, eTag: String): StorageObject? {
         val copy = storage.objects().copy(bucket, source.backendKey, bucket, dest.backendKey, null)
-        copy.requestHeaders["x-goog-copy-source-if-match"] = etag
+        copy.requestHeaders["x-goog-copy-source-if-match"] = eTag
         return copy.execute()
     }
 

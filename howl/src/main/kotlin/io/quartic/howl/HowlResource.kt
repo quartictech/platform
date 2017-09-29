@@ -2,6 +2,7 @@ package io.quartic.howl
 
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
+import io.quartic.howl.api.HowlClient.Companion.UNMANAGED_SOURCE_KEY_HEADER
 import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
@@ -70,25 +71,25 @@ class HowlResource(
             @Produces(MediaType.APPLICATION_JSON)
             fun uploadOrCopyObject(
                 @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
-                @HeaderParam(IF_NONE_MATCH) oldEtag: String?,
+                @HeaderParam(IF_NONE_MATCH) oldETag: String?,
                 @Context request: HttpServletRequest
             ) = if (unmanagedSourceKey != null) {
-                copyObject(Unmanaged(unmanagedSourceKey), coords, oldEtag)
+                copyObject(Unmanaged(unmanagedSourceKey), coords, oldETag)
             } else {
                 uploadObject(request, coords)
             }
         }
 
-        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String {
-            val newEtag = try {
-                storage.copyObject(source, dest, oldEtag)
+        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): String {
+            val newETag = try {
+                storage.copyObject(source, dest, oldETag)
             } catch (e: Exception) {
                 throw ServerErrorException(INTERNAL_SERVER_ERROR)
             }
-            return when (newEtag) {
+            return when (newETag) {
                 null -> throw NotFoundException()  // TODO: provide a useful message
-                oldEtag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
-                else -> newEtag
+                oldETag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
+                else -> newETag
             }
         }
 
@@ -110,8 +111,4 @@ class HowlResource(
             .header(LAST_MODIFIED,
                 DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
-
-    companion object {
-        const val UNMANAGED_SOURCE_KEY_HEADER = "x-unmanaged-source-key"
-    }
 }

@@ -19,5 +19,5 @@ interface Storage {
     fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String
 
     // Null indicates source not found, exception indicates some other error
-    fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String? = null): String?
+    fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String? = null): String?
 }

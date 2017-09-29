@@ -46,17 +46,17 @@ class LocalStorage(private val config: Config) : Storage {
         }
     }
 
-    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?) = lock.writeLock().protect {
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?) = lock.writeLock().protect {
         if (Files.exists(source.path)) {
-            val sourceEtag = getEtagUnsafe(source)
-            if (sourceEtag != oldEtag) {
+            val sourceETag = getETagUnsafe(source)
+            if (sourceETag != oldETag) {
                 prepareDestinationUnsafe(dest)
                 Files.copy(source.path, dest.path)
                 contentTypes[dest] = contentTypes[source]
                     ?: Files.probeContentType(source.path)
                     ?: DEFAULT_CONTENT_TYPE
             }
-            sourceEtag
+            sourceETag
         } else {
             null
         }
@@ -78,7 +78,7 @@ class LocalStorage(private val config: Config) : Storage {
         prepareDestinationUnsafe(coords)
         Files.move(from, coords.path)
         contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
-        getEtagUnsafe(coords)
+        getETagUnsafe(coords)
     }
 
     private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
@@ -90,14 +90,14 @@ class LocalStorage(private val config: Config) : Storage {
                 Files.getLastModifiedTime(coords.path).toInstant(),
                 contentType,
                 Files.size(coords.path),
-                getEtagUnsafe(coords)
+                getETagUnsafe(coords)
             )
         } else {
             null
         }
     }
 
-    private fun getEtagUnsafe(coords: StorageCoords) = FileInputStream(coords.path.toFile()).use(::md5Hex)
+    private fun getETagUnsafe(coords: StorageCoords) = FileInputStream(coords.path.toFile()).use(::md5Hex)
 
     private fun prepareDestinationUnsafe(coords: StorageCoords) {
         coords.path.parent.toFile().mkdirs()

@@ -40,20 +40,20 @@ class AllStorageTypesShould {
 
     @Test
     fun get_object_and_metadata_from_previous_put() {
-        val etag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
         storage.getObject(coords).use {
             it!!
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
-            assertMetadataCorrect(it.metadata, etag)
+            assertMetadataCorrect(it.metadata, eTag)
         }
     }
 
     @Test
     fun get_just_metadata_from_previous_put() {
-        val etag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
-        assertMetadataCorrect(storage.getMetadata(coords)!!, etag)
+        assertMetadataCorrect(storage.getMetadata(coords)!!, eTag)
     }
 
     @Test
@@ -73,13 +73,13 @@ class AllStorageTypesShould {
 
     @Test
     fun copy_object_from_previous_put() {
-        val etag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
         val destCoords = Managed(namespace, "hello2.txt")
-        val etagCopy = storage.copyObject(coords, destCoords)!!
+        val eTagCopy = storage.copyObject(coords, destCoords)!!
 
-        assertThat(etagCopy, equalTo(etag))
-        assertMetadataCorrect(storage.getMetadata(destCoords)!!, etagCopy)
+        assertThat(eTagCopy, equalTo(eTag))
+        assertMetadataCorrect(storage.getMetadata(destCoords)!!, eTagCopy)
     }
 
     @Test
@@ -92,27 +92,27 @@ class AllStorageTypesShould {
     @Test
     fun return_etags_that_are_based_only_on_object_content() {
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val originalEtag = storage.getObject(coords)!!.metadata.etag
+        val originalETag = storage.getObject(coords)!!.metadata.eTag
 
         // Overwrite with same data
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        assertThat(storage.getObject(coords)!!.metadata.etag, equalTo(originalEtag))
+        assertThat(storage.getObject(coords)!!.metadata.eTag, equalTo(originalETag))
 
         // Write at different location
         val otherCoords = Managed(namespace, "hello2.txt")
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), otherCoords)
-        assertThat(storage.getObject(otherCoords)!!.metadata.etag, equalTo(originalEtag))
+        assertThat(storage.getObject(otherCoords)!!.metadata.eTag, equalTo(originalETag))
 
         // Different for different data
         val replacementData = "Goodbye world!"
         storage.putObject(replacementData.length, MediaType.TEXT_PLAIN, replacementData.byteInputStream(), coords)
-        assertThat(storage.getObject(coords)!!.metadata.etag, not(equalTo(originalEtag)))
+        assertThat(storage.getObject(coords)!!.metadata.eTag, not(equalTo(originalETag)))
     }
 
     @Test
     fun copy_object_if_etag_specified_but_mismatches() {
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val etag = storage.getObject(coords)!!.metadata.etag
+        val etag = storage.getObject(coords)!!.metadata.eTag
 
         val destCoords = Managed(namespace, "hello2.txt")
 
@@ -123,7 +123,7 @@ class AllStorageTypesShould {
     @Test
     fun not_copy_object_if_etag_specified_and_matches() {
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val etag = storage.getObject(coords)!!.metadata.etag
+        val etag = storage.getObject(coords)!!.metadata.eTag
 
         val destCoords = Managed(namespace, "hello2.txt")
 
@@ -169,12 +169,12 @@ class AllStorageTypesShould {
     private fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8)
         = this.bufferedReader(charset).use { it.readText() }
 
-    private fun assertMetadataCorrect(metadata: StorageMetadata, expectedEtag: String) {
+    private fun assertMetadataCorrect(metadata: StorageMetadata, expectedETag: String) {
         assertThat(metadata.contentLength, equalTo(data.length.toLong()))
         assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
         assertThat(metadata.lastModified, greaterThan(Instant.now() - Duration.ofMinutes(5)))
         assertThat(metadata.lastModified, lessThan(Instant.now() + Duration.ofMinutes(5)))
-        assertThat(metadata.etag, equalTo(expectedEtag))
+        assertThat(metadata.eTag, equalTo(expectedETag))
     }
 
     private val data = "Hello world!"

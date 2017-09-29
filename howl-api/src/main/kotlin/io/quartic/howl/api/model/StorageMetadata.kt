@@ -6,5 +6,5 @@ data class StorageMetadata(
     val lastModified: Instant,
     val contentType: String,
     val contentLength: Long,
-    val etag: String
+    val eTag: String
 )
