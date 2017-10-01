@@ -3,7 +3,8 @@ version: 2
 jobs:
   build:
     docker:
-      - image: quartic/uber-builder:117
+      - image: ${GOOGLE_DOCKER_REPOSITORY}/uber-builder:139
+        auth: { username: _json_key, password: "${GOOGLE_CREDENTIALS}" }
 
     working_directory: ~/platform
 

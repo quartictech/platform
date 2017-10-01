@@ -67,7 +67,7 @@ class ServicePlugin : Plugin<Project> {
         plugins.apply(DockerPlugin::class.java)
 
         extensions.getByType(DockerExtension::class.java).apply {
-            image = "${System.getenv()["GCLOUD_DOCKER_REPOSITORY"]}/${name}:${version}"
+            image = "${System.getenv()["GOOGLE_DOCKER_REPOSITORY"]}/${name}:${version}"
             content = copySpec {
                 it.from(tasks.getByName(TASK_DIST_TAR_NAME).outputs)
                 it.fromTemplate("Dockerfile", asFile(dockerfileTemplate)) {
