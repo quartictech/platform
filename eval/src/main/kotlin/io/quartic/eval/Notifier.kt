@@ -65,7 +65,7 @@ class Notifier(
     }
 
     private fun maybeSendHeyNotification(customer: Customer, event: Event, buildNumber: Long, buildUri: URI?, trigger: BuildTrigger) {
-        if (trigger is GithubWebhook || (trigger is BuildTrigger.Manual && !trigger.silent)) {
+        if (trigger is GithubWebhook || trigger is Manual) {
             client.notifyAsync(HeyNotification(
                 customer.slackChannel,
                 listOf(

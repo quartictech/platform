@@ -10,7 +10,7 @@ dependencies {
     compile project(":common-core")
     compile project(":eval-api")
 
-    runtime "ch.qos.logback:logback-classic:1.2.3"
+    runtime libraries.logbackClassic
 }
 
 mainClassName = "io.quartic.integration.Hammer"

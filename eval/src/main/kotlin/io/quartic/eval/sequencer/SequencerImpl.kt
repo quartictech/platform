@@ -15,7 +15,6 @@ import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer.*
-import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
@@ -122,7 +121,6 @@ class SequencerImpl(
                 buildId = buildId
             )
         }
-
 
         private suspend fun notifyComplete(build: BuildRow, completionEvent: BuildCompleted) {
             notifier.notifyComplete(

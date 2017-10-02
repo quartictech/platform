@@ -22,5 +22,5 @@ data class Build(
     val trigger: BuildTrigger,
     val status: String,
     val time: Instant,
-    val events: List<ApiBuildEvent> = emptyList()
+    val events: List<ApiBuildEvent>? = null
 )

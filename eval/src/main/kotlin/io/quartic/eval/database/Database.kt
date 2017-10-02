@@ -55,12 +55,8 @@ interface Database : SqlObject {
     )
 
     class TriggerReceivedColumnMapper : ColumnMapper<TriggerReceived> {
-        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerReceived? =
-            if (r.getString(columnNumber) != null) {
-                OBJECT_MAPPER.readValue(r.getString(columnNumber))
-            } else {
-                null
-            }
+        override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): TriggerReceived =
+            OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
 
     class BuildResultSuccessColumnMapper : ColumnMapper<EvaluationOutput> {

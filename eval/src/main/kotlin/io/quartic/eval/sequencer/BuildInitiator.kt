@@ -53,6 +53,8 @@ class BuildInitiator(
                     registry.getCustomerAsync(null, trigger.repoId)
                 is Manual ->
                     registry.getCustomerByIdAsync(trigger.customerId)
+                is Automated ->
+                    registry.getCustomerByIdAsync(trigger.customerId)
             }.await()
         },
         onThrow = { t ->

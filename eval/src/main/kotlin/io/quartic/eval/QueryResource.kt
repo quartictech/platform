@@ -65,8 +65,9 @@ class QueryResource(private val database: Database) : EvalQueryService {
         )
         is TriggerReceived -> ApiBuildEvent.TriggerReceived(
             when (this.payload.trigger) {
-                is CurrentTriggerReceived.BuildTrigger.Manual -> "manual"
                 is CurrentTriggerReceived.BuildTrigger.GithubWebhook -> "github"
+                is CurrentTriggerReceived.BuildTrigger.Manual -> "manual"
+                is CurrentTriggerReceived.BuildTrigger.Automated -> "automated"
             },
             this.time,
             this.id

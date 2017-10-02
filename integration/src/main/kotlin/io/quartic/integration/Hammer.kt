@@ -17,7 +17,7 @@ import java.util.*
 object Hammer {
     val uri = URI.create("http://localhost:8210/api")
     val LOG by logger()
-    val clientBuilder = ClientBuilder(Hammer::class.java)
+    val clientBuilder = ClientBuilder(javaClass)
     val eval = clientBuilder.retrofit<EvalTriggerServiceClient>(uri)
     val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(uri)
 
@@ -32,14 +32,13 @@ object Hammer {
 
         0.until(count).forEach {
             try {
-                val buildId = eval.triggerAsync(BuildTrigger.Manual(
+                val buildId = eval.triggerAsync(BuildTrigger.Automated(
                     "mchammer",
                     Instant.now(),
 
                     CustomerId(222),
                     "develop",
-                    BuildTrigger.TriggerType.EVALUATE,
-                    silent = true
+                    BuildTrigger.TriggerType.EVALUATE
                 )).get()
                 LOG.info("[$buildId] Created build")
                 builds[buildId] = BuildState(startTime = Instant.now())
@@ -67,7 +66,7 @@ object Hammer {
                 LOG.info("[${buildId}] ${build.status}")
 
                 if (build.status != "running") {
-                    val completionEvents = build.events.filter { event ->
+                    val completionEvents = build.events!!.filter { event ->
                         event is ApiBuildEvent.BuildFailed || event is ApiBuildEvent.BuildSucceeded
                     }
 

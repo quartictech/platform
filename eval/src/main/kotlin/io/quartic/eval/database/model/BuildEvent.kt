@@ -9,6 +9,7 @@ import io.quartic.common.model.CustomerId
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Manual
+import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Automated
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
 import io.quartic.eval.database.model.LegacyPhaseCompleted.*
@@ -37,7 +38,8 @@ data class CurrentTriggerReceived(val trigger: BuildTrigger) : BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
         Type(GithubWebhook::class, name = "github_webhook"),
-        Type(Manual::class, name = "manual")
+        Type(Manual::class, name = "manual"),
+        Type(Automated::class, name = "automated")
     )
     sealed class BuildTrigger {
         data class GithubWebhook(
@@ -53,6 +55,14 @@ data class CurrentTriggerReceived(val trigger: BuildTrigger) : BuildEvent() {
         ): BuildTrigger()
 
         data class Manual(
+            val user: String,
+            val timestamp: Instant,
+            val customerId: CustomerId,
+            val branch: String,
+            val triggerType: TriggerType
+        ): BuildTrigger()
+
+        data class Automated(
             val user: String,
             val timestamp: Instant,
             val customerId: CustomerId,
@@ -177,6 +187,17 @@ fun BuildTrigger.toApiModel() = when (this) {
             EXECUTE -> io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
         }
     )
+    is Automated -> io.quartic.eval.api.model.BuildTrigger.Automated(
+        user = user,
+        timestamp = timestamp,
+        customerId = customerId,
+        branch = branch,
+        triggerType = when (triggerType) {
+            EVALUATE -> io.quartic.eval.api.model.BuildTrigger.TriggerType.EVALUATE
+            EXECUTE -> io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
+        }
+    )
+
 }
 
 fun io.quartic.eval.api.model.BuildTrigger.toDatabaseModel() = when (this) {
@@ -190,6 +211,16 @@ fun io.quartic.eval.api.model.BuildTrigger.toDatabaseModel() = when (this) {
         repoOwner = repoOwner,
         installationId = installationId,
         rawWebhook = rawWebhook
+    )
+    is io.quartic.eval.api.model.BuildTrigger.Automated -> Automated(
+        user = user,
+        timestamp = timestamp,
+        customerId = customerId,
+        branch = branch,
+        triggerType = when (triggerType) {
+            io.quartic.eval.api.model.BuildTrigger.TriggerType.EVALUATE -> EVALUATE
+            io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE -> EXECUTE
+        }
     )
     is io.quartic.eval.api.model.BuildTrigger.Manual -> Manual(
         user = user,

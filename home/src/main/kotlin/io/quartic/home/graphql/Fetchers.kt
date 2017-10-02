@@ -37,8 +37,9 @@ fun io.quartic.eval.api.model.Build.toGraphQL(): Build =
         emptyList())
 
 fun BuildTrigger.toGraphQL() = when (this) {
-    is BuildTrigger.Manual -> Trigger("manual")
     is BuildTrigger.GithubWebhook -> Trigger("github_webhook")
+    is BuildTrigger.Manual -> Trigger("manual")
+    is BuildTrigger.Automated -> Trigger("automated")
 }
 
 class EventsFetcher: Fetcher<List<BuildEvent>>() {
