@@ -3,7 +3,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: quartic/uber-builder:112
+      - image: quartic/uber-builder:144
 
     working_directory: ~/platform
 
@@ -49,5 +49,5 @@ jobs:
 
       - deploy:
           command: |
-            gcloud-auth --with-docker
+            google-cloud-auth --with-docker
             ./gradlew dockerPush --parallel --console=plain

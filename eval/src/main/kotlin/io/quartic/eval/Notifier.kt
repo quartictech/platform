@@ -4,6 +4,7 @@ import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.GithubWebhook
+import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.StatusCreate
 import io.quartic.hey.api.*
@@ -47,28 +48,7 @@ class Notifier(
         event: Event) {
         val buildUri = URI.create("${homeUrlFormat.format(customer.subdomain)}/build/${buildNumber}")
 
-        client.notifyAsync(HeyNotification(
-            customer.slackChannel,
-            listOf(
-                HeyAttachment(
-                    title = when (event) {
-                        is Event.Success -> "Build #${buildNumber} succeeded"
-                        is Event.Failure -> "Build #${buildNumber} failed"
-                    },
-                    titleLink = buildUri,
-                    text = event.message,
-                    fields = listOf(
-                        HeyField("Branch", trigger.branch(), true),
-                        HeyField("Customer", customer.name, true)
-                    ),
-                    timestamp = clock.instant().atOffset(ZoneOffset.UTC),
-                    color = when (event) {
-                        is Event.Success -> HeyColor.GOOD
-                        is Event.Failure -> HeyColor.DANGER
-                    }
-                )
-            )
-        ))
+        maybeSendHeyNotification(customer, event, buildNumber, buildUri, trigger)
 
         maybeSendGithubStatus(
             trigger = trigger,
@@ -82,6 +62,33 @@ class Notifier(
                 is Event.Failure -> FAILURE_MESSAGE
             }
         )
+    }
+
+    private fun maybeSendHeyNotification(customer: Customer, event: Event, buildNumber: Long, buildUri: URI?, trigger: BuildTrigger) {
+        if (trigger is GithubWebhook || trigger is Manual) {
+            client.notifyAsync(HeyNotification(
+                customer.slackChannel,
+                listOf(
+                    HeyAttachment(
+                        title = when (event) {
+                            is Event.Success -> "Build #${buildNumber} succeeded"
+                            is Event.Failure -> "Build #${buildNumber} failed"
+                        },
+                        titleLink = buildUri,
+                        text = event.message,
+                        fields = listOf(
+                            HeyField("Branch", trigger.branch(), true),
+                            HeyField("Customer", customer.name, true)
+                        ),
+                        timestamp = clock.instant().atOffset(ZoneOffset.UTC),
+                        color = when (event) {
+                            is Event.Success -> HeyColor.GOOD
+                            is Event.Failure -> HeyColor.DANGER
+                        }
+                    )
+                )
+            ))
+        }
     }
 
     private fun maybeSendGithubStatus(trigger: BuildTrigger, state: String, targetUrl: URI?, description: String) {

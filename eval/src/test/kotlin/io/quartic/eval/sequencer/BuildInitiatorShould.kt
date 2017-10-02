@@ -4,12 +4,17 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database
+import io.quartic.eval.database.model.TriggerReceived
+import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.*
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
 import java.util.*
 import java.util.concurrent.CompletableFuture.completedFuture
 
@@ -29,7 +34,7 @@ class BuildInitiatorShould {
             initiator.start(trigger)
         }
 
-        verify(database).createBuild(uuid, uuid, customer.id, trigger)
+        verify(database).createBuild(uuid, uuid, customer.id, trigger, Instant.MIN)
     }
 
     @Test
@@ -47,7 +52,8 @@ class BuildInitiatorShould {
     private val repoId = 777L
     private val uuid = UUID(0, 100)
     private val branch = "develop"
-    private val build = Database.BuildRow(uuid, customerId, branch, 100)
+    private val build = Database.BuildRow(uuid, 100, branch, customerId,
+        "running", Instant.now(), mock())
 
     private val trigger = mock<BuildTrigger.GithubWebhook> {
         on { repoId } doReturn repoId
@@ -64,8 +70,10 @@ class BuildInitiatorShould {
     }
 
     private val database = mock<Database> {
-        on { createBuild(any(), any(), any(), any()) } doReturn build
+        on { createBuild(any(), any(), any(), any(), any()) } doReturn build
     }
 
-    private val initiator = BuildInitiator(database, registry, uuidGen = { uuid })
+    private val initiator = BuildInitiator(database, registry,
+        uuidGen = { uuid },
+        clock = Clock.fixed(Instant.MIN, ZoneId.systemDefault()))
 }

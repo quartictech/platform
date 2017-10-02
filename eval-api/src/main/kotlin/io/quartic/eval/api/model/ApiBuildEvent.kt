@@ -14,6 +14,7 @@ import java.util.*
     JsonSubTypes.Type(ApiBuildEvent.PhaseCompleted::class, name = "phase_completed"),
     JsonSubTypes.Type(ApiBuildEvent.TriggerReceived::class, name = "trigger_received"),
     JsonSubTypes.Type(ApiBuildEvent.BuildFailed::class, name = "build_failed"),
+    JsonSubTypes.Type(ApiBuildEvent.BuildSucceeded::class, name = "build_succeeded"),
     JsonSubTypes.Type(ApiBuildEvent.Other::class, name = "other")
 )
 sealed class ApiBuildEvent {
@@ -44,6 +45,11 @@ sealed class ApiBuildEvent {
 
     data class TriggerReceived(
         val triggerType: String,
+        override val time: Instant,
+        override val id: UUID
+    ): ApiBuildEvent()
+
+    data class BuildSucceeded(
         override val time: Instant,
         override val id: UUID
     ): ApiBuildEvent()
