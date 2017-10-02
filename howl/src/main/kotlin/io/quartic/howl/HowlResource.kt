@@ -41,6 +41,7 @@ class HowlResource(
             @Path("/{key}")
             fun writableResource(@PathParam("key") key: String) = WritableObjectResource(Managed(identityNamespace, key))
 
+            // TODO - eliminate this endpoint
             @POST
             @Produces(MediaType.APPLICATION_JSON)
             fun uploadAnonymousObject(@Context request: HttpServletRequest): HowlStorageId {
@@ -73,19 +74,14 @@ class HowlResource(
                 @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
                 @HeaderParam(IF_NONE_MATCH) oldETag: String?,
                 @Context request: HttpServletRequest
-            ) = if (unmanagedSourceKey != null) {
-                copyObject(Unmanaged(unmanagedSourceKey), coords, oldETag)
-            } else {
-                uploadObject(request, coords)
+            ) = when {
+                unmanagedSourceKey != null -> copyObject(Unmanaged(unmanagedSourceKey), coords, oldETag)
+                else -> uploadObject(request, coords)
             }
         }
 
         private fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): String {
-            val newETag = try {
-                storage.copyObject(source, dest, oldETag)
-            } catch (e: Exception) {
-                throw ServerErrorException(INTERNAL_SERVER_ERROR)
-            }
+            val newETag = doOr500 { storage.copyObject(source, dest, oldETag) }
             return when (newETag) {
                 null -> throw NotFoundException()  // TODO: provide a useful message
                 oldETag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
@@ -93,17 +89,19 @@ class HowlResource(
             }
         }
 
-        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords) = try {
+        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords) = doOr500 {
             storage.putObject(
                 request.contentLength,
                 request.contentType, // TODO: what if this is bigger than MAX_VALUE?
                 request.inputStream,
                 dest
             )
-        } catch (e: Exception) {
-            throw ServerErrorException(INTERNAL_SERVER_ERROR)
         }
     }
+
+    private fun <T> doOr500(block: () -> T) =
+        try { block() }
+        catch (e: Exception) { throw ServerErrorException(INTERNAL_SERVER_ERROR) }
 
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
