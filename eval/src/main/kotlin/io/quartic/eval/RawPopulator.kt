@@ -14,6 +14,7 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
 import io.quartic.howl.api.HowlClient
+import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.future.await
 import retrofit2.HttpException
@@ -35,24 +36,31 @@ class RawPopulator(
         val datasetId = rawNode.output.datasetId
         val destKey = (rawNode.source as Bucket).key    // TODO - what about other types?
 
-        val oldETag = getOldETag(namespace, datasetId)
-        val newETag = copyFromUnmanaged(namespace, datasetId, destKey, oldETag)
-        updateCatalogue(namespace, datasetId, rawNode)
-        return (newETag != null)
+        val oldMetadata = getOldMetadata(namespace, datasetId)
+        val newMetadata = copyFromUnmanaged(namespace, datasetId, destKey, oldMetadata?.eTag)
+
+        updateCatalogue(
+            namespace,
+            datasetId,
+            rawNode,
+            newMetadata ?: oldMetadata!!    // They can't both be null!
+        )
+
+        return (newMetadata != null)
     }
 
-    private suspend fun getOldETag(namespace: String, datasetId: String): String? {
+    private suspend fun getOldMetadata(namespace: String, datasetId: String): StorageMetadata? {
         val dataset = catalogue.getDatasetAsync(
             namespace = DatasetNamespace(namespace),
             id = DatasetId(datasetId)
         ).awaitOrNullOrThrow("Catalogue")
 
-        val raw = dataset?.extensions?.get(ETAG_FIELD)
+        val raw = dataset?.extensions?.get(HOWL_METADATA_FIELD)
         return if (raw != null) {
             try {
-                OBJECT_MAPPER.convertValue<String>(raw)
+                OBJECT_MAPPER.convertValue<StorageMetadata>(raw)
             } catch (e: Exception) {
-                LOG.warn("Could not parse eTag", getRootCause(e))
+                LOG.warn("Could not parse metadata", getRootCause(e))
                 null
             }
         } else {
@@ -69,7 +77,12 @@ class RawPopulator(
             oldETag = oldETag
         ).awaitOrNullOrThrow("Howl", PRECONDITION_FAILED.statusCode)
 
-    private suspend fun updateCatalogue(namespace: String, datasetId: String, rawNode: Node.Raw) =
+    private suspend fun updateCatalogue(
+        namespace: String,
+        datasetId: String,
+        rawNode: Node.Raw,
+        metadata: StorageMetadata
+    ) =
         catalogue.registerOrUpdateDatasetAsync(
             DatasetNamespace(namespace),
             DatasetId(datasetId),
@@ -81,8 +94,9 @@ class RawPopulator(
                 ),
                 CloudDatasetLocator(
                     path = HowlClient.locatorPath(namespace, datasetId),
-                    mimeType = "TODO"
-                )
+                    mimeType = metadata.contentType
+                ),
+                mapOf(HOWL_METADATA_FIELD to metadata)
             )
         ).awaitOrNullOrThrow("Catalogue")
 
@@ -107,6 +121,6 @@ class RawPopulator(
     }
 
     companion object {
-        val ETAG_FIELD = "etag"
+        val HOWL_METADATA_FIELD = "howl"
     }
 }

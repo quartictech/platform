@@ -11,12 +11,6 @@ import javax.ws.rs.core.HttpHeaders.IF_NONE_MATCH
 
 @Retrofittable
 interface HowlClient {
-    // TODO - this endpoint doesn't actually exist yet, will add in a subsequent PR
-    fun getUnmanagedMetadataAsync(
-        targetNamespace: String,
-        key: String
-    ): CompletableFuture<StorageMetadata>
-
     /**
      * If oldETag is specified, then this will not perform the copy if the data hasn't changed.  Note that this
      * check does **not** take metadata (e.g. MIME type) into account.
@@ -28,7 +22,7 @@ interface HowlClient {
         @Path("key") destKey: String,
         @Header(UNMANAGED_SOURCE_KEY_HEADER) sourceKey: String,
         @Header(IF_NONE_MATCH) oldETag: String?
-    ): CompletableFuture<String>
+    ): CompletableFuture<StorageMetadata>
 
     companion object {
         const val UNMANAGED_SOURCE_KEY_HEADER = "x-unmanaged-source-key"
