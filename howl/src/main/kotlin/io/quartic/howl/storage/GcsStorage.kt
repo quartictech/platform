@@ -22,7 +22,6 @@ import io.quartic.howl.storage.GcsStorage.Config.Credentials.ServiceAccountJsonK
 import io.quartic.howl.storage.Storage.StorageResult
 import java.io.ByteArrayInputStream
 import java.io.InputStream
-import java.time.Instant
 
 // See https://cloud.google.com/storage/docs/consistency for the consistency model
 class GcsStorage(
@@ -77,9 +76,9 @@ class GcsStorage(
     }
 
     private val LOG by logger()
-
     private val storage by lazy(storageSupplier)
 
+    // TODO - make this atomic wrt data and metadata
     override fun getObject(coords: StorageCoords) = wrapGcsException {
         val get = storage.objects().get(bucket, coords.backendKey)
 
@@ -94,18 +93,9 @@ class GcsStorage(
         }
     }
 
-    override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException {
-        val storageObject: StorageObject = getStorageObject(coords)
+    override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapGcsException { getStorageObject(coords).toMetadata() }
 
-        StorageMetadata(
-            Instant.ofEpochMilli(storageObject.updated.value),
-            storageObject.contentType ?: DEFAULT_MIME_TYPE,
-            storageObject.getSize().toLong(),   // Probably OK for now!
-            storageObject.md5Hash   // We need the etag to be a function of content only
-        )
-    }
-
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String =
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
         storage.objects()
             .insert(
                 bucket,
@@ -113,11 +103,11 @@ class GcsStorage(
                 InputStreamContent(contentType, inputStream)
             )
             .execute()
-            .md5Hash
+    }
 
     // GCS ETags are not a pure function of object content, so the ETag of the destination after copying will not
     // be the same as the ETag of the source (which is what we need).
-    // Thus we use object MD5 instead, and rely on a "safe copy" mechanism.
+    // Thus we use object MD5 as the Quartic ETag instead, and rely on a "safe copy" mechanism.
     override fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?) = wrapGcsException {
         var sourceObject = getStorageObject(source)
 
@@ -125,23 +115,26 @@ class GcsStorage(
             var attempts = 1
             // We definitely need to do a copy, so now we keep attempting to copy until we guarantee we've copied
             // a source object whose metadata we have.
-            while (copyIfSourceETagMatches(source, dest, sourceObject.etag) == null) {
+            while (!copyIfSourceETagMatches(source, dest, sourceObject.etag)) {
                 // Try again with updated source metadata
                 sourceObject = getStorageObject(source)
                 LOG.info("Attempt #${++attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
             }
         }
 
-        sourceObject.md5Hash
+        sourceObject.toMetadata()
     }
 
-    private fun copyIfSourceETagMatches(source: StorageCoords, dest: StorageCoords, eTag: String): StorageObject? {
-        val copy = storage.objects().copy(bucket, source.backendKey, bucket, dest.backendKey, null)
-        copy.requestHeaders["x-goog-copy-source-if-match"] = eTag
-        return copy.execute()
-    }
+    private fun copyIfSourceETagMatches(source: StorageCoords, dest: StorageCoords, eTag: String) =
+        with(storage.objects().copy(bucket, source.backendKey, bucket, dest.backendKey, null)) {
+            requestHeaders["x-goog-copy-source-if-match"] = eTag
+            execute() != null
+        }
 
     private fun getStorageObject(coords: StorageCoords) = storage.objects().get(bucket, coords.backendKey).execute()
+
+    // We need the etag to be a function of content only, hence md5Hash
+    private fun StorageObject.toMetadata() = StorageMetadata(contentType ?: DEFAULT_MIME_TYPE, getSize().toLong(), md5Hash)
 
     private fun <T> wrapGcsException(block: () -> T): T? = try {
         block()

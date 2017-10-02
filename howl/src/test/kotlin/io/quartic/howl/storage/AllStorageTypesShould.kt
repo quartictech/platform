@@ -3,7 +3,6 @@ package io.quartic.howl.storage
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
-import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.GcsStorage.Config.Credentials.ServiceAccountJsonKey
 import io.quartic.howl.storage.StorageCoords.Managed
 import org.hamcrest.Matchers.*
@@ -18,8 +17,6 @@ import org.junit.runners.Parameterized.Parameters
 import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.time.Duration
-import java.time.Instant
 import java.util.*
 import javax.ws.rs.core.MediaType
 
@@ -40,20 +37,24 @@ class AllStorageTypesShould {
 
     @Test
     fun get_object_and_metadata_from_previous_put() {
-        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
         storage.getObject(coords).use {
             it!!
             assertThat(it.inputStream.readTextAndClose(), equalTo(data))
-            assertMetadataCorrect(it.metadata, eTag)
+            assertThat(it.metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
+            assertThat(it.metadata.contentLength, equalTo(data.length.toLong()))
         }
     }
 
     @Test
     fun get_just_metadata_from_previous_put() {
-        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
 
-        assertMetadataCorrect(storage.getMetadata(coords)!!, eTag)
+        storage.getMetadata(coords)!!.apply {
+            assertThat(contentType, equalTo(MediaType.TEXT_PLAIN))
+            assertThat(contentLength, equalTo(data.length.toLong()))
+        }
     }
 
     @Test
@@ -73,13 +74,14 @@ class AllStorageTypesShould {
 
     @Test
     fun copy_object_from_previous_put() {
-        val eTag = storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        val originalMetadata = storage.getMetadata(coords)!!
 
         val destCoords = Managed(namespace, "hello2.txt")
-        val eTagCopy = storage.copyObject(coords, destCoords)!!
+        val copyMetadata = storage.copyObject(coords, destCoords)!!
 
-        assertThat(eTagCopy, equalTo(eTag))
-        assertMetadataCorrect(storage.getMetadata(destCoords)!!, eTagCopy)
+        assertThat(copyMetadata, equalTo(originalMetadata))
+        assertThat(storage.getMetadata(destCoords)!!, equalTo(originalMetadata))
     }
 
     @Test
@@ -92,43 +94,54 @@ class AllStorageTypesShould {
     @Test
     fun return_etags_that_are_based_only_on_object_content() {
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val originalETag = storage.getObject(coords)!!.metadata.eTag
+        val originalETag = storage.getMetadata(coords)!!.eTag
 
         // Overwrite with same data
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        assertThat(storage.getObject(coords)!!.metadata.eTag, equalTo(originalETag))
+        assertThat(storage.getMetadata(coords)!!.eTag, equalTo(originalETag))
 
         // Write at different location
         val otherCoords = Managed(namespace, "hello2.txt")
         storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), otherCoords)
-        assertThat(storage.getObject(otherCoords)!!.metadata.eTag, equalTo(originalETag))
+        assertThat(storage.getMetadata(otherCoords)!!.eTag, equalTo(originalETag))
 
         // Different for different data
         val replacementData = "Goodbye world!"
         storage.putObject(replacementData.length, MediaType.TEXT_PLAIN, replacementData.byteInputStream(), coords)
-        assertThat(storage.getObject(coords)!!.metadata.eTag, not(equalTo(originalETag)))
+        assertThat(storage.getMetadata(coords)!!.eTag, not(equalTo(originalETag)))
     }
 
     @Test
     fun copy_object_if_etag_specified_but_mismatches() {
-        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val etag = storage.getObject(coords)!!.metadata.eTag
-
+        val oldData = "Goodbye world!"
         val destCoords = Managed(namespace, "hello2.txt")
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        storage.putObject(oldData.length, MediaType.TEXT_PLAIN, oldData.byteInputStream(), destCoords)
+        val sourceMetadata = storage.getMetadata(coords)!!
+        val oldMetadata = storage.getMetadata(destCoords)!!
+        assertThat(sourceMetadata.eTag, not(equalTo(oldMetadata.eTag)))   // Sanity check
 
-        assertThat(storage.copyObject(coords, destCoords, "different-etag"), equalTo(etag))
-        assertMetadataCorrect(storage.getMetadata(destCoords)!!, etag)
+        val copyMetadata = storage.copyObject(coords, destCoords, oldMetadata.eTag)
+
+        assertThat(copyMetadata!!, equalTo(sourceMetadata))
+        assertThat(storage.getMetadata(destCoords)!!, equalTo(sourceMetadata))
     }
 
     @Test
     fun not_copy_object_if_etag_specified_and_matches() {
-        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
-        val etag = storage.getObject(coords)!!.metadata.eTag
-
+        val oldData = "Goodbye world!"
         val destCoords = Managed(namespace, "hello2.txt")
+        storage.putObject(data.length, MediaType.TEXT_PLAIN, data.byteInputStream(), coords)
+        storage.putObject(oldData.length, MediaType.TEXT_PLAIN, oldData.byteInputStream(), destCoords)
+        val sourceMetadata = storage.getMetadata(coords)!!
+        val oldMetadata = storage.getMetadata(destCoords)!!
+        assertThat(sourceMetadata.eTag, not(equalTo(oldMetadata.eTag)))   // Sanity check
 
-        assertThat(storage.copyObject(coords, destCoords, etag), equalTo(etag))
-        assertThat(storage.getMetadata(destCoords), nullValue())
+        // Note that we're cheating here - specifying source's eTag to inhibit copy
+        storage.copyObject(coords, destCoords, sourceMetadata.eTag)
+
+        // The copy shouldn't have happened, so we should get the old metadata
+        assertThat(storage.getMetadata(destCoords)!!, equalTo(oldMetadata))
     }
 
     @Test
@@ -168,14 +181,6 @@ class AllStorageTypesShould {
 
     private fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8)
         = this.bufferedReader(charset).use { it.readText() }
-
-    private fun assertMetadataCorrect(metadata: StorageMetadata, expectedETag: String) {
-        assertThat(metadata.contentLength, equalTo(data.length.toLong()))
-        assertThat(metadata.contentType, equalTo(MediaType.TEXT_PLAIN))
-        assertThat(metadata.lastModified, greaterThan(Instant.now() - Duration.ofMinutes(5)))
-        assertThat(metadata.lastModified, lessThan(Instant.now() + Duration.ofMinutes(5)))
-        assertThat(metadata.eTag, equalTo(expectedETag))
-    }
 
     private val data = "Hello world!"
     private val namespace = randomNamespace()

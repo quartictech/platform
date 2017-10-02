@@ -10,8 +10,6 @@ import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import io.quartic.howl.storage.StorageFactory
 import org.apache.commons.io.IOUtils
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -74,18 +72,18 @@ class HowlResource(
                 @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
                 @HeaderParam(IF_NONE_MATCH) oldETag: String?,
                 @Context request: HttpServletRequest
-            ) = when {
+            ): Any = when {
                 unmanagedSourceKey != null -> copyObject(Unmanaged(unmanagedSourceKey), coords, oldETag)
                 else -> uploadObject(request, coords)
             }
         }
 
-        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): String {
-            val newETag = doOr500 { storage.copyObject(source, dest, oldETag) }
-            return when (newETag) {
+        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): StorageMetadata {
+            val newMetadata = doOr500 { storage.copyObject(source, dest, oldETag) }
+            return when (newMetadata?.eTag) {
                 null -> throw NotFoundException()  // TODO: provide a useful message
                 oldETag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
-                else -> newETag
+                else -> newMetadata
             }
         }
 
@@ -106,7 +104,6 @@ class HowlResource(
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
             .header(CONTENT_TYPE, metadata.contentType)
-            .header(LAST_MODIFIED,
-                DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
+            .header(ETAG, metadata.eTag)
 }

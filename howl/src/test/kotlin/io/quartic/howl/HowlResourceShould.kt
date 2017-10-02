@@ -2,6 +2,7 @@ package io.quartic.howl
 
 import com.nhaarman.mockito_kotlin.*
 import io.dropwizard.testing.junit.ResourceTestRule
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
 import io.quartic.common.uid.UidGenerator
 import io.quartic.howl.api.HowlClient.Companion.UNMANAGED_SOURCE_KEY_HEADER
@@ -22,9 +23,6 @@ import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import javax.ws.rs.ClientErrorException
 import javax.ws.rs.NotFoundException
 import javax.ws.rs.client.Entity
@@ -44,6 +42,7 @@ class HowlResourceShould {
         .addResource(HowlResource(storageFactory, idGen))
         // Needed for injecting HttpServletRequest with @Context to work in the resource
         .setTestContainerFactory(GrizzlyWebTestContainerFactory())
+        .setMapper(OBJECT_MAPPER)
         .build()
 
     @Test
@@ -54,12 +53,11 @@ class HowlResourceShould {
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            "yeah-etag"
+            storageMetadata()
         }
 
-        val eTag = request("foo/managed/bar/thing").put(Entity.text(data), String::class.java)
+        request("foo/managed/bar/thing").put(Entity.text(data), Unit::class.java)
 
-        assertThat(eTag, equalTo("yeah-etag"))
         verify(storage).putObject(eq(data.size), eq(MediaType.TEXT_PLAIN), any(), eq(Managed("bar", "thing")))
         assertThat(byteArrayOutputStream.toByteArray(), equalTo(data))
     }
@@ -73,7 +71,7 @@ class HowlResourceShould {
         whenever(storage.putObject(any(), any(), any(), any())).thenAnswer { invocation ->
             val inputStream = invocation.getArgument<InputStream>(2)
             IOUtils.copy(inputStream, byteArrayOutputStream)
-            "yeah-etag"
+            storageMetadata()
         }
 
         val howlStorageId = request("foo/managed/bar").post(Entity.text(data), HowlStorageId::class.java)
@@ -85,37 +83,37 @@ class HowlResourceShould {
 
     @Test
     fun copy_object_on_put_with_source_key_header() {
-        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn(storageMetadata())
 
-        val eTag = request("foo/managed/bar/thing")
+        val metadata = request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-            .put(Entity.text(""), String::class.java)
+            .put(Entity.text(""), StorageMetadata::class.java)
 
-        assertThat(eTag, equalTo("yeah-etag"))
+        assertThat(metadata, equalTo(storageMetadata()))
         verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"))
     }
 
     @Test
     fun copy_object_on_put_with_source_key_header_if_different_etag_specified() {
-        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn(storageMetadata())
 
-        val eTag = request("foo/managed/bar/thing")
+        val metadata = request("foo/managed/bar/thing")
             .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-            .header(IF_NONE_MATCH, "noob-etag")
-            .put(Entity.text(""), String::class.java)
+            .header(IF_NONE_MATCH, "leet")
+            .put(Entity.text(""), StorageMetadata::class.java)
 
-        assertThat(eTag, equalTo("yeah-etag"))
-        verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"), "noob-etag")
+        assertThat(metadata, equalTo(storageMetadata()))
+        verify(storage).copyObject(Unmanaged("weird"), Managed("bar", "thing"), "leet")
     }
 
     @Test
     fun throw_precondition_failed_if_matching_etag_specified() {
-        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn("yeah-etag")
+        whenever(storage.copyObject(any(), any(), anyOrNull())).thenReturn(storageMetadata())
 
         val ex = assertThrows<ClientErrorException> {
             request("foo/managed/bar/thing")
                 .header(UNMANAGED_SOURCE_KEY_HEADER, "weird")
-                .header(IF_NONE_MATCH, "yeah-etag")
+                .header(IF_NONE_MATCH, "noob")
                 .put(Entity.text(""), String::class.java)
         }
         assertThat(ex.response.status, equalTo(412))
@@ -164,22 +162,19 @@ class HowlResourceShould {
     @Suppress("UNCHECKED_CAST")
     @Test
     fun return_metadata_on_head() {
-        val instant = Instant.now()
-        whenever(storage.getMetadata(any())).thenReturn(StorageMetadata(instant, MediaType.TEXT_PLAIN, 3, "noob"))
+        whenever(storage.getMetadata(any())).thenReturn(storageMetadata())
 
         val response = request("foo/unmanaged/wat").head()
-        val formattedDateTime = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(instant)
         assertThat(response.headers[CONTENT_TYPE] as List<String>, equalTo(listOf(MediaType.TEXT_PLAIN)))
         assertThat(response.headers[CONTENT_LENGTH] as List<String>, equalTo(listOf("3")))
-        assertThat(response.headers[LAST_MODIFIED] as List<String>, equalTo(listOf(formattedDateTime)))
-        // TODO - check for ETag header
+        assertThat(response.headers[ETAG] as List<String>, equalTo(listOf("noob")))
     }
 
     private fun assertGetBehavesCorrectly(path: String, expectedCoords: StorageCoords) {
         val data = "wat".toByteArray()
         whenever(storage.getObject(any())).thenReturn(
             StorageResult(
-                StorageMetadata(Instant.now(), MediaType.TEXT_PLAIN, 3, "noob"),
+                StorageMetadata(MediaType.TEXT_PLAIN, 3, "noob"),
                 ByteArrayInputStream(data)
             )
         )
@@ -190,6 +185,8 @@ class HowlResourceShould {
         verify(storage).getObject(expectedCoords)
         assertThat(responseEntity, equalTo(data))
     }
+
+    private fun storageMetadata() = StorageMetadata(MediaType.TEXT_PLAIN, 3, "noob")
 
     private fun request(path: String) = resources.jerseyTest.target(path).request()
 }

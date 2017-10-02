@@ -39,8 +39,8 @@ class LocalStorage(private val config: Config) : Storage {
 
     override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String {
-        return withTempFile { tmp ->
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
+        withTempFile { tmp ->
             FileOutputStream(tmp).use { ostream -> IOUtils.copy(inputStream, ostream) }
             commitFile(tmp.toPath(), coords, contentType)
         }
@@ -56,7 +56,7 @@ class LocalStorage(private val config: Config) : Storage {
                     ?: Files.probeContentType(source.path)
                     ?: DEFAULT_CONTENT_TYPE
             }
-            sourceETag
+            getMetadataUnsafe(dest)
         } else {
             null
         }
@@ -78,7 +78,7 @@ class LocalStorage(private val config: Config) : Storage {
         prepareDestinationUnsafe(coords)
         Files.move(from, coords.path)
         contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
-        getETagUnsafe(coords)
+        getMetadataUnsafe(coords)!!
     }
 
     private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
@@ -86,12 +86,7 @@ class LocalStorage(private val config: Config) : Storage {
         val contentType = contentTypes[coords]
         // Testing both is overkill, but whatever
         return if ((contentType != null) && file.exists()) {
-            StorageMetadata(
-                Files.getLastModifiedTime(coords.path).toInstant(),
-                contentType,
-                Files.size(coords.path),
-                getETagUnsafe(coords)
-            )
+            StorageMetadata(contentType, Files.size(coords.path), getETagUnsafe(coords))
         } else {
             null
         }
