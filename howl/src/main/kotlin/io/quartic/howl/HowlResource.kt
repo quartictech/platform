@@ -17,7 +17,8 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.HttpHeaders.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status.NOT_FOUND
+import javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR
+import javax.ws.rs.core.Response.Status.PRECONDITION_FAILED
 import javax.ws.rs.core.StreamingOutput
 
 @Path("/")
@@ -66,36 +67,40 @@ class HowlResource(
 
         private inner class WritableObjectResource(coords: StorageCoords) : ReadableObjectResource(coords) {
             @PUT
+            @Produces(MediaType.APPLICATION_JSON)
             fun uploadOrCopyObject(
                 @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
+                @HeaderParam(IF_NONE_MATCH) oldEtag: String?,
                 @Context request: HttpServletRequest
             ) = if (unmanagedSourceKey != null) {
-                copyObject(Unmanaged(unmanagedSourceKey), coords)
+                copyObject(Unmanaged(unmanagedSourceKey), coords, oldEtag)
             } else {
                 uploadObject(request, coords)
             }
         }
 
-        private fun copyObject(source: StorageCoords, dest: StorageCoords): Response = try {
-            if (storage.copyObject(source, dest) != null) {
-                Response.ok().build()
-            } else {
-                Response.status(NOT_FOUND).build()  // TODO: provide a useful message
+        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String {
+            val newEtag = try {
+                storage.copyObject(source, dest, oldEtag)
+            } catch (e: Exception) {
+                throw ServerErrorException(INTERNAL_SERVER_ERROR)
             }
-        } catch (e: Exception) {
-            Response.serverError().build()  // TODO: provide a useful message
+            return when (newEtag) {
+                null -> throw NotFoundException()  // TODO: provide a useful message
+                oldEtag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
+                else -> newEtag
+            }
         }
 
-        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords): Response = try {
+        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords) = try {
             storage.putObject(
                 request.contentLength,
                 request.contentType, // TODO: what if this is bigger than MAX_VALUE?
                 request.inputStream,
                 dest
             )
-            Response.ok().build()
         } catch (e: Exception) {
-            Response.serverError().build()  // TODO - should provide a useful diagnostic
+            throw ServerErrorException(INTERNAL_SERVER_ERROR)
         }
     }
 

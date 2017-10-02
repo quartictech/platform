@@ -2,6 +2,7 @@ package io.quartic.howl.storage
 
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.Storage.StorageResult
+import org.apache.commons.codec.digest.DigestUtils.md5Hex
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileInputStream
@@ -12,6 +13,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
+
+
 
 /**
  * Ephemeral local storage.
@@ -36,39 +39,46 @@ class LocalStorage(private val config: Config) : Storage {
 
     override fun getMetadata(coords: StorageCoords) = lock.readLock().protect { getMetadataUnsafe(coords) }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
-        var tempFile: File? = null
-        try {
-            tempFile = File.createTempFile("howl", "partial")
-            FileOutputStream(tempFile!!).use { fileOutputStream -> IOUtils.copy(inputStream, fileOutputStream) }
-
-            commitFile(tempFile.toPath(), coords, contentType)
-        } finally {
-            if (tempFile != null) {
-                tempFile.delete()
-            }
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String {
+        return withTempFile { tmp ->
+            FileOutputStream(tmp).use { ostream -> IOUtils.copy(inputStream, ostream) }
+            commitFile(tmp.toPath(), coords, contentType)
         }
     }
 
-    override fun copyObject(source: StorageCoords, dest: StorageCoords) = lock.writeLock().protect {
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?) = lock.writeLock().protect {
         if (Files.exists(source.path)) {
-            prepareDestinationUnsafe(dest)
-            Files.copy(source.path, dest.path)
-            contentTypes[dest] = contentTypes[source]
-                ?: Files.probeContentType(source.path)
-                ?: DEFAULT_CONTENT_TYPE
-            getMetadataUnsafe(dest)
+            val sourceEtag = getEtagUnsafe(source)
+            if (sourceEtag != oldEtag) {
+                prepareDestinationUnsafe(dest)
+                Files.copy(source.path, dest.path)
+                contentTypes[dest] = contentTypes[source]
+                    ?: Files.probeContentType(source.path)
+                    ?: DEFAULT_CONTENT_TYPE
+            }
+            sourceEtag
         } else {
             null
         }
     }
 
-    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) {
-        lock.writeLock().protect {
-            prepareDestinationUnsafe(coords)
-            Files.move(from, coords.path)
-            contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+    private fun <R> withTempFile(block: (File) -> R): R {
+        var file: File? = null
+        return try {
+            file = File.createTempFile("howl", "partial")
+            block(file)
+        } finally {
+            if (file != null) {
+                file.delete()
+            }
         }
+    }
+
+    private fun commitFile(from: Path, coords: StorageCoords, contentType: String?) = lock.writeLock().protect {
+        prepareDestinationUnsafe(coords)
+        Files.move(from, coords.path)
+        contentTypes[coords] = contentType ?: DEFAULT_CONTENT_TYPE
+        getEtagUnsafe(coords)
     }
 
     private fun getMetadataUnsafe(coords: StorageCoords): StorageMetadata? {
@@ -79,12 +89,15 @@ class LocalStorage(private val config: Config) : Storage {
             StorageMetadata(
                 Files.getLastModifiedTime(coords.path).toInstant(),
                 contentType,
-                Files.size(coords.path)
+                Files.size(coords.path),
+                getEtagUnsafe(coords)
             )
         } else {
             null
         }
     }
+
+    private fun getEtagUnsafe(coords: StorageCoords) = FileInputStream(coords.path.toFile()).use(::md5Hex)
 
     private fun prepareDestinationUnsafe(coords: StorageCoords) {
         coords.path.parent.toFile().mkdirs()
