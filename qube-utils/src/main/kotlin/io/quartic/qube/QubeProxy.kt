@@ -12,10 +12,15 @@ import java.util.*
 interface QubeProxy {
     class QubeException(message: String?) : RuntimeException(message)
 
+    sealed class QubeCompletion {
+        data class Exception(val exception: QubeException): QubeCompletion()
+        data class Terminated(val terminated: QubeResponse.Terminated): QubeCompletion()
+    }
+
     class QubeContainerProxy(
         val id: UUID,
         val hostname: String,
-        val errors: ReceiveChannel<QubeException>,
+        val completion: ReceiveChannel<QubeCompletion>,
         private val close: suspend () -> Unit
     ) : SuspendedAutoCloseable {
         override suspend fun close() = close.invoke()

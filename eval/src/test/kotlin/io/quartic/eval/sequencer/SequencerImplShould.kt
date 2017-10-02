@@ -15,6 +15,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import io.quartic.qube.QubeProxy
 import io.quartic.qube.QubeProxy.QubeContainerProxy
 import io.quartic.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy.QubeCompletion
 import io.quartic.qube.api.model.PodSpec
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
@@ -125,8 +126,8 @@ class SequencerImplShould {
     fun handle_concurrent_container_failure() = runBlocking {
         val exception = QubeException("Stuff is bad")
 
-        whenever(qubeContainer.errors).thenReturn(produce(CommonPool) {
-            send(exception)
+        whenever(qubeContainer.completion).thenReturn(produce(CommonPool) {
+            send(QubeCompletion.Exception(exception))
         })
 
         sequencer.sequence(buildContext) {
@@ -251,7 +252,7 @@ class SequencerImplShould {
     private val qubeContainer = mock<QubeContainerProxy> {
         on { id } doReturn uuid(9999)
         on { hostname } doReturn "a.b.c"
-        on { errors } doReturn Channel()
+        on { completion } doReturn Channel()
     }
 
     private val qube = mock<QubeProxy> {

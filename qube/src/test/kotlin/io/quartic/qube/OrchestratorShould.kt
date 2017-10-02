@@ -5,7 +5,6 @@ import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.model.ContainerSpec
 import io.quartic.qube.api.model.PodSpec
 import io.quartic.qube.pods.*
-import qube.pods.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import org.junit.Test

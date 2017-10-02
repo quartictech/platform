@@ -13,6 +13,8 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.Othe
 import io.quartic.eval.database.model.PhaseCompletedV6.Result
 import io.quartic.qube.QubeProxy
 import io.quartic.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeCompletion
+import io.quartic.qube.QubeProxy.QubeException
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.qube.api.model.PodSpec
@@ -72,7 +74,10 @@ class SequencerImpl(
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId)) }.use { blockAsync ->
                         select<PhaseResult<R>> {
                             blockAsync.onAwait { it }
-                            container.errors.onReceive { throw it }
+                            container.completion.onReceive { when(it) {
+                                is QubeCompletion.Exception -> throw it.exception
+                                else -> throw QubeException("Unexpected completion event: $it")
+                            } }
                         }
                     }
                 } catch (e: Exception) {

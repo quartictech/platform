@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
 import io.quartic.qube.QubeProxy.QubeContainerProxy
 import io.quartic.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy.QubeCompletion
 import io.quartic.qube.QubeProxyImpl.ClientRequest.Create
 import io.quartic.qube.QubeProxyImpl.ClientRequest.Destroy
 import io.quartic.qube.websocket.WebsocketClient
@@ -33,7 +34,7 @@ class QubeProxyImpl(
 
     private var connected = false
     private val pending = mutableMapOf<QubeId, Create>()
-    private val active = mutableMapOf<QubeId, SendChannel<QubeException>>()
+    private val active = mutableMapOf<QubeId, SendChannel<QubeCompletion>>()
     private val fromClients = Channel<ClientRequest>(UNLIMITED)
     private val LOG by logger()
 
@@ -104,7 +105,7 @@ class QubeProxyImpl(
         // Kill everything
         val exception = QubeException("Qube disconnected")
         pending.values.forEach { it.response.completeExceptionally(exception) }
-        active.values.forEach { it.send(exception) }    // Client will call close on corresponding QubeContainerProxy, but that's ok
+        active.values.forEach { it.send(QubeCompletion.Exception(exception)) }    // Client will call close on corresponding QubeContainerProxy, but that's ok
         pending.clear()
         active.clear()
     }
@@ -125,7 +126,7 @@ class QubeProxyImpl(
             (pending == null) ->
                 LOG.error("Running response doesn't correspond to pending request")
             else -> {
-                val channel = Channel<QubeException>(UNLIMITED)
+                val channel = Channel<QubeProxy.QubeCompletion>(UNLIMITED)
                 active[response.name] = channel
                 pending.response.complete(QubeContainerProxy(response.containerId, response.hostname, channel) {
                     fromClients.send(Destroy(response.name))
@@ -146,7 +147,7 @@ class QubeProxyImpl(
             (pending != null) ->
                 pending.response.completeExceptionally(exception)
             (active != null) ->
-                active.send(exception)
+                active.send(QubeCompletion.Terminated(response))
             else ->
                 LOG.error("Terminated response doesn't correspond to pending request or active container")
         }
