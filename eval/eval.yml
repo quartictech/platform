@@ -9,7 +9,7 @@ qube:
   pod:
     containers:
      - name: quarty
-       image: eu.gcr.io/quartictech/jupyter:53
+       image: eu.gcr.io/quartic-global-c39fc822/jupyter:100
        command:
         - "python"
         - "-m"
