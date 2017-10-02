@@ -14,6 +14,7 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.Inva
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
+import io.quartic.eval.database.model.TriggerReceived
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
@@ -235,8 +236,6 @@ class EvaluatorShould {
         rawWebhook = emptyMap()
     )
 
-
-
     private val manualTrigger = Manual(
         "me",
         Instant.now(),
@@ -263,7 +262,8 @@ class EvaluatorShould {
     }
 
 
-    val buildRow = Database.BuildRow(UUID.randomUUID(), customer.id, "develop", 100)
+    val buildRow = Database.BuildRow(UUID.randomUUID(), 100, "develop", customer.id, "running",
+        Instant.MIN, TriggerReceived(webhookTrigger.toDatabaseModel()))
     val evaluateBuild = BuildContext(webhookTrigger, customer, buildRow)
     val executeBuild = BuildContext(manualTrigger, customer, buildRow)
 

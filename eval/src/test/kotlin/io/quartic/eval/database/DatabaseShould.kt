@@ -1,13 +1,11 @@
 package io.quartic.eval.database
 
-import com.nhaarman.mockito_kotlin.mock
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
@@ -33,6 +31,7 @@ import java.util.*
 class DatabaseShould {
     private val customerId = customerId()
     private val branch = "develop"
+    private val sweetInstant = Instant.now()
 
     private val trigger = GithubWebhook(
         deliveryId = "deadbeef",
@@ -45,17 +44,7 @@ class DatabaseShould {
         timestamp = Instant.MIN,
         rawWebhook = emptyMap()
     )
-    val buildTrigger = BuildTrigger.GithubWebhook(
-        trigger.deliveryId,
-        trigger.repoId,
-        trigger.ref,
-        trigger.commit,
-        trigger.timestamp,
-        trigger.repoName,
-        trigger.repoOwner,
-        trigger.installationId,
-        trigger.rawWebhook
-    )
+    val buildTrigger = trigger.toApiModel()
     private val uuidGen = UuidGen()
     private val buildId = uuidGen()
     private val eventId = uuidGen()
@@ -70,13 +59,24 @@ class DatabaseShould {
     @Test
     fun insert_build() {
         insertBuild(buildId)
-        assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
+        val build = DBI.open().createQuery("SELECT * FROM build WHERE id = :build_id")
+            .bind("build_id", buildId)
+            .mapToMap()
+            .findOnly()
+
+        assertThat(build["id"] as UUID, equalTo(buildId))
+        assertThat(build["customer_id"] as Long, equalTo(customerId.uid.toLong()))
+        assertThat(build["build_number"] as Long, equalTo(1L))
+        assertThat(build["branch"] as String, equalTo("develop"))
     }
 
     @Test
     fun create_build() {
         createBuild(buildId, eventId, customerId)
-        assertThat(DATABASE.getBuild(buildId), equalTo(BuildRow(buildId, customerId, branch, 1)))
+        assertThat(DATABASE.getBuild(buildId), equalTo(
+            Database.BuildRow(buildId, 1, branch, customerId, "running",
+                sweetInstant, TriggerReceived(trigger))))
+
         assertThat(
             DATABASE.getEventsForBuild(customerId, 1).map { it.payload },
             contains(CurrentTriggerReceived(buildTrigger.toDatabaseModel()))
@@ -160,14 +160,16 @@ class DatabaseShould {
 
         (1..10).forEach { count ->
             val idA = uuidGen()
-            insertBuild(idA)
+            val eventId = uuidGen()
+            createBuild(idA, eventId, customerId)
 
             assertThat(DATABASE.getBuild(idA).buildNumber, equalTo(count.toLong()))
         }
 
         (1..5).forEach { count ->
             val idB = uuidGen()
-            insertBuild(idB, otherCustomerId)
+            val otherEventId = uuidGen()
+            createBuild(idB, otherEventId, otherCustomerId)
 
             assertThat(DATABASE.getBuild(idB).buildNumber, equalTo(count.toLong()))
         }
@@ -239,8 +241,9 @@ class DatabaseShould {
         assertThat(builds.size, equalTo(1))
     }
 
+    // NOTE: This shouldn't happen in practice as we create the trigger with the build
     @Test
-    fun filter_builds_without_trigger() {
+    fun not_include_builds_without_trigger() {
         val customerId = customerId()
         val buildId = UUID.randomUUID()
         DATABASE.insertBuild(buildId, customerId, branch)
@@ -253,7 +256,7 @@ class DatabaseShould {
     }
 
     private fun createBuild(buildId: UUID, eventId: UUID, customerId: CustomerId) {
-        DATABASE.createBuild(buildId, eventId, customerId, buildTrigger)
+        DATABASE.createBuild(buildId, eventId, customerId, buildTrigger, sweetInstant)
     }
 
     private fun insertEvent(buildId: UUID, event: BuildEvent, time: Instant = Instant.now(),

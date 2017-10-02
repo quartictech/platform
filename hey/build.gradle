@@ -30,7 +30,7 @@ dependencies {
     compile libraries.vertx.client
     compile libraries.vertx.config
 
-    runtime "ch.qos.logback:logback-classic:1.2.3"
+    runtime libraries.logbackClassic
 
     testCompile project(":common-test")
     testCompile libraries.vertx.unit

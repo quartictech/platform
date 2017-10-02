@@ -7,16 +7,12 @@ import io.quartic.eval.sequencer.BuildInitiator
 import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.runBlocking
 import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.hamcrest.CoreMatchers.*
-import org.hamcrest.Matcher
-import org.hamcrest.MatcherAssert.*
 import java.util.*
 import javax.ws.rs.NotFoundException
-import javax.ws.rs.WebApplicationException
 import javax.ws.rs.container.AsyncResponse
-
 
 class TriggerResourceShould {
     @Test

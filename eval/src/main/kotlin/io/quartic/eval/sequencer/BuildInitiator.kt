@@ -12,12 +12,14 @@ import kotlinx.coroutines.experimental.future.await
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
 import kotlinx.coroutines.experimental.run
 import retrofit2.HttpException
+import java.time.Clock
 import java.util.*
 
 class BuildInitiator(
     private val database: Database,
     private val registry: RegistryServiceClient,
-    private val uuidGen: () -> UUID = { UUID.randomUUID() }
+    private val uuidGen: () -> UUID = { UUID.randomUUID() },
+    private val clock: Clock = Clock.systemUTC()
 ) {
     private val LOG by logger()
     private val threadPool = newFixedThreadPoolContext(2, "database")
@@ -41,7 +43,7 @@ class BuildInitiator(
     private suspend fun insertBuild(customerId: CustomerId, trigger: BuildTrigger) = run(threadPool) {
         val buildId = uuidGen()
         val eventId = uuidGen()
-        database.createBuild(buildId, eventId, customerId, trigger)
+        database.createBuild(buildId, eventId, customerId, trigger, clock.instant())
     }
 
     private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(
@@ -50,6 +52,8 @@ class BuildInitiator(
                 is GithubWebhook ->
                     registry.getCustomerAsync(null, trigger.repoId)
                 is Manual ->
+                    registry.getCustomerByIdAsync(trigger.customerId)
+                is Automated ->
                     registry.getCustomerByIdAsync(trigger.customerId)
             }.await()
         },

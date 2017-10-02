@@ -122,7 +122,6 @@ class SequencerImpl(
             )
         }
 
-
         private suspend fun notifyComplete(build: BuildRow, completionEvent: BuildCompleted) {
             notifier.notifyComplete(
                 context.trigger,

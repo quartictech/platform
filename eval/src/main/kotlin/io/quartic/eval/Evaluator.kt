@@ -47,6 +47,7 @@ class Evaluator(
 ) {
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
+        is Automated -> trigger.triggerType
         is GithubWebhook -> TriggerType.EVALUATE
     }
 
@@ -117,6 +118,7 @@ class Evaluator(
 
     private fun commit(trigger: BuildTrigger) = when (trigger) {
         is GithubWebhook -> trigger.commit
+        is Automated -> trigger.branch
         is Manual -> trigger.branch
     }
 
