@@ -120,7 +120,7 @@ lock-file, so you shouldn't edit this directly.
 ./gradlew docker
 ```
 
-Note that this will build the images with a registry name of `null` and a tag of `unknown`.  CircleCI overrides the
+Note that this will build the images with a registry name of `null` and a tag of `0`.  CircleCI overrides the
 `QUARTIC_DOCKER_REPOSITORY` and `CIRCLE_BUILD_NUM` environment variables.
 
 
