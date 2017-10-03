@@ -13,6 +13,8 @@ import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
+import javax.ws.rs.core.HttpHeaders.ACCEPT
+import javax.ws.rs.core.HttpHeaders.AUTHORIZATION
 
 class GitHubInstallationClient(
     private val appId: String,
@@ -29,27 +31,27 @@ class GitHubInstallationClient(
     @Retrofittable
     interface GitHubInstallationRetrofit {
         @POST("installations/{installationId}/access_tokens")
-        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        @retrofit2.http.Headers("${ACCEPT}: ${MEDIA_TYPE}")
         fun installationAccessTokenAsync(
             @Path("installationId") installationId: Long,
-            @Header("Authorization") auth: String
+            @Header(AUTHORIZATION) auth: String
         ): CompletableFuture<GitHubInstallationAccessToken>
 
         @POST("repos/{owner}/{repo}/statuses/{sha}")
-        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        @retrofit2.http.Headers("${ACCEPT}: ${MEDIA_TYPE}")
         fun sendStatus(
             @Path("owner") owner: String,
             @Path("repo") repo: String,
             @Path("sha") sha: String,
-            @Header("Authorization") auth: String,
+            @Header(AUTHORIZATION) auth: String,
             @Body status: StatusCreate
         ): CompletableFuture<Void>
 
         @GET("repositories/{repoId}")
-        @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
+        @retrofit2.http.Headers("${ACCEPT}: ${MEDIA_TYPE}")
         fun getRepository(
             @Path("repoId") repoId: Long,
-            @Header("Authorization") auth: String
+            @Header(AUTHORIZATION) auth: String
         ): CompletableFuture<Repository>
     }
 
@@ -83,6 +85,10 @@ class GitHubInstallationClient(
 
     fun getRepositoryAsync(repoId: Long, accessToken: GitHubInstallationAccessToken) =
         githubRetrofit.getRepository(repoId, accessToken.authorizationCredentials())
+
+    companion object {
+        private const val MEDIA_TYPE = "application/vnd.github.machine-man-preview+json"
+    }
 }
 
 

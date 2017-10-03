@@ -7,8 +7,6 @@ import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.ApiBuildEvent
 import io.quartic.eval.api.model.BuildTrigger
-import java.io.BufferedWriter
-import java.io.File
 import java.io.FileOutputStream
 import java.net.URI
 import java.time.Instant
@@ -86,7 +84,7 @@ object Hammer {
                 builds.forEach { buildId, state ->
                     val startTime = state.startTime?.epochSecond
                     val endTime = state.endTime?.epochSecond
-                    val termination = state?.termination?.javaClass?.simpleName
+                    val termination = state.termination?.javaClass?.simpleName
                     writer.write("$buildId,$startTime,$endTime,$termination\n")
                 }
             }

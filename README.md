@@ -159,15 +159,15 @@ like `api.staging.quartic.io`.
 
 2. Fill in the details:
 
-  - GitHub App name: **Quartic (`${STACK_NAME}`)**
-  - Homepage URL: **https://www.quartic.io**
-  - Webhook URL: **https://`${DOMAIN}`/api/hooks/github**
-  - Webhook secret: [See here](#github-webhook-secret)
+    - GitHub App name: **Quartic (`${STACK_NAME}`)**
+    - Homepage URL: **https://www.quartic.io**
+    - Webhook URL: **https://`${DOMAIN}`/api/hooks/github**
+    - Webhook secret: [See here](#github-webhook-secret)
 
 3. Enable the following permissions:
 
-  - Commit statuses: **Read & write**
-  - Repository contents: **Read-only** (and tick **Push**)
+    - Commit statuses: **Read & write**
+    - Repository contents: **Read-only** (and tick **Push**)
 
 4. Tick **Any account**.
 
@@ -183,11 +183,32 @@ like `api.staging.quartic.io`.
 
 2. Fill in the details:
 
-  - Application name: **Quartic (`${STACK_NAME}`)**
-  - Homepage URL: **https://www.quartic.io**
-  - Authorization callback URL: **https://`${DOMAIN}`/api/auth/gh/callback**
+    - Application name: **Quartic (`${STACK_NAME}`)**
+    - Homepage URL: **https://www.quartic.io**
+    - Authorization callback URL: **https://`${DOMAIN}`/api/auth/gh/callback**
   
 3. Click **Register application**.
+
+
+## Integration tests
+
+There are various tests covering integration with 3rd-party services, which require some external configuration.
+
+
+### GitHub
+
+See `GitHubShould`.  Requirements:
+
+- A `Quartic (Dev)` GitHub app
+
+  - Configured [the normal way](#github-app).
+  - Installed on the `quartictech` repo.
+  - A private key, encoded [the normal way](#github-private-key).
+  
+- A `quartic-platform-test` service account (creds in the usual place).
+
+  - A personal access token.  Start [here](https://github.com/settings/tokens), click **Generate new token**,
+    and ensure it has `read:org` and `read:user` permissions.
 
 
 ## Secrets

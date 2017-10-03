@@ -20,7 +20,7 @@ data class GitHubOrganization(
 data class GitHubUser(
     val id: Long,
     val login: String,
-    val name: String,
+    val name: String?,
     val avatarUrl: URI
 )
 

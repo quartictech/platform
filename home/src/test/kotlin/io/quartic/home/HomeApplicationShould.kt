@@ -27,8 +27,7 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.net.URI
 import java.util.*
-import javax.ws.rs.core.HttpHeaders
-import javax.ws.rs.core.HttpHeaders.LOCATION
+import javax.ws.rs.core.HttpHeaders.*
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.Family.*
@@ -48,37 +47,37 @@ class HomeApplicationShould {
                 ))
 
             stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
                 .withQueryParam("client_secret", equalTo(CLIENT_SECRET.veryUnsafe))
                 .withQueryParam("redirect_uri", equalTo("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback"))
                 .withQueryParam("code", equalTo(CODE))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(mapOf("access_token" to ACCESS_TOKEN)))))
 
             stubFor(get(urlPathEqualTo("/user"))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(APPLICATION_JSON))
-                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(AUTHORIZATION, equalTo("token ${ACCESS_TOKEN}"))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
 
             stubFor(get(urlPathEqualTo("/user/orgs"))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(APPLICATION_JSON))
-                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(AUTHORIZATION, equalTo("token ${ACCESS_TOKEN}"))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
 
             stubFor(get(urlPathEqualTo("/user/1234"))
-                .withHeader(HttpHeaders.ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
         }
 

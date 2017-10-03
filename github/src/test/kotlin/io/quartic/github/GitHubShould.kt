@@ -6,6 +6,7 @@ import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.IntegrationTest
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasItem
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
@@ -14,14 +15,14 @@ import java.net.URI
 class GitHubShould {
     @Test
     fun return_repository_details() {
-        val repo = CLIENT.getRepositoryAsync(REPO_ID, TOKEN).get()
+        val repo = INSTALLATION_CLIENT.getRepositoryAsync(REPO_ID, TOKEN).get()
         assertThat(repo.owner.login, equalTo("quartictech"))
     }
 
     @Test
     fun accept_status_updates() {
         // Some arbitrary commit in playground repo
-        CLIENT.sendStatusAsync(
+        INSTALLATION_CLIENT.sendStatusAsync(
             "quartictech",
             "playground",
             "c98a7f98f6f05dd6ed5cf66aa9f07e10a78ba2c6",
@@ -37,13 +38,25 @@ class GitHubShould {
 
     @Test
     fun return_user_info() {
-        val client = CLIENT_BUILDER.retrofit<GitHubClient>(GITHUB_API_ROOT)
-
-        val user = client.userAsync(221545).get()
-        assertThat(user.login, equalTo("arlobryer"))
+        val user = OAUTH_CLIENT.userAsync(32487886).get()
+        assertThat(user.login, equalTo("quartic-platform-test"))
     }
 
-    // TODO - test OAuth-ed endpoints somehow (GET /user and GET /user/orgs)
+    @Test
+    fun return_user_info_from_oauthed_endpoint() {
+        val user = OAUTH_CLIENT.userAsync(OAUTH_TOKEN).get()
+        assertThat(user.login, equalTo("quartic-platform-test"))
+    }
+
+    @Test
+    fun return_user_org_info_from_oauthed_endpoint() {
+        val orgs = OAUTH_CLIENT.organizationsAsync(OAUTH_TOKEN).get()
+        assertThat(orgs, hasItem(GitHubOrganization(30663321, "noobhole")))
+    }
+
+    // TODO - test oauth login endpoint
+
+    // TODO - test webhooks somehow
 
     companion object {
         // Application ID for the Quartic (Dev) GH app
@@ -62,15 +75,20 @@ class GitHubShould {
 
         private val GITHUB_API_ROOT = URI("https://api.github.com")
 
-        private val CLIENT = GitHubInstallationClient(
+        private val INSTALLATION_CLIENT = GitHubInstallationClient(
             appId = APPLICATION_ID,
             githubApiRoot = GITHUB_API_ROOT,
             key = SecretsCodec(DEV_MASTER_KEY_BASE64).decrypt(PRIVATE_KEY_ENCRYPTED),
             clientBuilder = CLIENT_BUILDER
         )
 
+        private val OAUTH_CLIENT = CLIENT_BUILDER.retrofit<GitHubClient>(GITHUB_API_ROOT)
+
         // Note that this is a test in itself
-        private val TOKEN = CLIENT.accessTokenAsync(INSTALLATION_ID).get()
+        private val TOKEN = INSTALLATION_CLIENT.accessTokenAsync(INSTALLATION_ID).get()
+
+        // This was generated via "Personal access tokens" UI settings for the service account
+        private val OAUTH_TOKEN = AuthToken("e9434ec21f6f6e71979283d46cd7506495123183")
 
     }
 }

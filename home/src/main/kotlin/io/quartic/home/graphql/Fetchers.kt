@@ -94,6 +94,6 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
 class UserFetcher: Fetcher<User>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): User {
         val githubUser = context.github.userAsync((context.user.id.toInt())).get()
-        return User(githubUser.name, githubUser.avatarUrl.toString())
+        return User(githubUser.name ?: githubUser.login, githubUser.avatarUrl.toString())
     }
 }
