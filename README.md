@@ -205,10 +205,11 @@ See `GitHubShould`.  Requirements:
   - Installed on the `quartictech` repo.
   - A private key, encoded [the normal way](#github-private-key).
   
-- A `quartic-platform-test` service account (creds in the usual place).
+- A [`quartic-platform-test`](https://github.com/quartic-platform-test) service account (creds in the usual place).
 
-  - A personal access token.  Start [here](https://github.com/settings/tokens), click **Generate new token**,
+  - Registed a "personal access token".  Start [here](https://github.com/settings/tokens), click **Generate new token**,
     and ensure it has `read:org` and `read:user` permissions.
+  - Invited and added to the [`noobhole`](https://github.com/orgs/noobhole/people) organisation.
 
 
 ## Secrets
