@@ -87,7 +87,7 @@ class HomeApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withBody(OBJECT_MAPPER.writeValueAsString(Customer(
-                        id = CustomerId(4321),
+                        id = CUSTOMER_ID,
                         githubOrgId = 5678,
                         githubRepoId = 8765,
                         githubInstallationId = 123,
@@ -95,6 +95,15 @@ class HomeApplicationShould {
                         subdomain = "localhost",
                         namespace = "localhost"
                     )))
+                )
+            )
+        }
+
+        with(eval) {
+            stubFor(get(urlPathEqualTo("/api/query/build/${CUSTOMER_ID}"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(emptyList<Any>()))
                 )
             )
         }
@@ -164,7 +173,7 @@ class HomeApplicationShould {
             .headers[TokenAuthStrategy.XSRF_TOKEN_HEADER]!!.last() as String
 
         // Attempt to get protected resource
-        browser.location = URI("http://localhost:${APP.localPort}/api/profile")
+        browser.location = URI("http://localhost:${APP.localPort}/api/builds")
         val response = browser.request {
             header(TokenAuthStrategy.XSRF_TOKEN_HEADER, xsrfToken).get()
         }
@@ -181,6 +190,7 @@ class HomeApplicationShould {
         private val CLIENT_SECRET = UnsafeSecret("bar")
         private val CODE = "good"
         private val ACCESS_TOKEN = UUID.randomUUID().toString()
+        private val CUSTOMER_ID = CustomerId(4321)
 
         @JvmField
         @ClassRule
@@ -192,6 +202,10 @@ class HomeApplicationShould {
         @JvmField
         @ClassRule
         val registry = WireMockRule(wireMockConfig().dynamicPort())
+
+        @JvmField
+        @ClassRule
+        val eval = WireMockRule(wireMockConfig().dynamicPort())
 
         /**
          * This shouldn't be needed, but the compiler gets in a twist if you pass
@@ -216,7 +230,8 @@ class HomeApplicationShould {
             config("github.client_id", CLIENT_ID),
             config("github.client_secret_encrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
             config("github.redirect_host", { "http://localhost:${github.port()}" }),
-            config("registry_url", { "http://localhost:${registry.port()}/api" })
+            config("registry_url", { "http://localhost:${registry.port()}/api" }),
+            config("eval_url", { "http://localhost:${eval.port()}/api" })
         )
     }
 }

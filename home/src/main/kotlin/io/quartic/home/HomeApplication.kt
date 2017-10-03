@@ -15,7 +15,6 @@ import io.quartic.home.howl.HowlStreamingClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.GraphQLResource
 import io.quartic.home.resource.HomeResource
-import io.quartic.home.resource.UserResource
 import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
@@ -38,7 +37,6 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
 
         with (environment.jersey()) {
             register(GraphQLResource(evalQuery, github))
-            register(UserResource(github))
             register(HomeResource(
                 catalogue,
                 howl,
