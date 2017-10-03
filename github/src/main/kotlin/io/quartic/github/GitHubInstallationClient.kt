@@ -71,8 +71,7 @@ class GitHubInstallationClient(
         val now = Instant.now().epochSecond
         return Jwts.builder()
             .claim("iat", now)
-            // 10 minutes
-            .claim("exp", now + 10 * 60)
+            .claim("exp", now + 5 * 60) // 10-minutes is the max, but set lower to avoid rejection due to clock skew issues
             .claim("iss", appId)
             .signWith(SignatureAlgorithm.RS256, privateKey)
             .compact()
