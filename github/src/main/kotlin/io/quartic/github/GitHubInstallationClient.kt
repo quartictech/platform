@@ -9,7 +9,6 @@ import io.quartic.common.secrets.UnsafeSecret
 import org.apache.commons.codec.binary.Base64
 import retrofit2.http.*
 import java.net.URI
-import java.security.Key
 import java.security.KeyFactory
 import java.security.spec.PKCS8EncodedKeySpec
 import java.time.Instant
@@ -22,23 +21,21 @@ class GitHubInstallationClient(
     clientBuilder: ClientBuilder
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class GitHubInstallationAccessToken(
-        val token: UnsafeSecret
-    ) {
+    data class GitHubInstallationAccessToken(val token: UnsafeSecret) {
         fun authorizationCredentials() = "token ${token.veryUnsafe}"
         fun urlCredentials() = "x-access-token:${token.veryUnsafe}"
     }
 
     @Retrofittable
     interface GitHubInstallationRetrofit {
-        @POST("/installations/{installationId}/access_tokens")
+        @POST("installations/{installationId}/access_tokens")
         @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun installationAccessTokenAsync(
             @Path("installationId") installationId: Long,
             @Header("Authorization") auth: String
         ): CompletableFuture<GitHubInstallationAccessToken>
 
-        @POST("/repos/{owner}/{repo}/statuses/{sha}")
+        @POST("repos/{owner}/{repo}/statuses/{sha}")
         @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun sendStatus(
             @Path("owner") owner: String,
@@ -48,7 +45,7 @@ class GitHubInstallationClient(
             @Body status: StatusCreate
         ): CompletableFuture<Void>
 
-        @GET("/repositories/{repoId}")
+        @GET("repositories/{repoId}")
         @retrofit2.http.Headers("Accept: application/vnd.github.machine-man-preview+json")
         fun getRepository(
             @Path("repoId") repoId: Long,
@@ -57,14 +54,8 @@ class GitHubInstallationClient(
     }
 
     private val githubRetrofit = clientBuilder.retrofit<GitHubInstallationRetrofit>(githubApiRoot)
-    private val privateKey: Key
-
-    init {
-        val encoded = Base64.decodeBase64(key.veryUnsafe)
-        val spec = PKCS8EncodedKeySpec(encoded)
-        val keyFactory = KeyFactory.getInstance("RSA")
-        privateKey = keyFactory.generatePrivate(spec)
-    }
+    private val privateKey = KeyFactory.getInstance("RSA")
+        .generatePrivate(PKCS8EncodedKeySpec(Base64.decodeBase64(key.veryUnsafe)))
 
     // See https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/
     private fun generateJwt(): String {
