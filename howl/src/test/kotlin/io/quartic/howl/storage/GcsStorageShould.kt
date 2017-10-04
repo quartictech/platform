@@ -8,6 +8,7 @@ import com.nhaarman.mockito_kotlin.*
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import org.junit.Test
 import org.mockito.Mockito.RETURNS_DEEP_STUBS
+import java.math.BigInteger
 
 class GcsStorageShould {
     private val gcs = mock<Storage>(defaultAnswer = RETURNS_DEEP_STUBS)
@@ -21,6 +22,7 @@ class GcsStorageShould {
     fun attach_correct_etag_constraint_to_copy_request() {
         val metadata = mock<StorageObject> {
             on { md5Hash } doReturn "some-noob-hash"
+            on { getSize() } doReturn BigInteger.valueOf(42)
             on { etag } doReturn "abcdef"
         }
         whenever(gcs.objects().get(bucket, "raw/foo").execute()).thenReturn(metadata)
@@ -41,6 +43,7 @@ class GcsStorageShould {
     fun get_etag_again_if_copy_request_failed() {
         val metadata = mock<StorageObject> {
             on { md5Hash } doReturn "some-noob-hash"
+            on { getSize() } doReturn BigInteger.valueOf(42)
             on { etag } doReturn "abcdef" doReturn "ghijkl"
         }
         whenever(gcs.objects().get(bucket, "raw/foo").execute()).thenReturn(metadata)
