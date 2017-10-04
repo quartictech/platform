@@ -53,7 +53,7 @@ class RawPopulator(
         val dataset = catalogue.getDatasetAsync(
             namespace = DatasetNamespace(namespace),
             id = DatasetId(datasetId)
-        ).awaitOrNullOrThrow("Catalogue")
+        ).awaitOrThrowOnError("Catalogue")
 
         val raw = dataset?.extensions?.get(HOWL_METADATA_FIELD)
         return if (raw != null) {
@@ -75,7 +75,7 @@ class RawPopulator(
             destKey = destKey,
             sourceKey = sourceKey,
             oldETag = oldETag
-        ).awaitOrNullOrThrow("Howl", PRECONDITION_FAILED.statusCode)
+        ).awaitOrThrowOnError("Howl", PRECONDITION_FAILED.statusCode)
 
     private suspend fun updateCatalogue(
         namespace: String,
@@ -98,12 +98,12 @@ class RawPopulator(
                 ),
                 mapOf(HOWL_METADATA_FIELD to metadata)
             )
-        ).awaitOrNullOrThrow("Catalogue")
+        ).awaitOrThrowOnError("Catalogue")
 
     /**
      * Either the result, or null in the case of 404, else throw.
      */
-    private suspend fun <T> CompletableFuture<T>.awaitOrNullOrThrow(
+    private suspend fun <T> CompletableFuture<T>.awaitOrThrowOnError(
         service: String,
         allowableErrorCode: Int = NOT_FOUND.statusCode
     ): T? {

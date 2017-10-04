@@ -89,7 +89,7 @@ class RawPopulatorShould {
     }
 
     @Test
-    fun update_catalogue_with_new_metadata_if_copy_skipped() {
+    fun update_catalogue_with_new_metadata_if_copy_not_skipped() {
         val result = invokePopulator()
 
         assertTrue(result)
