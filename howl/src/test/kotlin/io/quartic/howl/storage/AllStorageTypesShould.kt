@@ -3,6 +3,7 @@ package io.quartic.howl.storage
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
+import io.quartic.common.test.IntegrationTest
 import io.quartic.howl.storage.GcsStorage.Config.Credentials.ServiceAccountJsonKey
 import io.quartic.howl.storage.StorageCoords.Managed
 import org.hamcrest.Matchers.*
@@ -20,6 +21,7 @@ import java.nio.charset.Charset
 import java.util.*
 import javax.ws.rs.core.MediaType
 
+@IntegrationTest
 @RunWith(Parameterized::class)
 class AllStorageTypesShould {
     @Parameter

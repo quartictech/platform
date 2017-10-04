@@ -27,8 +27,8 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.net.URI
 import java.util.*
-import javax.ws.rs.core.HttpHeaders.LOCATION
-import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.HttpHeaders.*
+import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.Family.*
 
@@ -47,33 +47,37 @@ class HomeApplicationShould {
                 ))
 
             stubFor(post(urlPathEqualTo("/login/oauth/access_token"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
                 .withQueryParam("client_id", equalTo(CLIENT_ID))
                 .withQueryParam("client_secret", equalTo(CLIENT_SECRET.veryUnsafe))
                 .withQueryParam("redirect_uri", equalTo("http://localhost:${trampolineProxy.port()}/api/auth/gh/callback"))
                 .withQueryParam("code", equalTo(CODE))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(mapOf("access_token" to ACCESS_TOKEN)))))
 
             stubFor(get(urlPathEqualTo("/user"))
-                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(AUTHORIZATION, equalTo("token ${ACCESS_TOKEN}"))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
 
             stubFor(get(urlPathEqualTo("/user/orgs"))
-                .withHeader("Authorization", equalTo("token ${ACCESS_TOKEN}"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
+                .withHeader(AUTHORIZATION, equalTo("token ${ACCESS_TOKEN}"))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
 
             stubFor(get(urlPathEqualTo("/user/1234"))
+                .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
                 .willReturn(aResponse()
                     .withStatus(200)
-                    .withHeader("Content-Type", MediaType.APPLICATION_JSON)
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
         }
 
@@ -83,7 +87,7 @@ class HomeApplicationShould {
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withBody(OBJECT_MAPPER.writeValueAsString(Customer(
-                        id = CustomerId(4321),
+                        id = CUSTOMER_ID,
                         githubOrgId = 5678,
                         githubRepoId = 8765,
                         githubInstallationId = 123,
@@ -91,6 +95,15 @@ class HomeApplicationShould {
                         subdomain = "localhost",
                         namespace = "localhost"
                     )))
+                )
+            )
+        }
+
+        with(eval) {
+            stubFor(get(urlPathEqualTo("/api/query/build/${CUSTOMER_ID}"))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withBody(OBJECT_MAPPER.writeValueAsString(emptyList<Any>()))
                 )
             )
         }
@@ -160,7 +173,7 @@ class HomeApplicationShould {
             .headers[TokenAuthStrategy.XSRF_TOKEN_HEADER]!!.last() as String
 
         // Attempt to get protected resource
-        browser.location = URI("http://localhost:${APP.localPort}/api/profile")
+        browser.location = URI("http://localhost:${APP.localPort}/api/builds")
         val response = browser.request {
             header(TokenAuthStrategy.XSRF_TOKEN_HEADER, xsrfToken).get()
         }
@@ -177,6 +190,7 @@ class HomeApplicationShould {
         private val CLIENT_SECRET = UnsafeSecret("bar")
         private val CODE = "good"
         private val ACCESS_TOKEN = UUID.randomUUID().toString()
+        private val CUSTOMER_ID = CustomerId(4321)
 
         @JvmField
         @ClassRule
@@ -188,6 +202,10 @@ class HomeApplicationShould {
         @JvmField
         @ClassRule
         val registry = WireMockRule(wireMockConfig().dynamicPort())
+
+        @JvmField
+        @ClassRule
+        val eval = WireMockRule(wireMockConfig().dynamicPort())
 
         /**
          * This shouldn't be needed, but the compiler gets in a twist if you pass
@@ -212,7 +230,8 @@ class HomeApplicationShould {
             config("github.client_id", CLIENT_ID),
             config("github.client_secret_encrypted", CODEC.encrypt(CLIENT_SECRET).somewhatUnsafe),
             config("github.redirect_host", { "http://localhost:${github.port()}" }),
-            config("registry_url", { "http://localhost:${registry.port()}/api" })
+            config("registry_url", { "http://localhost:${registry.port()}/api" }),
+            config("eval_url", { "http://localhost:${eval.port()}/api" })
         )
     }
 }
