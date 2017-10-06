@@ -22,7 +22,7 @@ class QubeJob(val qubeProxy: QubeProxy) : Job {
         launch(CommonPool) {
             val containerProxy = qubeProxy.createContainer(pod)
             LOG.info("[${containerProxy.id}] Container created")
-            
+
             withTimeout(1, TimeUnit.HOURS) {
                 val completion = containerProxy.completion.receive()
 

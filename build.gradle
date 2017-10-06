@@ -16,6 +16,8 @@ allprojects {
         maxHeapSize = "2048m"
     }
 
+    testReportDirName = "tests/${name}"
+
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 

@@ -14,12 +14,10 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.Othe
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.toDatabaseModel
-import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
-import io.quartic.eval.sequencer.Sequencer.PhaseBuilder
-import io.quartic.eval.sequencer.Sequencer.PhaseResult
+import io.quartic.eval.sequencer.Sequencer.*
 import io.quartic.github.GitHubInstallationClient
 import io.quartic.github.GitHubInstallationClient.GitHubInstallationAccessToken
 import io.quartic.github.Repository
@@ -28,6 +26,7 @@ import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyRequest.*
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Error
 import io.quartic.quarty.api.model.QuartyResponse.Complete.Result
+import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.future.await
@@ -41,12 +40,13 @@ import java.util.concurrent.CompletableFuture
 class Evaluator(
     private val sequencer: Sequencer,
     private val github: GitHubInstallationClient,
-    private val dagPruner: Pruner,
+    private val rawPopulator: RawPopulator,
     private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
     private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
 ) {
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
+        is Automated -> trigger.triggerType
         is GithubWebhook -> TriggerType.EVALUATE
     }
 
@@ -81,24 +81,24 @@ class Evaluator(
 
                 // Only do this for manual launch
                 if (triggerType == TriggerType.EXECUTE) {
-                    (dagResult as DagResult.Valid)
+                    executeNodes(quarty, build.customer, (dagResult as DagResult.Valid).dag)
+                }
+            }
+        }
+    }
 
-                    dagResult.dag
-                        .forEach { node ->
-                            val action = when (node) {
-                                is Node.Step -> "Executing step"
-                                is Node.Raw -> "Acquiring raw data"
-                            }
-                            phase<Unit>("${action} for dataset [${node.output.fullyQualifiedName}]") {
-                                if (dagPruner.shouldRetain(build.customer, node)) {
-                                    extractResultFrom(quarty, Execute(node.id, build.customer.namespace)) {
-                                        successWithArtifact(NodeExecution(skipped = false), Unit)
-                                    }
-                                } else {
-                                    successWithArtifact(NodeExecution(skipped = true), Unit)
-                                }
-                            }
-                        }
+    private suspend fun SequenceBuilder.executeNodes(quarty: QuartyProxy, customer: Customer, dag: Dag) {
+        dag.forEach { node ->
+            when (node) {
+                is Node.Step -> phase<Unit>("Executing step for dataset [${node.output.fullyQualifiedName}]") {
+                    extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
+                        successWithArtifact(NodeExecution(skipped = false), Unit)
+                    }
+                }
+
+                is Node.Raw -> phase<Unit>("Acquiring raw data for dataset [${node.output.fullyQualifiedName}]") {
+                    val copyOccurred = rawPopulator.populate(customer, node)
+                    successWithArtifact(NodeExecution(skipped = !copyOccurred), Unit)
                 }
             }
         }
@@ -117,6 +117,7 @@ class Evaluator(
 
     private fun commit(trigger: BuildTrigger) = when (trigger) {
         is GithubWebhook -> trigger.commit
+        is Automated -> trigger.branch
         is Manual -> trigger.branch
     }
 

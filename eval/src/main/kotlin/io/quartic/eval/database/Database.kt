@@ -16,6 +16,7 @@ import io.quartic.eval.database.model.toDatabaseModel
 import org.jdbi.v3.core.mapper.ColumnMapper
 import org.jdbi.v3.core.mapper.reflect.ColumnName
 import org.jdbi.v3.core.statement.StatementContext
+import org.jdbi.v3.sqlobject.SqlObject
 import org.jdbi.v3.sqlobject.config.RegisterColumnMapper
 import org.jdbi.v3.sqlobject.config.RegisterColumnMappers
 import org.jdbi.v3.sqlobject.customizer.Bind
@@ -32,17 +33,7 @@ import java.util.*
     RegisterColumnMapper(BuildResultSuccessColumnMapper::class),
     RegisterColumnMapper(CustomerIdColumnMapper::class),
     RegisterColumnMapper(BuildEventColumnMapper::class))
-interface Database {
-
-    data class BuildRow(
-        val id: UUID,
-        @ColumnName("customer_id")
-        val customerId: CustomerId,
-        val branch: String,
-        @ColumnName("build_number")
-        val buildNumber: Long
-    )
-
+interface Database : SqlObject {
     data class EventRow(
         val id: UUID,
         @ColumnName("build_id")
@@ -51,7 +42,7 @@ interface Database {
         val payload: BuildEvent
     )
 
-    data class BuildStatusRow(
+    data class BuildRow(
         val id: UUID,
         @ColumnName("build_number")
         val buildNumber: Long,
@@ -80,10 +71,6 @@ interface Database {
         override fun map(r: ResultSet, columnNumber: Int, ctx: StatementContext): BuildEvent =
             OBJECT_MAPPER.readValue(r.getString(columnNumber))
     }
-
-
-    @SqlQuery("select id, customer_id, branch, build_number from build where id = :id")
-    fun getBuild(@Bind("id") id: UUID): BuildRow
 
     @SqlQuery("""
         SELECT event.* FROM event
@@ -114,10 +101,10 @@ interface Database {
 
     @Transaction
     fun createBuild(buildId: UUID, eventId: UUID, customerId: CustomerId,
-                    trigger: BuildTrigger): BuildRow {
+                    trigger: BuildTrigger, time: Instant): BuildRow {
         insertBuild(buildId, customerId, trigger.branch())
         insertEvent(eventId, TriggerReceived(trigger.toDatabaseModel()),
-            Instant.now(), buildId)
+            time, buildId)
         return getBuild(buildId)
     }
 
@@ -141,7 +128,24 @@ interface Database {
         @Bind("build_id") buildId: UUID
     )
 
-    @SqlQuery("""
+    fun getBuilds(customerId: CustomerId, buildNumber: Long? = null) = handle.createQuery(BUILD_SQL)
+        .define("predicate", """
+           build.customer_id = :customer_id AND
+           (:build_number is null OR build.build_number = :build_number)
+       """)
+        .bind("customer_id", customerId)
+        .bind("build_number", buildNumber)
+        .mapTo(BuildRow::class.java)
+        .toList()
+
+    fun getBuild(buildId: UUID): BuildRow = handle.createQuery(BUILD_SQL)
+        .define("predicate", "build.id = :build_id")
+        .bind("build_id", buildId)
+        .mapTo(BuildRow::class.java)
+        .findOnly()
+
+    companion object {
+        const val BUILD_SQL = """
         SELECT
             build.*,
             COALESCE(
@@ -162,16 +166,14 @@ interface Database {
                 eterm.payload @> '{"type": "build_failed"}'
             )
         )
-        LEFT JOIN event etrigger ON etrigger.build_id = build.id
+        -- builds should always have a trigger!
+        INNER JOIN event etrigger ON
+            etrigger.build_id = build.id AND
+            etrigger.payload @> '{"type": "trigger_received"}'
         WHERE
-            etrigger.payload @> '{"type": "trigger_received"}' AND
-            build.customer_id = :customer_id AND
-            (:build_number is null OR build.build_number = :build_number)
+            <predicate>
         ORDER BY etrigger.time DESC
         LIMIT 20
-        """)
-    fun getBuilds(
-        @Bind("customer_id") customerId: CustomerId,
-        @Bind("build_number") buildNumber: Long? = null
-    ): List<BuildStatusRow>
+        """
+    }
 }

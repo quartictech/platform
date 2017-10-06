@@ -37,8 +37,9 @@ fun io.quartic.eval.api.model.Build.toGraphQL(): Build =
         emptyList())
 
 fun BuildTrigger.toGraphQL() = when (this) {
-    is BuildTrigger.Manual -> Trigger("manual")
     is BuildTrigger.GithubWebhook -> Trigger("github_webhook")
+    is BuildTrigger.Manual -> Trigger("manual")
+    is BuildTrigger.Automated -> Trigger("automated")
 }
 
 class EventsFetcher: Fetcher<List<BuildEvent>>() {
@@ -93,6 +94,6 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
 class UserFetcher: Fetcher<User>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): User {
         val githubUser = context.github.userAsync((context.user.id.toInt())).get()
-        return User(githubUser.name, githubUser.avatarUrl.toString())
+        return User(githubUser.name ?: githubUser.login, githubUser.avatarUrl.toString())
     }
 }

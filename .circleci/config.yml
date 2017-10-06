@@ -34,7 +34,9 @@ jobs:
           name: Collect test results
           command: |
             mkdir -p ~/test-results
+            mkdir -p ~/test-reports
             find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/ \;
+            find . -type d -regex ".*/build/reports/tests/[^/]*" -exec cp -r {} ~/test-reports/ \;
           when: always
 
       - store_test_results:
@@ -43,6 +45,9 @@ jobs:
       - store_artifacts:
           path: ~/platform/build/reports/profile
           destination: profile
+
+      - store_artifacts:
+          path: ~/test-reports/
 
       - setup_remote_docker:
           reusable: true

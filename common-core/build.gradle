@@ -24,7 +24,7 @@ dependencies {
     compile "com.squareup.retrofit2:retrofit:${versions.retrofit}"
     compile "com.squareup.retrofit2:converter-jackson:${versions.retrofit}"
     compile "com.squareup.retrofit2:adapter-java8:${versions.retrofit}"
-    compile 'com.squareup.okhttp3:logging-interceptor:3.8.1'
+    compile "com.squareup.okhttp3:logging-interceptor:3.8.1"
 
     testCompile project(":common-test")
     testCompile libraries.testCommon

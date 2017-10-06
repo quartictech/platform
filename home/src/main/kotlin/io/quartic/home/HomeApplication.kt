@@ -10,11 +10,11 @@ import io.quartic.common.healthcheck.PingPongHealthCheck
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.github.GitHubClient
+import io.quartic.github.GitHubOAuthClient
 import io.quartic.home.howl.HowlStreamingClient
 import io.quartic.home.resource.AuthResource
 import io.quartic.home.resource.GraphQLResource
 import io.quartic.home.resource.HomeResource
-import io.quartic.home.resource.UserResource
 import io.quartic.registry.api.RegistryServiceClient
 import java.time.Duration
 
@@ -26,6 +26,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val registry = clientBuilder.retrofit<RegistryServiceClient>(configuration.registryUrl)
         val evalQuery = clientBuilder.retrofit<EvalQueryServiceClient>(configuration.evalUrl)
         val evalTrigger = clientBuilder.retrofit<EvalTriggerServiceClient>(configuration.evalUrl)
+        val githubOAuth = clientBuilder.retrofit<GitHubOAuthClient>(configuration.github.oauthApiRoot)
         val github = clientBuilder.retrofit<GitHubClient>(configuration.github.apiRoot)
 
         val tokenGenerator = TokenGenerator(
@@ -36,7 +37,6 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
 
         with (environment.jersey()) {
             register(GraphQLResource(evalQuery, github))
-            register(UserResource(clientBuilder.retrofit(configuration.github.apiRoot)))
             register(HomeResource(
                 catalogue,
                 howl,
@@ -50,7 +50,8 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
                 configuration.secretsCodec,
                 tokenGenerator,
                 registry,
-                clientBuilder
+                githubOAuth,
+                github
             ))
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(clientBuilder, configuration.catalogueUrl))

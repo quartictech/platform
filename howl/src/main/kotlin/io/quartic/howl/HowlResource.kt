@@ -2,6 +2,7 @@ package io.quartic.howl
 
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
+import io.quartic.howl.api.HowlClient.Companion.UNMANAGED_SOURCE_KEY_HEADER
 import io.quartic.howl.api.model.HowlStorageId
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.howl.storage.StorageCoords
@@ -9,8 +10,6 @@ import io.quartic.howl.storage.StorageCoords.Managed
 import io.quartic.howl.storage.StorageCoords.Unmanaged
 import io.quartic.howl.storage.StorageFactory
 import org.apache.commons.io.IOUtils
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -40,6 +39,7 @@ class HowlResource(
             @Path("/{key}")
             fun writableResource(@PathParam("key") key: String) = WritableObjectResource(Managed(identityNamespace, key))
 
+            // TODO - eliminate this endpoint
             @POST
             @Produces(MediaType.APPLICATION_JSON)
             fun uploadAnonymousObject(@Context request: HttpServletRequest): HowlStorageId {
@@ -70,48 +70,40 @@ class HowlResource(
             @Produces(MediaType.APPLICATION_JSON)
             fun uploadOrCopyObject(
                 @HeaderParam(UNMANAGED_SOURCE_KEY_HEADER) unmanagedSourceKey: String?,
-                @HeaderParam(IF_NONE_MATCH) oldEtag: String?,
+                @HeaderParam(IF_NONE_MATCH) oldETag: String?,
                 @Context request: HttpServletRequest
-            ) = if (unmanagedSourceKey != null) {
-                copyObject(Unmanaged(unmanagedSourceKey), coords, oldEtag)
-            } else {
-                uploadObject(request, coords)
+            ): Any = when {
+                unmanagedSourceKey != null -> copyObject(Unmanaged(unmanagedSourceKey), coords, oldETag)
+                else -> uploadObject(request, coords)
             }
         }
 
-        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String {
-            val newEtag = try {
-                storage.copyObject(source, dest, oldEtag)
-            } catch (e: Exception) {
-                throw ServerErrorException(INTERNAL_SERVER_ERROR)
-            }
-            return when (newEtag) {
+        private fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?): StorageMetadata {
+            val newMetadata = doOr500 { storage.copyObject(source, dest, oldETag) }
+            return when (newMetadata?.eTag) {
                 null -> throw NotFoundException()  // TODO: provide a useful message
-                oldEtag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
-                else -> newEtag
+                oldETag -> throw WebApplicationException(PRECONDITION_FAILED)   // See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26
+                else -> newMetadata
             }
         }
 
-        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords) = try {
+        private fun uploadObject(request: HttpServletRequest, dest: StorageCoords) = doOr500 {
             storage.putObject(
                 request.contentLength,
                 request.contentType, // TODO: what if this is bigger than MAX_VALUE?
                 request.inputStream,
                 dest
             )
-        } catch (e: Exception) {
-            throw ServerErrorException(INTERNAL_SERVER_ERROR)
         }
     }
+
+    private fun <T> doOr500(block: () -> T) =
+        try { block() }
+        catch (e: Exception) { throw ServerErrorException(INTERNAL_SERVER_ERROR) }
 
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
             .header(CONTENT_TYPE, metadata.contentType)
-            .header(LAST_MODIFIED,
-                DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC).format(metadata.lastModified))
             .header(CONTENT_LENGTH, metadata.contentLength)
-
-    companion object {
-        const val UNMANAGED_SOURCE_KEY_HEADER = "x-unmanaged-source-key"
-    }
+            .header(ETAG, metadata.eTag)
 }

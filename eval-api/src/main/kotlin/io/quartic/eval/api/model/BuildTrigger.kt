@@ -10,8 +10,9 @@ import java.time.Instant
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(BuildTrigger.GithubWebhook::class, name = "github_webhook_${VERSION}"),
-    JsonSubTypes.Type(BuildTrigger.Manual::class, name = "manual_${VERSION}")
+    JsonSubTypes.Type(BuildTrigger.GithubWebhook::class, name = "github_webhook"),
+    JsonSubTypes.Type(BuildTrigger.Manual::class, name = "manual"),
+    JsonSubTypes.Type(BuildTrigger.Automated::class, name = "automated")
 )
 sealed class BuildTrigger {
     abstract fun branch(): String
@@ -41,6 +42,16 @@ sealed class BuildTrigger {
        val customerId: CustomerId,
        val branch: String,
        val triggerType: TriggerType
+    ): BuildTrigger() {
+        override fun branch() = branch
+    }
+
+    data class Automated(
+        val user: String,
+        val timestamp: Instant,
+        val customerId: CustomerId,
+        val branch: String,
+        val triggerType: TriggerType
     ): BuildTrigger() {
         override fun branch() = branch
     }

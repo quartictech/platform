@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.CopyObjectRequest
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder
+import io.quartic.common.logging.logger
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
@@ -63,54 +64,57 @@ class S3Storage(
         private fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
     }
 
+    private val LOG by logger()
     private val s3 by lazy(s3Supplier)
 
     override fun getObject(coords: StorageCoords): StorageResult? = wrapS3Exception {
         val s3Object = s3.getObject(bucket.veryUnsafe, coords.backendKey)
         StorageResult(
-            storageMetadata(s3Object.objectMetadata),
+            s3Object.objectMetadata.toMetadata(),
             s3Object.objectContent
         )
     }
 
-    override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapS3Exception {
-        storageMetadata(getRawMetadata(coords))
-    }
+    override fun getMetadata(coords: StorageCoords): StorageMetadata? = wrapS3Exception { getMetadataInternal(coords) }
 
-    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords): String =
+    override fun putObject(contentLength: Int?, contentType: String?, inputStream: InputStream, coords: StorageCoords) {
         inputStream.use { s ->
             val metadata = ObjectMetadata()
             if (contentLength != null && contentLength > 0) {
                 metadata.contentLength = contentLength.toLong()
             }
             metadata.contentType = contentType
-            s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata).eTag
+            s3.putObject(bucket.veryUnsafe, coords.backendKey, s, metadata)
         }
-
-    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldEtag: String?): String? = wrapS3Exception {
-        val copyRequest = CopyObjectRequest(
-            bucket.veryUnsafe,
-            source.backendKey,
-            bucket.veryUnsafe,
-            dest.backendKey
-        )
-
-        if (oldEtag != null) {
-            copyRequest.withNonmatchingETagConstraint(oldEtag)
-        }
-
-        s3.copyObject(copyRequest)?.eTag ?: oldEtag
     }
 
-    private fun getRawMetadata(coords: StorageCoords) = s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey)
+    override fun copyObject(source: StorageCoords, dest: StorageCoords, oldETag: String?) = wrapS3Exception {
+        var sourceMetadata = getMetadataInternal(source)
 
-    private fun storageMetadata(objectMetadata: ObjectMetadata) =
-        StorageMetadata(
-            objectMetadata.lastModified.toInstant(),
-            objectMetadata.contentType,
-            objectMetadata.contentLength,
-            objectMetadata.eTag
-        )
+        if (sourceMetadata.eTag != oldETag) {
+            var attempts = 1
+            // We definitely need to do a copy, so now we keep attempting to copy until we guarantee we've copied
+            // a source object whose metadata we have.
+            while (!copyIfSourceETagMatches(source, dest, sourceMetadata.eTag)) {
+                // Try again with updated source metadata
+                sourceMetadata = getMetadataInternal(source)
+                LOG.info("Attempt #${++attempts} to copy ${source.backendKey} -> ${dest.backendKey}")
+            }
+        }
+
+        sourceMetadata
+    }
+
+    private fun copyIfSourceETagMatches(source: StorageCoords, dest: StorageCoords, eTag: String) =
+        s3.copyObject(
+            CopyObjectRequest(bucket.veryUnsafe, source.backendKey, bucket.veryUnsafe, dest.backendKey)
+            .withMatchingETagConstraint(eTag)
+        ) != null
+
+    private fun getMetadataInternal(coords: StorageCoords) =
+        s3.getObjectMetadata(bucket.veryUnsafe, coords.backendKey).toMetadata()
+
+    private fun ObjectMetadata.toMetadata() = StorageMetadata(contentType, contentLength, eTag)
 
     private fun <T> wrapS3Exception(block: () -> T): T? = try {
        block()
