@@ -135,7 +135,7 @@ class BuildView extends React.Component<IProps, IState> {
             <Tag className={classNames(Classes.MINIMAL, s.phaseTitleTag)} intent={intent}>
               {this.formatTime(phase.time)}
             </Tag>
-            <b> {phase.description} {completedEvent && completedEvent.skipped ? <span>(Skipped)</span> : null}</b>
+            <b> {phase.description} </b>{completedEvent && completedEvent.skipped ? <span>(Skipped)</span> : null}
             </span>
         </div>
         <Collapse isOpen={this.state.openPhases[phase.phase_id]}>
