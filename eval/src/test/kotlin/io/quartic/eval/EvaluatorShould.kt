@@ -16,7 +16,6 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.TriggerReceived
 import io.quartic.eval.database.model.toDatabaseModel
-import io.quartic.eval.pruner.Pruner
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
@@ -150,34 +149,21 @@ class EvaluatorShould {
     }
 
     @Test
-    fun only_execute_steps_that_survived_pruning() {
-        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
-
-        execute()
-
-        runBlocking {
-            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
-            verify(quarty, times(1)).request(isA<Execute>(), any())
-        }
-    }
-
-    @Test
-    fun produce_node_execution_artifacts_according_to_pruning() {
-        whenever(runBlocking { pruner.shouldRetain(any(), eq(rawX.toDatabaseModel()))} ).thenReturn(false)
+    fun produce_node_execution_artifacts_according_to_populator() {
+        whenever(runBlocking { populator.populate(any(), eq(rawX.toDatabaseModel() as Node.Raw)) } ).thenReturn(false)
 
         execute()
 
         assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = true), Unit)))
-        assertThat(sequencer.results, hasItem(SuccessWithArtifact(NodeExecution(skipped = false), Unit)))
     }
 
     @Test
-    fun execute_steps_from_dag_in_order() {
+    fun execute_dag_nodes_in_order() {
         execute()
 
-        inOrder(quarty) {
+        inOrder(populator, quarty) {
             runBlocking {
-                verify(quarty).request(eq(Execute("abc", customerNamespace)), any())
+                verify(populator).populate(customer, rawX.toDatabaseModel() as Node.Raw)
                 verify(quarty).request(eq(Execute("def", customerNamespace)), any())
             }
         }
@@ -299,8 +285,8 @@ class EvaluatorShould {
 
     private val extractDag = mock<(List<Node>) -> DagResult>()
 
-    private val pruner = mock<Pruner> {
-        onGeneric { runBlocking { shouldRetain(any(), any()) } } doReturn true
+    private val populator = mock<RawPopulator> {
+        onGeneric { runBlocking { populate(any(), any()) } } doReturn true
     }
 
     private val sequencer = spy(MySequencer())
@@ -308,7 +294,7 @@ class EvaluatorShould {
     private val evaluator = Evaluator(
         sequencer,
         github,
-        pruner,
+        populator,
         extractDag,
         quartyBuilder
     )
