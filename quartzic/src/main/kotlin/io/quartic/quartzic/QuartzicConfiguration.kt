@@ -1,7 +1,6 @@
 package io.quartic.quartzic
 
 import io.quartic.common.application.ConfigurationBase
-import io.quartic.qube.api.model.PodSpec
 import java.net.URI
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
@@ -13,8 +12,7 @@ import io.quartic.eval.api.model.BuildTrigger
 
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(JobConfiguration.EvalJobConfiguration::class, name = "eval"),
-    JsonSubTypes.Type(JobConfiguration.QubeJobConfiguration::class, name = "qube")
+    JsonSubTypes.Type(JobConfiguration.EvalJobConfiguration::class, name = "eval")
 )
 sealed class JobConfiguration {
     abstract val name: String
@@ -31,12 +29,6 @@ sealed class JobConfiguration {
         override val name: String,
         override val cronSchedule: String,
         val trigger: EvalTrigger
-    ): JobConfiguration()
-
-    data class QubeJobConfiguration(
-        override val name: String,
-        override val cronSchedule: String,
-        val pod: PodSpec
     ): JobConfiguration()
 }
 

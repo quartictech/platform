@@ -15,7 +15,6 @@ service {
 
 dependencies {
     compile project(":common-application")
-    compile project(":qube-utils")
     compile project(":eval-api")
 
     compile "org.quartz-scheduler:quartz:2.2.1"

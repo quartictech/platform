@@ -20,7 +20,7 @@ interface QubeProxy {
     class QubeContainerProxy(
         val id: UUID,
         val hostname: String,
-        val completion: ReceiveChannel<QubeCompletion>,
+        val errors: ReceiveChannel<QubeException>,
         private val close: suspend () -> Unit
     ) : SuspendedAutoCloseable {
         override suspend fun close() = close.invoke()

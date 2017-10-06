@@ -261,7 +261,7 @@ class EvaluatorShould {
 
     private val quartyContainer = mock<QubeContainerProxy> {
         on { hostname } doReturn containerHostname
-        on { completion } doReturn produce(CommonPool) {
+        on { errors } doReturn produce(CommonPool) {
             delay(500)  // To prevent closure
         }
     }

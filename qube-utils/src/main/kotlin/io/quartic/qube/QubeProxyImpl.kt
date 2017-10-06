@@ -34,7 +34,7 @@ class QubeProxyImpl(
 
     private var connected = false
     private val pending = mutableMapOf<QubeId, Create>()
-    private val active = mutableMapOf<QubeId, SendChannel<QubeCompletion>>()
+    private val active = mutableMapOf<QubeId, SendChannel<QubeException>>()
     private val fromClients = Channel<ClientRequest>(UNLIMITED)
     private val LOG by logger()
 
@@ -105,7 +105,7 @@ class QubeProxyImpl(
         // Kill everything
         val exception = QubeException("Qube disconnected")
         pending.values.forEach { it.response.completeExceptionally(exception) }
-        active.values.forEach { it.send(QubeCompletion.Exception(exception)) }    // Client will call close on corresponding QubeContainerProxy, but that's ok
+        active.values.forEach { it.send(exception) }    // Client will call close on corresponding QubeContainerProxy, but that's ok
         pending.clear()
         active.clear()
     }
@@ -126,7 +126,7 @@ class QubeProxyImpl(
             (pending == null) ->
                 LOG.error("Running response doesn't correspond to pending request")
             else -> {
-                val channel = Channel<QubeProxy.QubeCompletion>(UNLIMITED)
+                val channel = Channel<QubeException>(UNLIMITED)
                 active[response.name] = channel
                 pending.response.complete(QubeContainerProxy(response.containerId, response.hostname, channel) {
                     fromClients.send(Destroy(response.name))
@@ -147,7 +147,7 @@ class QubeProxyImpl(
             (pending != null) ->
                 pending.response.completeExceptionally(exception)
             (active != null) ->
-                active.send(QubeCompletion.Terminated(response))
+                active.send(exception)
             else ->
                 LOG.error("Terminated response doesn't correspond to pending request or active container")
         }

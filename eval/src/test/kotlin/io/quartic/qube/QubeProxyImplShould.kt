@@ -102,8 +102,7 @@ class QubeProxyImplShould {
 
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
 
-            assertThat((container.completion.receive() as QubeProxy.QubeCompletion.Terminated).terminated.message,
-                equalTo("Oh dear me"))
+            assertThat(container.errors.receive().message, equalTo("Oh dear me"))
         }
     }
 
@@ -119,10 +118,8 @@ class QubeProxyImplShould {
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Message 100")))
             events.send(MessageReceived(Terminated.Failed(uuid(101), "Message 101")))
 
-            assertThat((containerA.completion.receive() as QubeCompletion.Terminated).terminated.message,
-                equalTo("Message 100"))
-            assertThat((containerB.completion.receive() as QubeCompletion.Terminated).terminated.message,
-                equalTo("Message 101"))
+            assertThat(containerA.errors.receive().message, equalTo("Message 100"))
+            assertThat(containerB.errors.receive().message, equalTo("Message 101"))
         }
     }
 
@@ -195,7 +192,7 @@ class QubeProxyImplShould {
 
             events.send(MessageReceived(Terminated.Failed(uuid(100), "Oh dear me")))
 
-            assertTrue(container.completion.isClosedForReceive)
+            assertTrue(container.errors.isClosedForReceive)
         }
     }
 
@@ -233,7 +230,7 @@ class QubeProxyImplShould {
             qubeIsDisconnected()
             job.join()
 
-            container.completion.receive()                  // We get an error here
+            container.errors.receive()                  // We get an error here
             assertTrue(job.isCompletedExceptionally)    // And here
         }
     }
@@ -250,12 +247,12 @@ class QubeProxyImplShould {
             qubeIsConnected()
             qubeIsDisconnected()
 
-            container.completion.receive()                  // We get an error here
+            container.errors.receive()                  // We get an error here
 
             container
         }
 
-        runAndExpectToTimeout { container.completion.receive() }    // But not a second time
+        runAndExpectToTimeout { container.errors.receive() }    // But not a second time
     }
 
     private suspend fun qubeIsConnected() = events.send(Event.Connected())

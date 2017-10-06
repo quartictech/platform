@@ -74,10 +74,7 @@ class SequencerImpl(
                     async(CommonPool) { block(PhaseBuilderImpl(phaseId)) }.use { blockAsync ->
                         select<PhaseResult<R>> {
                             blockAsync.onAwait { it }
-                            container.completion.onReceive { when(it) {
-                                is QubeCompletion.Exception -> throw it.exception
-                                else -> throw QubeException("Unexpected completion event: $it")
-                            } }
+                            container.errors.onReceive { throw it }
                         }
                     }
                 } catch (e: Exception) {

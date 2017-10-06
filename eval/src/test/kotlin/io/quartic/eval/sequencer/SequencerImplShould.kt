@@ -126,8 +126,8 @@ class SequencerImplShould {
     fun handle_concurrent_container_failure() = runBlocking {
         val exception = QubeException("Stuff is bad")
 
-        whenever(qubeContainer.completion).thenReturn(produce(CommonPool) {
-            send(QubeCompletion.Exception(exception))
+        whenever(qubeContainer.errors).thenReturn(produce(CommonPool) {
+            send(exception)
         })
 
         sequencer.sequence(buildContext) {
@@ -252,7 +252,7 @@ class SequencerImplShould {
     private val qubeContainer = mock<QubeContainerProxy> {
         on { id } doReturn uuid(9999)
         on { hostname } doReturn "a.b.c"
-        on { completion } doReturn Channel()
+        on { errors } doReturn Channel()
     }
 
     private val qube = mock<QubeProxy> {
