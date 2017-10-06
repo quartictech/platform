@@ -57,9 +57,9 @@ class GraphQLResourceShould {
 
     private val events = listOf<ApiBuildEvent>(
         ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
-            ApiPhaseCompletedResult.Success(), Instant.now(), UUID.randomUUID()),
+            ApiPhaseCompletedResult.Success(), false, Instant.now(), UUID.randomUUID()),
         ApiBuildEvent.PhaseCompleted(UUID.randomUUID(),
-            ApiPhaseCompletedResult.UserError("noob"), Instant.now(), UUID.randomUUID())
+            ApiPhaseCompletedResult.UserError("noob"), false, Instant.now(), UUID.randomUUID())
 
     )
 

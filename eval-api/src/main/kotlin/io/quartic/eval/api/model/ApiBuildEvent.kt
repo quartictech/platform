@@ -39,6 +39,7 @@ sealed class ApiBuildEvent {
     data class PhaseCompleted(
         val phaseId: UUID,
         val result: ApiPhaseCompletedResult,
+        val skipped: Boolean,
         override val time: Instant,
         override val id: UUID
     ): ApiBuildEvent()

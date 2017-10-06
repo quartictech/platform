@@ -11,6 +11,7 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
 import java.util.*
 import javax.ws.rs.NotFoundException
@@ -59,6 +60,11 @@ class QueryResource(private val database: Database) : EvalQueryService {
                 is PhaseCompletedV6.Result.UserError ->
                     ApiPhaseCompletedResult.UserError(this.payload.result.info.toApi())
                 is PhaseCompletedV6.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
+            },
+            if (this.payload.result is Success && this.payload.result.artifact is NodeExecution) {
+                this.payload.result.artifact.skipped
+            } else {
+                false
             },
             this.time,
             this.id

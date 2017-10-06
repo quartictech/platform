@@ -142,6 +142,9 @@ interface BuildEvent {
         private val id: UUID,
 
         @GraphQLField
+        val skipped: Boolean,
+
+        @GraphQLField
         val result: PhaseCompletedResult,
 
         @get:GraphQLField

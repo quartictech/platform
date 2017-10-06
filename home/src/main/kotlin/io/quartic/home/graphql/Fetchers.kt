@@ -66,6 +66,7 @@ fun ApiBuildEvent.toGraphQL() = when (this) {
     )
     is ApiBuildEvent.PhaseCompleted -> BuildEvent.PhaseCompleted(
         this.id,
+        this.skipped,
         when (this.result) {
             is ApiPhaseCompletedResult.Success ->
                 PhaseCompletedResult.Success()

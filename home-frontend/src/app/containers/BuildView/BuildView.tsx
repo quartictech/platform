@@ -90,7 +90,12 @@ class BuildView extends React.Component<IProps, IState> {
   private getPhaseIntent = (completedEvent) => {
     if (completedEvent) {
       switch (completedEvent.result.__typename) {
-        case "Success": return Intent.SUCCESS;
+        case "Success":
+          if (completedEvent.skipped) {
+            return Intent.NONE;
+          } else {
+            return Intent.SUCCESS;
+          }
         case "UserError":
         case "InternalError":
           return Intent.DANGER;
@@ -130,7 +135,7 @@ class BuildView extends React.Component<IProps, IState> {
             <Tag className={classNames(Classes.MINIMAL, s.phaseTitleTag)} intent={intent}>
               {this.formatTime(phase.time)}
             </Tag>
-            <b> {phase.description}</b>
+            <b> {phase.description} {completedEvent.skipped ? <span>(Skipped)</span> : null}</b>
             </span>
         </div>
         <Collapse isOpen={this.state.openPhases[phase.phase_id]}>
@@ -202,7 +207,7 @@ const query = gql`
           id, description, phase_id, time, type
         }
         ... on PhaseCompleted {
-          id, phase_id, time, type,
+          id, phase_id, time, type, skipped,
           result {
             ... on UserError { error }
           }
