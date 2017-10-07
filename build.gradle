@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "idea"
+    id "org.owasp.dependencycheck" version "2.1.1"
 }
 
 allprojects {
@@ -30,3 +31,5 @@ idea {
         excludeDirs += file(".env")
     }
 }
+
+check.dependsOn dependencyCheckAggregate

@@ -43,11 +43,12 @@ jobs:
           path: ~/test-results/
 
       - store_artifacts:
-          path: ~/platform/build/reports/profile
-          destination: profile
+          path: ~/platform/build/reports
+          destination: reports/
 
       - store_artifacts:
           path: ~/test-reports/
+          destination: reports/test/
 
       - setup_remote_docker:
           reusable: true
