@@ -10,9 +10,9 @@ def kotlinVersion = "1.1.50"
 
 dependencies {
     compile gradleApi()
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.8.7"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.8.7"
-    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.9.1"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.9.1"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.9.1"
 
     // Plugin dependencies
     compile "com.netflix.nebula:nebula-kotlin-plugin:${kotlinVersion}"
