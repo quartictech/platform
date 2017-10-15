@@ -14,7 +14,7 @@ import javax.ws.rs.core.SecurityContext.BASIC_AUTH
 fun createAuthFilter(config: AuthConfiguration, secretsCodec: SecretsCodec): AuthFilter<*, User> =
     when (config) {
         is DummyAuthConfiguration -> createAuthFilter(DummyAuthStrategy())
-        is TokenAuthConfiguration -> createAuthFilter(TokenAuthStrategy(config, secretsCodec))
+        is TokenAuthConfiguration -> createAuthFilter(ExternalTokenAuthStrategy(config, secretsCodec))
     }
 
 private fun <C> createAuthFilter(strategy: AuthStrategy<C>): AuthFilter<C, User> {

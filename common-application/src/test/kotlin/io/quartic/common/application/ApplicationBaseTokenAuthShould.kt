@@ -3,8 +3,8 @@ package io.quartic.common.application
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.User
 import io.quartic.common.secrets.SecretsCodec

@@ -8,7 +8,7 @@ import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
 import io.quartic.common.application.DEV_MASTER_KEY_BASE64
-import io.quartic.common.auth.TokenAuthStrategy
+import io.quartic.common.auth.ExternalTokenAuthStrategy
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
@@ -170,12 +170,12 @@ class HomeApplicationShould {
             .build()
 
         val xsrfToken = browser.post()
-            .headers[TokenAuthStrategy.XSRF_TOKEN_HEADER]!!.last() as String
+            .headers[ExternalTokenAuthStrategy.XSRF_TOKEN_HEADER]!!.last() as String
 
         // Attempt to get protected resource
         browser.location = URI("http://localhost:${APP.localPort}/api/builds")
         val response = browser.request {
-            header(TokenAuthStrategy.XSRF_TOKEN_HEADER, xsrfToken).get()
+            header(ExternalTokenAuthStrategy.XSRF_TOKEN_HEADER, xsrfToken).get()
         }
 
         with(response) {

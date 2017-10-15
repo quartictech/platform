@@ -4,10 +4,10 @@ import com.google.common.base.Preconditions.checkArgument
 import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
 import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.KEY_LENGTH_BITS
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.KEY_LENGTH_BITS
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
@@ -50,6 +50,17 @@ class TokenGenerator(
                 .compact(),
             xsrf
         )
+    }
+
+    fun generateInternal(namespaces: List<String>): String {
+        // TODO - JTI
+        // TODO - namespaces claim
+        // TODO - what issuer/subject?
+        LOG.info("Generated JWT for namespaces: ${namespaces}")
+        return Jwts.builder()
+            .signWith(ALGORITHM, key)
+            .setExpiration(Date.from(expiration()))
+            .compact()
     }
 
     private fun expiration() = clock.instant() + timeToLive

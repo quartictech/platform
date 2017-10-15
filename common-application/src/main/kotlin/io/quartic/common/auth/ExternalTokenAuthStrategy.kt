@@ -4,7 +4,7 @@ import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.TokenAuthStrategy.Tokens
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Tokens
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
@@ -14,7 +14,7 @@ import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.HttpHeaders
 
-class TokenAuthStrategy(
+class ExternalTokenAuthStrategy(
     config: TokenAuthConfiguration,
     codec: SecretsCodec,
     clock: Clock = Clock.systemUTC()
@@ -65,13 +65,13 @@ class TokenAuthStrategy(
 
         val subject = claims.body.subject?.toLongOrNull()
         if (subject == null) {
-            LOG.warn("Subject claim is missing or unparseable")
+            LOG.warn("Subject claim is missing or unparsable")
             return null
         }
 
         val customerId = (claims.body[CUSTOMER_ID_CLAIM] as String?)?.toLongOrNull()
         if (customerId == null) {
-            LOG.warn("Customer ID claim is missing or unparseable")
+            LOG.warn("Customer ID claim is missing or unparsable")
             return null
         }
 

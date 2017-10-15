@@ -9,12 +9,12 @@ import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
 import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenAuthStrategy.Tokens
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Tokens
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
@@ -30,7 +30,7 @@ import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.Cookie
 import javax.ws.rs.core.HttpHeaders
 
-class TokenAuthStrategyShould {
+class ExternalTokenAuthStrategyShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val past = now - timeToLive
@@ -45,7 +45,7 @@ class TokenAuthStrategyShould {
         on { getHeaderString(XSRF_TOKEN_HEADER) } doReturn "def"
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
-    private val strategy = TokenAuthStrategy(TokenAuthConfiguration(mock()), codec, clock)
+    private val strategy = ExternalTokenAuthStrategy(TokenAuthConfiguration(mock()), codec, clock)
     private val tokens = Tokens("abc", "def", "noob")
 
     @Test

@@ -1,8 +1,8 @@
 package io.quartic.home.resource
 
 import com.google.common.hash.Hashing
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.auth.User
 import io.quartic.common.auth.extractSubdomain

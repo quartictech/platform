@@ -6,9 +6,9 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import io.jsonwebtoken.Jwts
 import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
 import io.quartic.common.auth.TokenGenerator.XsrfId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
