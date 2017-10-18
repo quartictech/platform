@@ -71,7 +71,7 @@ data class ServerDetails(
 // TODO - this is kind of a mess, it doesn't make sense for the config file to dictate the type of auth in use
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = FrontendAuthConfiguration::class, name = "external"),
+    JsonSubTypes.Type(value = FrontendAuthConfiguration::class, name = "frontend"),
     JsonSubTypes.Type(value = InternalAuthConfiguration::class, name = "internal"),
     JsonSubTypes.Type(value = LegacyAuthConfiguration::class, name = "legacy")
 )

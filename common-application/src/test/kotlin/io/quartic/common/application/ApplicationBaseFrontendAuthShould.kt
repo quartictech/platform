@@ -5,9 +5,9 @@ import io.dropwizard.setup.Environment
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
@@ -77,7 +77,7 @@ class ApplicationBaseFrontendAuthShould {
         val RULE = DropwizardAppRule<TestConfiguration>(
             TestApplication::class.java,
             resourceFilePath("test.yml"),
-            config("auth.type", "external"),
+            config("auth.type", "frontend"),
             config("auth.key_encrypted_base64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
         )
     }
