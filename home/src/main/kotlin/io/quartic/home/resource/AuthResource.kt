@@ -3,7 +3,7 @@ package io.quartic.home.resource
 import com.google.common.hash.Hashing
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenGenerator
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.logging.logger
@@ -33,7 +33,7 @@ class AuthResource(
     private val gitHubConfig: GithubConfiguration,
     private val cookiesConfig: CookiesConfiguration,
     private val secretsCodec: SecretsCodec,
-    private val tokenGenerator: TokenGenerator,
+    private val tokenGenerator: FrontendTokenGenerator,
     private val registry: RegistryServiceClient,
     private val gitHubOAuth: GitHubOAuthClient,
     private val gitHubApi: GitHubClient

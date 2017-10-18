@@ -8,7 +8,6 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.api.EvalTriggerService
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.github.*
@@ -51,7 +50,7 @@ class GithubResourceShould {
     }
 
     @Test
-    fun respond_with_400_if_unparseable_body() {
+    fun respond_with_400_if_unparsable_body() {
         val payload = OBJECT_MAPPER.writeValueAsString(mapOf("foo" to "bar"))
         val e = assertThrows<BadRequestException> {
             resource.handleEvent("push", "abc", calculateSignature(payload), payload)

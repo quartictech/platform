@@ -46,11 +46,10 @@ class FrontendAuthStrategyShould {
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
     private val strategy = FrontendAuthStrategy(FrontendAuthConfiguration(mock()), codec, clock)
-    private val tokens = Tokens("abc", "def", "noob")
 
     @Test
     fun extract_tokens_when_present() {
-        assertThat(strategy.extractCredentials(requestContext), equalTo(tokens))
+        assertThat(strategy.extractCredentials(requestContext), equalTo(Tokens("abc", "def", "noob")))
     }
 
     @Test
@@ -100,7 +99,7 @@ class FrontendAuthStrategyShould {
     }
 
     @Test
-    fun reject_unparseable_token() {
+    fun reject_unparsable_token() {
         assertAuthenticationFails(Tokens("def", "noob.quartic.io", "gibberish"))
     }
 

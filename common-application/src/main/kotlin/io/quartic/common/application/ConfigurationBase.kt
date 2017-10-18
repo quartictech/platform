@@ -26,16 +26,13 @@ abstract class ConfigurationBase : Configuration() {
 
     val auth: AuthConfiguration = LegacyAuthConfiguration()  // TODO - remove this default eventually
 
-    // Opinionated port selection
     var url: ServerDetails = ServerDetails()
         set(value) = configureServer(value)
 
     var logLevel: Level = Level.INFO
         set(value) = configureLogging(value)
 
-    val secretsCodec by lazy {
-        SecretsCodec(masterKeyBase64)
-    }
+    val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 
     init {
         configureLogging(logLevel)
@@ -71,6 +68,7 @@ data class ServerDetails(
     val randomPort: Boolean = false
 )
 
+// TODO - this is kind of a mess, it doesn't make sense for the config file to dictate the type of auth in use
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = FrontendAuthConfiguration::class, name = "external"),

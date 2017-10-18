@@ -4,8 +4,8 @@ import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.*
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenGenerator
-import io.quartic.common.auth.TokenGenerator.Tokens
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
+import io.quartic.common.auth.frontend.FrontendTokenGenerator.Tokens
 import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
@@ -33,7 +33,7 @@ import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
-    private val tokenGenerator = mock<TokenGenerator>()
+    private val tokenGenerator = mock<FrontendTokenGenerator>()
     private val registry = mock<RegistryServiceClient>()
     private val gitHubOAuth = mock<GitHubOAuthClient>()
     private val gitHub = mock<GitHubClient>()

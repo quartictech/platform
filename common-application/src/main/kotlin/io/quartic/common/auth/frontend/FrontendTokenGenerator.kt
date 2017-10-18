@@ -1,4 +1,4 @@
-package io.quartic.common.auth
+package io.quartic.common.auth.frontend
 
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.hash.Hashing
@@ -8,8 +8,6 @@ import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.auth.frontend.FrontendUser
-import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
 import io.quartic.common.uid.Uid
@@ -19,7 +17,7 @@ import java.time.Clock
 import java.time.temporal.TemporalAmount
 import java.util.*
 
-class TokenGenerator(
+class FrontendTokenGenerator(
     config: FrontendAuthConfiguration,
     codec: SecretsCodec,
     private val timeToLive: TemporalAmount,
@@ -28,8 +26,6 @@ class TokenGenerator(
 ) {
     class XsrfId(uid: String) : Uid(uid)
 
-    private val LOG by logger()
-
     private val key = codec.decrypt(config.keyEncryptedBase64).veryUnsafe.decodeAsBase64()
 
     init {
@@ -37,9 +33,8 @@ class TokenGenerator(
     }
 
     fun generate(user: FrontendUser, issuer: String): Tokens {
-        LOG.info("Generated JWT for '$user@$issuer'")
         val xsrf = xsrfTokenGenerator.get().uid
-        // Currently no need for aud - only one audience, and no need for jti as the custom xth claim suffices as nonce
+        // Currently no need for aud - only one audience, and no need for jti as token is long-lived / multi-use
         return Tokens(
             Jwts.builder()
                 .signWith(ALGORITHM, key)
@@ -51,17 +46,6 @@ class TokenGenerator(
                 .compact(),
             xsrf
         )
-    }
-
-    fun generateInternal(namespaces: List<String>): String {
-        // TODO - JTI
-        // TODO - namespaces claim
-        // TODO - what issuer/subject?
-        LOG.info("Generated JWT for namespaces: ${namespaces}")
-        return Jwts.builder()
-            .signWith(ALGORITHM, key)
-            .setExpiration(Date.from(expiration()))
-            .compact()
     }
 
     private fun expiration() = clock.instant() + timeToLive

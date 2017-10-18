@@ -1,4 +1,4 @@
-package io.quartic.common.auth
+package io.quartic.common.auth.frontend
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.any
@@ -9,13 +9,10 @@ import io.quartic.common.application.FrontendAuthConfiguration
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.auth.TokenGenerator.XsrfId
-import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
-import io.quartic.common.uid.sequenceGenerator
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -26,14 +23,14 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-class TokenGeneratorShould {
+class FrontendTokenGeneratorShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
     private val codec = mock<SecretsCodec> {
         on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
     }
-    private val generator = TokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock)
+    private val generator = FrontendTokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock)
 
     @Test
     fun generate_valid_tokens() {
@@ -64,7 +61,7 @@ class TokenGeneratorShould {
         }
 
         assertThrows<IllegalArgumentException> {
-            TokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock, sequenceGenerator(::XsrfId))
+            FrontendTokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock)
         }
     }
 

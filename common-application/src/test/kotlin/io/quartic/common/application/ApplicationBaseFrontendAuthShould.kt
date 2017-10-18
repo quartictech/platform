@@ -5,7 +5,7 @@ import io.dropwizard.setup.Environment
 import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
-import io.quartic.common.auth.TokenGenerator
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.frontend.FrontendUser
@@ -36,7 +36,7 @@ class ApplicationBaseFrontendAuthShould {
 
     @Test
     fun respond_with_200_if_valid_token_supplied() {
-        val tokenGenerator = TokenGenerator(
+        val tokenGenerator = FrontendTokenGenerator(
             RULE.configuration.auth as FrontendAuthConfiguration,
             CODEC,
             Duration.ofMinutes(10)

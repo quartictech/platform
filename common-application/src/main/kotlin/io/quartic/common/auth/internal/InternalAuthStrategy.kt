@@ -49,10 +49,7 @@ class InternalAuthStrategy(
         return bits[1]
     }
 
-    // TODO - we're going to have to embed the namespace list into the User principal
     override fun authenticate(creds: String): InternalUser? {
-        // TODO - do we require any particular claims?
-
         val claims = try {
             parser.parseClaimsJws(creds)
         } catch (e: Exception) {
@@ -60,13 +57,20 @@ class InternalAuthStrategy(
             return null
         }
 
-        val namespaces = (claims.body[NAMESPACES_CLAIM] as List<String>?)   // TODO - how do we type-convert here?
+        val subject = claims.body.subject
+        if (subject == null) {
+            LOG.warn("Subject claim is missing or unparsable")
+            return null
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val namespaces = (claims.body[NAMESPACES_CLAIM] as? List<String>)
         if (namespaces == null) {
             LOG.warn("Namespaces claim is missing or unparsable")
             return null
         }
 
-        return InternalUser("noob", namespaces)     // TODO - what should id be?
+        return InternalUser(subject, namespaces)
     }
 
     companion object {
