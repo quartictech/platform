@@ -222,7 +222,7 @@ class HomeApplicationShould {
         val APP = DropwizardAppRule<HomeConfiguration>(
             HomeApplication::class.java,
             resourceFilePath("test.yml"),
-            config("auth.type", "token"),
+            config("auth.type", "frontend"),
             config("auth.key_encrypted_base64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe),
             config("github.trampoline_url", { "http://localhost:${trampolineProxy.port()}/api/auth/gh/callback" }),
             config("github.oauth_api_root", { "http://localhost:${github.port()}" }),
