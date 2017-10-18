@@ -3,11 +3,12 @@ package io.quartic.common.auth
 import com.google.common.base.Preconditions.checkArgument
 import com.google.common.hash.Hashing
 import io.jsonwebtoken.Jwts
-import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.KEY_LENGTH_BITS
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.application.FrontendAuthConfiguration
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.KEY_LENGTH_BITS
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
@@ -19,7 +20,7 @@ import java.time.temporal.TemporalAmount
 import java.util.*
 
 class TokenGenerator(
-    config: TokenAuthConfiguration,
+    config: FrontendAuthConfiguration,
     codec: SecretsCodec,
     private val timeToLive: TemporalAmount,
     private val clock: Clock = Clock.systemUTC(),
@@ -35,7 +36,7 @@ class TokenGenerator(
         checkArgument(key.size == KEY_LENGTH_BITS / 8, "Key is not exactly $KEY_LENGTH_BITS bits long")
     }
 
-    fun generate(user: User, issuer: String): Tokens {
+    fun generate(user: FrontendUser, issuer: String): Tokens {
         LOG.info("Generated JWT for '$user@$issuer'")
         val xsrf = xsrfTokenGenerator.get().uid
         // Currently no need for aud - only one audience, and no need for jti as the custom xth claim suffices as nonce
@@ -45,7 +46,7 @@ class TokenGenerator(
                 .setSubject(user.id)
                 .setIssuer(issuer)
                 .setExpiration(Date.from(expiration()))
-                .claim(CUSTOMER_ID_CLAIM, user.customerId?.uid)
+                .claim(CUSTOMER_ID_CLAIM, user.customerId.uid)
                 .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString(xsrf, Charsets.UTF_8).toString())
                 .compact(),
             xsrf

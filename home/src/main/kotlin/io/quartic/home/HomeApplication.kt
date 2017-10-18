@@ -3,7 +3,7 @@ package io.quartic.home
 import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.application.TokenAuthConfiguration
+import io.quartic.common.application.FrontendAuthConfiguration
 import io.quartic.common.auth.TokenGenerator
 import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
@@ -30,7 +30,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val github = clientBuilder.retrofit<GitHubClient>(configuration.github.apiRoot)
 
         val tokenGenerator = TokenGenerator(
-            configuration.auth as TokenAuthConfiguration,
+            configuration.auth as FrontendAuthConfiguration,
             configuration.secretsCodec,
             Duration.ofSeconds(configuration.cookies.maxAgeSeconds.toLong())
         )

@@ -18,7 +18,7 @@ cookies:
   max_age_seconds: 2592000 # 30 days
 
 auth:
-  type: token
+  type: external
   key_encrypted_base64: "1$200ce236d8932bcfdad93bda$8a313bc418373b941f796c9e0011668b669f91616409654851018eb0d8683c867184c7a78c254e67574d490581b0d32426ea314deb785313b46fc41c17ccc2d175bc85f94b5863fa1dbaad2bf04e501c2e4ad2b03e9fccbf$863ca1668d67a58d6590f1849df8e62d"
 
 url:

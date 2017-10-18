@@ -1,8 +1,9 @@
-package io.quartic.common.auth
+package io.quartic.common.auth.internal
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import io.quartic.common.application.TokenAuthConfiguration
+import io.quartic.common.application.InternalAuthConfiguration
+import io.quartic.common.auth.AuthStrategy
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.decodeAsBase64
@@ -12,11 +13,11 @@ import javax.crypto.spec.SecretKeySpec
 import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.HttpHeaders.AUTHORIZATION
 
-class InternalTokenAuthStrategy(
-    config: TokenAuthConfiguration,
+class InternalAuthStrategy(
+    config: InternalAuthConfiguration,
     codec: SecretsCodec,
     clock: Clock = Clock.systemUTC()
-) : AuthStrategy<String> {
+) : AuthStrategy<String, InternalUser> {
     private val LOG by logger()
 
     private val parser = Jwts.parser()
@@ -26,6 +27,7 @@ class InternalTokenAuthStrategy(
             ALGORITHM.toString()
         ))
 
+    override val principalClass = InternalUser::class.java
     override val scheme = "Cookie"      // TODO - what makes sense for internal stuff?
 
 
@@ -48,7 +50,7 @@ class InternalTokenAuthStrategy(
     }
 
     // TODO - we're going to have to embed the namespace list into the User principal
-    override fun authenticate(creds: String): User? {
+    override fun authenticate(creds: String): InternalUser? {
         // TODO - do we require any particular claims?
 
         val claims = try {
@@ -59,12 +61,12 @@ class InternalTokenAuthStrategy(
         }
 
         val namespaces = (claims.body[NAMESPACES_CLAIM] as List<String>?)   // TODO - how do we type-convert here?
-        if (customerId == null) {
-            LOG.warn("Customer ID claim is missing or unparsable")
+        if (namespaces == null) {
+            LOG.warn("Namespaces claim is missing or unparsable")
             return null
         }
 
-        return User(subject, customerId)
+        return InternalUser("noob", namespaces)     // TODO - what should id be?
     }
 
     companion object {

@@ -1,4 +1,4 @@
-package io.quartic.common.auth
+package io.quartic.common.auth.frontend
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.any
@@ -8,13 +8,13 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
-import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.ExternalTokenAuthStrategy.Tokens
+import io.quartic.common.application.FrontendAuthConfiguration
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Tokens
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
@@ -30,7 +30,7 @@ import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.Cookie
 import javax.ws.rs.core.HttpHeaders
 
-class ExternalTokenAuthStrategyShould {
+class FrontendAuthStrategyShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val past = now - timeToLive
@@ -45,7 +45,7 @@ class ExternalTokenAuthStrategyShould {
         on { getHeaderString(XSRF_TOKEN_HEADER) } doReturn "def"
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
-    private val strategy = ExternalTokenAuthStrategy(TokenAuthConfiguration(mock()), codec, clock)
+    private val strategy = FrontendAuthStrategy(FrontendAuthConfiguration(mock()), codec, clock)
     private val tokens = Tokens("abc", "def", "noob")
 
     @Test
@@ -71,7 +71,7 @@ class ExternalTokenAuthStrategyShould {
     fun accept_valid_tokens() {
         val tokens = tokens { this }
 
-        assertThat(strategy.authenticate(tokens), equalTo(User(1234, 5678)))
+        assertThat(strategy.authenticate(tokens), equalTo(FrontendUser(1234, 5678)))
     }
 
     @Test
