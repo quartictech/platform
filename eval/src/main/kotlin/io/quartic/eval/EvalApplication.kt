@@ -38,7 +38,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             sequencer(config, database),
             github(config),
             populator(config),
-            dummyTokenGenerator()
+            tokenGenerator(config)
         )
         return actor(CommonPool, UNLIMITED) {
             for (build in channel) evaluator.evaluateAsync(build)
@@ -95,8 +95,7 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             config.secretsCodec
         ).dao<Database>()
 
-    // TODO
-    private fun dummyTokenGenerator() = InternalTokenGenerator(
+    private fun tokenGenerator(config: EvalConfiguration) = InternalTokenGenerator(
         InternalAuthConfiguration(EncryptedSecret("noob")),
         secretsCodec,
         Duration.ofMinutes(60)  // TODO

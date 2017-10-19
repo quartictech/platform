@@ -42,10 +42,22 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val github: GitHubInstallationClient,
     private val rawPopulator: RawPopulator,
-    private val tokenGenerator: InternalTokenGenerator,
-    private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
-    private val quartyBuilder: (Customer, String) -> QuartyProxy = { customer, hostname -> QuartyProxy(customer, tokenGenerator, hostname) }
+    private val extractDag: (List<Node>) -> DagResult,
+    private val quartyBuilder: (Customer, String) -> QuartyProxy
 ) {
+    constructor(
+        sequencer: Sequencer,
+        github: GitHubInstallationClient,
+        rawPopulator: RawPopulator,
+        tokenGenerator: InternalTokenGenerator
+    ) : this(
+        sequencer,
+        github,
+        rawPopulator,
+        { nodes -> Dag.fromRawValidating(nodes) },
+        { c, h -> QuartyProxy(c, tokenGenerator, h) }
+    )
+
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
         is Automated -> trigger.triggerType

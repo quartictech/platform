@@ -280,7 +280,7 @@ class EvaluatorShould {
     }
 
     private val quartyBuilder = mock<(Customer, String) -> QuartyProxy> {
-        on { invoke(any(), eq(containerHostname)) } doReturn quarty     // TODO - match Customer arg
+        on { invoke(customer, containerHostname) } doReturn quarty
     }
 
     private val extractDag = mock<(List<Node>) -> DagResult>()
@@ -295,7 +295,6 @@ class EvaluatorShould {
         sequencer,
         github,
         populator,
-        mock(),         // TODO - do something sensible with this
         extractDag,
         quartyBuilder
     )
