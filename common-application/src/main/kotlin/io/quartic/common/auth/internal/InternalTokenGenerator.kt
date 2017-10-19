@@ -2,23 +2,21 @@ package io.quartic.common.auth.internal
 
 import com.google.common.base.Preconditions.checkArgument
 import io.jsonwebtoken.Jwts
-import io.quartic.common.application.InternalAuthConfiguration
 import io.quartic.common.auth.internal.InternalAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.internal.InternalAuthStrategy.Companion.KEY_LENGTH_BITS
 import io.quartic.common.auth.internal.InternalAuthStrategy.Companion.NAMESPACES_CLAIM
-import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.secrets.decodeAsBase64
 import java.time.Clock
 import java.time.temporal.TemporalAmount
 import java.util.*
 
 class InternalTokenGenerator(
-    config: InternalAuthConfiguration,
-    codec: SecretsCodec,
+    signingKeyBase64: UnsafeSecret,
     private val timeToLive: TemporalAmount,
     private val clock: Clock = Clock.systemUTC()
 ) {
-    private val key = codec.decrypt(config.keyEncryptedBase64).veryUnsafe.decodeAsBase64()
+    private val key = signingKeyBase64.veryUnsafe.decodeAsBase64()
 
     init {
         checkArgument(key.size == KEY_LENGTH_BITS / 8, "Key is not exactly ${KEY_LENGTH_BITS} bits long")

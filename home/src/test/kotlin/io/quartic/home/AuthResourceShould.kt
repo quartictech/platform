@@ -9,7 +9,7 @@ import io.quartic.common.auth.frontend.FrontendTokenGenerator.Tokens
 import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
-import io.quartic.common.test.TOKEN_KEY_BASE64
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.assertThrows
 import io.quartic.common.test.exceptionalFuture
 import io.quartic.github.*
@@ -38,7 +38,7 @@ class AuthResourceShould {
     private val gitHubOAuth = mock<GitHubOAuthClient>()
     private val gitHub = mock<GitHubClient>()
     private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
+        on { decrypt(any()) } doReturn UnsafeSecret("client-secret")
     }
     private val resource = AuthResource(
         GithubConfiguration(
@@ -50,7 +50,8 @@ class AuthResourceShould {
         ),
         CookiesConfiguration(
             secure = true,
-            maxAgeSeconds = 30
+            maxAgeSeconds = 30,
+            signingKeyEncryptedBase64 = mock()
         ),
         codec,
         tokenGenerator,
@@ -66,7 +67,7 @@ class AuthResourceShould {
             on { githubOrgId } doReturn 5678
         }
         whenever(registry.getCustomerAsync(any(), anyOrNull())).thenReturn(completedFuture(customer))
-        whenever(gitHubOAuth.accessTokenAsync(any(), any(), any(), any())).thenReturn(completedFuture(AccessToken("sweet", null, null)))
+        whenever(gitHubOAuth.accessTokenAsync(any(), eq("client-secret"), any(), any())).thenReturn(completedFuture(AccessToken("sweet", null, null)))
         whenever(gitHub.userAsync(AuthToken("sweet")))
             .thenReturn(completedFuture(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob"))))
         whenever(gitHub.organizationsAsync(AuthToken("sweet")))

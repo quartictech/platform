@@ -7,8 +7,9 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.quartic.common.ApplicationDetails
+import io.quartic.common.auth.AuthStrategy
 import io.quartic.common.auth.createAuthFilter
-import io.quartic.common.auth.createStrategy
+import io.quartic.common.auth.legacy.LegacyAuthStrategy
 import io.quartic.common.client.ClientBuilder
 import io.quartic.common.logging.logger
 import io.quartic.common.pingpong.PingPongResource
@@ -33,8 +34,7 @@ abstract class ApplicationBase<T : ConfigurationBase> : Application<T>() {
         LOG.info("Running " + details.name + " " + details.version + " (Java " + details.javaVersion + ")")
         warnIfDevMasterKey(configuration)
         secretsCodec = configuration.secretsCodec
-
-        val authStrategy = configuration.auth.createStrategy(secretsCodec)
+        val authStrategy = authStrategy(configuration)
 
         // TODO - CORS settings
         // TODO - check Origin and Referer headers
@@ -65,6 +65,8 @@ abstract class ApplicationBase<T : ConfigurationBase> : Application<T>() {
     protected open fun initializeApplication(bootstrap: Bootstrap<T>) = Unit
 
     protected abstract fun runApplication(configuration: T, environment: Environment)
+
+    protected open fun authStrategy(configuration: T): AuthStrategy<*, *> = LegacyAuthStrategy()
 
     protected fun EncryptedSecret.decrypt() = secretsCodec.decrypt(this)
 }

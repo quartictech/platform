@@ -16,7 +16,8 @@ data class GithubConfiguration(
 
 data class CookiesConfiguration(
     val secure: Boolean,
-    val maxAgeSeconds: Int
+    val maxAgeSeconds: Int,
+    val signingKeyEncryptedBase64: EncryptedSecret
 )
 
 data class HomeConfiguration(

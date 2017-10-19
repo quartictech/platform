@@ -3,7 +3,7 @@ package io.quartic.home
 import io.dropwizard.setup.Environment
 import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.application.FrontendAuthConfiguration
+import io.quartic.common.auth.frontend.FrontendAuthStrategy
 import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.client.ClientBuilder.Companion.userAgentFor
 import io.quartic.common.healthcheck.PingPongHealthCheck
@@ -30,8 +30,7 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         val github = clientBuilder.retrofit<GitHubClient>(configuration.github.apiRoot)
 
         val tokenGenerator = FrontendTokenGenerator(
-            configuration.auth as FrontendAuthConfiguration,
-            configuration.secretsCodec,
+            signingKeyBase64(configuration),
             Duration.ofSeconds(configuration.cookies.maxAgeSeconds.toLong())
         )
 
@@ -56,6 +55,10 @@ class HomeApplication : ApplicationBase<HomeConfiguration>() {
         }
         environment.healthChecks().register("catalogue", PingPongHealthCheck(clientBuilder, configuration.catalogueUrl))
     }
+
+    override fun authStrategy(configuration: HomeConfiguration) = FrontendAuthStrategy(signingKeyBase64(configuration))
+
+    private fun signingKeyBase64(configuration: HomeConfiguration) = configuration.cookies.signingKeyEncryptedBase64.decrypt()
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = HomeApplication().run(*args)

@@ -2,10 +2,8 @@ package io.quartic.eval
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
-import io.quartic.common.application.InternalAuthConfiguration
 import io.quartic.common.auth.internal.InternalTokenGenerator
 import io.quartic.common.db.DatabaseBuilder
-import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.eval.database.Database
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.BuildInitiator
@@ -96,10 +94,12 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         ).dao<Database>()
 
     private fun tokenGenerator(config: EvalConfiguration) = InternalTokenGenerator(
-        InternalAuthConfiguration(EncryptedSecret("noob")),
-        secretsCodec,
-        Duration.ofMinutes(60)  // TODO
+        signingKeyBase64(config),
+        Duration.ofSeconds(config.auth.timeToLiveSeconds.toLong())
     )
+
+    private fun signingKeyBase64(config: EvalConfiguration) =
+        config.auth.signingKeyEncryptedBase64.decrypt()
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)

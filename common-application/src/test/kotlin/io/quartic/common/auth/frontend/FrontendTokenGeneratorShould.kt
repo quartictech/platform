@@ -1,15 +1,10 @@
 package io.quartic.common.auth.frontend
 
 import com.google.common.hash.Hashing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
 import io.jsonwebtoken.Jwts
-import io.quartic.common.application.FrontendAuthConfiguration
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import io.quartic.common.test.assertThrows
@@ -27,10 +22,7 @@ class FrontendTokenGeneratorShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
-    private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
-    }
-    private val generator = FrontendTokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock)
+    private val generator = FrontendTokenGenerator(TOKEN_KEY_BASE64, timeToLive, clock)
 
     @Test
     fun generate_valid_tokens() {
@@ -56,12 +48,8 @@ class FrontendTokenGeneratorShould {
 
     @Test
     fun validate_key_length() {
-        val codec = mock<SecretsCodec> {
-            on { decrypt(any()) } doReturn UnsafeSecret("abcd")
-        }
-
         assertThrows<IllegalArgumentException> {
-            FrontendTokenGenerator(FrontendAuthConfiguration(mock()), codec, timeToLive, clock)
+            FrontendTokenGenerator(UnsafeSecret("abcd"), timeToLive, clock)
         }
     }
 
