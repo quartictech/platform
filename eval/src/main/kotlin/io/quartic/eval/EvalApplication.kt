@@ -2,7 +2,10 @@ package io.quartic.eval
 
 import io.dropwizard.setup.Environment
 import io.quartic.common.application.ApplicationBase
+import io.quartic.common.application.InternalAuthConfiguration
+import io.quartic.common.auth.internal.InternalTokenGenerator
 import io.quartic.common.db.DatabaseBuilder
+import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.eval.database.Database
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.sequencer.BuildInitiator
@@ -15,6 +18,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.ActorJob
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.channels.actor
+import java.time.Duration
 
 class EvalApplication : ApplicationBase<EvalConfiguration>() {
     override fun runApplication(configuration: EvalConfiguration, environment: Environment) {
@@ -33,7 +37,8 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         val evaluator = Evaluator(
             sequencer(config, database),
             github(config),
-            populator(config)
+            populator(config),
+            dummyTokenGenerator()
         )
         return actor(CommonPool, UNLIMITED) {
             for (build in channel) evaluator.evaluateAsync(build)
@@ -89,6 +94,13 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
             environment,
             config.secretsCodec
         ).dao<Database>()
+
+    // TODO
+    private fun dummyTokenGenerator() = InternalTokenGenerator(
+        InternalAuthConfiguration(EncryptedSecret("noob")),
+        secretsCodec,
+        Duration.ofMinutes(60)  // TODO
+    )
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)

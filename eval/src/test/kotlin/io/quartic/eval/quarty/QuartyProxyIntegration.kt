@@ -1,5 +1,6 @@
 package io.quartic.eval.quarty
 
+import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.api.model.Pipeline
 import io.quartic.quarty.api.model.QuartyRequest
@@ -14,7 +15,7 @@ import java.net.URI
 
 @Ignore
 class QuartyProxyIntegration {
-    private val quartyProxy = QuartyProxy("localhost")
+    private val quartyProxy = QuartyProxy(mock(), mock(), "localhost")  // TODO - what do the mocks need to be?
     private val devNull = { _:String, _:String ->  }
 
     @Test

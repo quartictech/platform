@@ -1,5 +1,7 @@
 package io.quartic.eval.quarty
 
+import io.quartic.common.auth.internal.InternalTokenGenerator
+import io.quartic.common.auth.internal.InternalUser
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.quarty.QuartyProxy.State.*
 import io.quartic.eval.websocket.WebsocketClient
@@ -9,14 +11,21 @@ import io.quartic.quarty.api.model.QuartyAuthenticatedRequest
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import io.quartic.quarty.api.model.QuartyResponse.*
+import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CompletableDeferred
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import java.net.URI
 
-class QuartyProxy(private val quarty: WebsocketClient<QuartyAuthenticatedRequest, QuartyResponse>) : AutoCloseable {
-    constructor(hostname: String) : this(
+class QuartyProxy(
+    private val customer: Customer,
+    private val tokenGenerator: InternalTokenGenerator,
+    private val quarty: WebsocketClient<QuartyAuthenticatedRequest, QuartyResponse>
+) : AutoCloseable {
+    constructor(customer: Customer, tokenGenerator: InternalTokenGenerator, hostname: String) : this(
+        customer,
+        tokenGenerator,
         WebsocketClientImpl.create(
             URI("http://${hostname}:${QUARTY_PORT}"),
             WebsocketClientImpl.ABORT_ON_FAILURE
@@ -72,7 +81,7 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyAuthenticatedRequest
 
                 is AwaitingRequest -> {
                     val context = requests.receive()
-                    quarty.outbound.send(QuartyAuthenticatedRequest("TODO", context.request))
+                    quarty.outbound.send(QuartyAuthenticatedRequest(generateToken(), context.request))
                     this.state = ServicingRequest(context)
                 }
 
@@ -95,6 +104,9 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyAuthenticatedRequest
             }
         }
     }
+
+    // TODO - this is obviously fairly strange.  Longer term, the namespace list is probably more than just the "self" namespace.
+    private fun generateToken() = tokenGenerator.generate(InternalUser(customer.namespace, listOf(customer.namespace)))
 
     private suspend fun handleDisconnected(context: Context) {
         context.result.completeExceptionally(EvaluatorException("Connection to Quarty unavailable"))

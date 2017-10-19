@@ -2,6 +2,7 @@ package io.quartic.eval
 
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.google.common.base.Throwables.getRootCause
+import io.quartic.common.auth.internal.InternalTokenGenerator
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -41,8 +42,9 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val github: GitHubInstallationClient,
     private val rawPopulator: RawPopulator,
+    private val tokenGenerator: InternalTokenGenerator,
     private val extractDag: (List<Node>) -> DagResult = { nodes -> Dag.fromRawValidating(nodes) },
-    private val quartyBuilder: (String) -> QuartyProxy = { hostname -> QuartyProxy(hostname) }
+    private val quartyBuilder: (Customer, String) -> QuartyProxy = { customer, hostname -> QuartyProxy(customer, tokenGenerator, hostname) }
 ) {
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
         is Manual -> trigger.triggerType
@@ -66,7 +68,7 @@ class Evaluator(
                     .awaitWrapped("fetching repository details from GitHub"))
             }
 
-            quartyBuilder(container.hostname).use { quarty ->
+            quartyBuilder(build.customer, container.hostname).use { quarty ->
                 phase<Unit>("Cloning and preparing repository") {
                     extractResultFrom(quarty, Initialise(cloneUrl(repo.cloneUrl, token), commit(build.trigger))) {
                         success(Unit)
