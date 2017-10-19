@@ -5,6 +5,7 @@ import io.quartic.eval.quarty.QuartyProxy.State.*
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event.*
 import io.quartic.eval.websocket.WebsocketClientImpl
+import io.quartic.quarty.api.model.QuartyAuthenticatedRequest
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import io.quartic.quarty.api.model.QuartyResponse.*
@@ -14,7 +15,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.launch
 import java.net.URI
 
-class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyResponse>) : AutoCloseable {
+class QuartyProxy(private val quarty: WebsocketClient<QuartyAuthenticatedRequest, QuartyResponse>) : AutoCloseable {
     constructor(hostname: String) : this(
         WebsocketClientImpl.create(
             URI("http://${hostname}:${QUARTY_PORT}"),
@@ -71,7 +72,7 @@ class QuartyProxy(private val quarty: WebsocketClient<QuartyRequest, QuartyRespo
 
                 is AwaitingRequest -> {
                     val context = requests.receive()
-                    quarty.outbound.send(context.request)
+                    quarty.outbound.send(QuartyAuthenticatedRequest("TODO", context.request))
                     this.state = ServicingRequest(context)
                 }
 

@@ -12,6 +12,11 @@ import io.quartic.quarty.api.model.QuartyResponse.Log
 import io.quartic.quarty.api.model.QuartyResponse.Progress
 import java.net.URI
 
+data class QuartyAuthenticatedRequest(
+    val internalAuthToken: String,      // TODO - maybe we should invent a type to make it clear what kind of token we need
+    val payload: QuartyRequest
+)
+
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
     Type(Initialise::class, name = "initialise"),

@@ -17,9 +17,9 @@ import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.SecurityContext.BASIC_AUTH
 
 fun AuthConfiguration.createStrategy(secretsCodec: SecretsCodec) = when (this) {
-    is FrontendAuthConfiguration -> FrontendAuthStrategy(this, secretsCodec)
-    is InternalAuthConfiguration -> InternalAuthStrategy(this, secretsCodec)
-    is LegacyAuthConfiguration -> LegacyAuthStrategy()
+    is FrontendAuthConfiguration -> FrontendAuthStrategy(this, secretsCodec)        // JWT-in-cookie auth for web browsers
+    is InternalAuthConfiguration -> InternalAuthStrategy(this, secretsCodec)        // JWT-in-bearer-token auth for internal consumers (sandboxes, Zeus, Jupyter)
+    is LegacyAuthConfiguration -> LegacyAuthStrategy()                              // Not really auth, just extract username from basic-auth header
 }
 
 fun <C, U : Principal> createAuthFilter(strategy: AuthStrategy<C, U>): AuthFilter<C, U> {

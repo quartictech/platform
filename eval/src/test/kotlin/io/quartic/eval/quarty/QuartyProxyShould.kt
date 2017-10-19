@@ -11,6 +11,7 @@ import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.*
+import io.quartic.quarty.api.model.QuartyAuthenticatedRequest
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import io.quartic.quarty.api.model.QuartyResponse.*
@@ -23,9 +24,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuartyProxyShould {
-    private val outbound = Channel<QuartyRequest>(UNLIMITED)
+    private val outbound = Channel<QuartyAuthenticatedRequest>(UNLIMITED)
     private val events = Channel<Event<QuartyResponse>>(UNLIMITED)
-    private val client = mock<WebsocketClient<QuartyRequest, QuartyResponse>> {
+    private val client = mock<WebsocketClient<QuartyAuthenticatedRequest, QuartyResponse>> {
         on { outbound } doReturn outbound
         on { events } doReturn events
     }
@@ -52,7 +53,7 @@ class QuartyProxyShould {
 
             quarty.request(expected, log)
 
-            assertThat(outbound.receive(), equalTo(expected))
+            assertThat(outbound.receive(), equalTo(QuartyAuthenticatedRequest("TODO", expected)))
         }
     }
 
