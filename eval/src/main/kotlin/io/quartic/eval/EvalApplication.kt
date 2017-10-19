@@ -94,12 +94,9 @@ class EvalApplication : ApplicationBase<EvalConfiguration>() {
         ).dao<Database>()
 
     private fun tokenGenerator(config: EvalConfiguration) = InternalTokenGenerator(
-        signingKeyBase64(config),
+        config.auth.signingKeyEncryptedBase64.decrypt(),
         Duration.ofSeconds(config.auth.timeToLiveSeconds.toLong())
     )
-
-    private fun signingKeyBase64(config: EvalConfiguration) =
-        config.auth.signingKeyEncryptedBase64.decrypt()
 
     companion object {
         @JvmStatic fun main(args: Array<String>) = EvalApplication().run(*args)
