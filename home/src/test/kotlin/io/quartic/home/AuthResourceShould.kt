@@ -63,14 +63,14 @@ class AuthResourceShould {
     fun before() {
         val customer = mock<Customer> {
             on { id } doReturn CustomerId(6666)
-            on { githubOrgId } doReturn 5678
+            on { githubRepoId } doReturn 5678
         }
         whenever(registry.getCustomerAsync(any(), anyOrNull())).thenReturn(completedFuture(customer))
         whenever(gitHubOAuth.accessTokenAsync(any(), any(), any(), any())).thenReturn(completedFuture(AccessToken("sweet", null, null)))
         whenever(gitHub.userAsync(AuthToken("sweet")))
             .thenReturn(completedFuture(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob"))))
-        whenever(gitHub.organizationsAsync(AuthToken("sweet")))
-            .thenReturn(completedFuture(listOf(GitHubOrganization(5678, "quartictech"))))
+        whenever(gitHub.reposAsync(AuthToken("sweet")))
+            .thenReturn(completedFuture(listOf(GitHubRepo(5678, "noob", "quartictech/noob"))))
         whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
@@ -148,9 +148,9 @@ class AuthResourceShould {
     }
 
     @Test
-    fun reject_if_orgs_dont_overlap() {
-        whenever(gitHub.organizationsAsync(AuthToken("sweet")))
-            .thenReturn(completedFuture(listOf(GitHubOrganization(9876, "quinticsolutions"))))
+    fun reject_if_repos_dont_overlap() {
+        whenever(gitHub.reposAsync(AuthToken("sweet")))
+            .thenReturn(completedFuture(listOf(GitHubRepo(9876, "foo", "quinticsolutions/foo"))))
 
         assertThrows<NotAuthorizedException> {
             resource.githubComplete("xyz", "abc", hash("abc"), "localhost")

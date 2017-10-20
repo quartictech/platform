@@ -14,7 +14,7 @@ import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.test.TOKEN_KEY_BASE64
-import io.quartic.github.GitHubOrganization
+import io.quartic.github.GitHubRepo
 import io.quartic.github.GitHubUser
 import io.quartic.registry.api.model.Customer
 import org.apache.http.client.utils.URIBuilder
@@ -65,13 +65,13 @@ class HomeApplicationShould {
                     .withHeader(CONTENT_TYPE, APPLICATION_JSON)
                     .withBody(OBJECT_MAPPER.writeValueAsString(GitHubUser(1234, "oliver", "Oliver", URI("http://noob"))))))
 
-            stubFor(get(urlPathEqualTo("/user/orgs"))
+            stubFor(get(urlPathEqualTo("/user/repos"))
                 .withHeader(ACCEPT, equalTo(APPLICATION_JSON))
                 .withHeader(AUTHORIZATION, equalTo("token ${ACCESS_TOKEN}"))
                 .willReturn(aResponse()
                     .withStatus(200)
                     .withHeader(CONTENT_TYPE, APPLICATION_JSON)
-                    .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubOrganization(5678, "noobs"))))))
+                    .withBody(OBJECT_MAPPER.writeValueAsString(listOf(GitHubRepo(8765, "noob", "local/noob"))))))
 
             stubFor(get(urlPathEqualTo("/user/1234"))
                 .withHeader(ACCEPT, equalTo(APPLICATION_JSON))

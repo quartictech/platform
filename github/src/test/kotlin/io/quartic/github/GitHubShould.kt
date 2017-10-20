@@ -5,8 +5,7 @@ import io.quartic.common.client.ClientBuilder
 import io.quartic.common.secrets.EncryptedSecret
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.IntegrationTest
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.*
 import org.junit.Assert.assertThat
 import org.junit.Test
 import java.net.URI
@@ -53,6 +52,14 @@ class GitHubShould {
         val orgs = OAUTH_CLIENT.organizationsAsync(OAUTH_TOKEN).get()
         assertThat(orgs, hasItem(GitHubOrganization(30663321, "noobhole")))
     }
+
+    @Test
+    fun return_user_repo_info_from_oauthed_endpoint() {
+        val repos = OAUTH_CLIENT.reposAsync(OAUTH_TOKEN).get()
+        println(repos)
+        assertThat(repos, contains(GitHubRepo(99135714, "test", "noobhole/test")))
+    }
+
 
     // TODO - test oauth login endpoint
 

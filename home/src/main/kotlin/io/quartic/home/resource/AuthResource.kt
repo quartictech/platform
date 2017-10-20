@@ -36,7 +36,7 @@ class AuthResource(
     private val tokenGenerator: TokenGenerator,
     private val registry: RegistryServiceClient,
     private val gitHubOAuth: GitHubOAuthClient,
-    private val gitHubApi: GitHubClient
+    private val github: GitHubClient
 ) {
     class NonceId(uid: String) : Uid(uid)
 
@@ -101,13 +101,13 @@ class AuthResource(
             throw NotAuthorizedException("GitHub authorisation failure")
         }
 
-        val ghUser = callServerOrThrow { gitHubApi.userAsync(AuthToken(accessToken.accessToken!!)).get() }
-        val ghOrgs = callServerOrThrow { gitHubApi.organizationsAsync(AuthToken(accessToken.accessToken!!)).get() }
+        val ghUser = callServerOrThrow { github.userAsync(AuthToken(accessToken.accessToken!!)).get() }
+        val ghRepos = callServerOrThrow { github.reposAsync(AuthToken(accessToken.accessToken!!)).get() }
 
         val subdomain = extractSubdomain(host)
         val customer = callServerOrThrow { registry.getCustomerAsync(subdomain, null).get()!! } // Should never be null
 
-        if (ghOrgs.any { it.id == customer.githubOrgId }) {
+        if (ghRepos.any { it.id == customer.githubRepoId }) {
             val user = User(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run
             val tokens = tokenGenerator.generate(user, subdomain)
             return Response.ok()
@@ -115,7 +115,7 @@ class AuthResource(
                 .cookie(TOKEN_COOKIE, tokens.jwt, cookiesConfig.maxAgeSeconds)
                 .build()
         } else {
-            LOG.warn("User doesn't belong to organisation (${customer.githubOrgId} not in ${ghOrgs.map { "${it.id} (${it.login})" }})")
+            LOG.warn("User isn't an owner, collaborator or member for repo (${customer.githubRepoId} not in ${ghRepos.map { "${it.id} (${it.fullName})" }})")
             throw NotAuthorizedException("User doesn't belong to organisation")
         }
     }

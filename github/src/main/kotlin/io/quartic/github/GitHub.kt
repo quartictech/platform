@@ -17,6 +17,13 @@ data class GitHubOrganization(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class GitHubRepo(
+    val id: Long,
+    val name: String,
+    val fullName: String
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class GitHubUser(
     val id: Long,
     val login: String,
@@ -45,23 +52,26 @@ interface GitHubOAuthClient {
 
 @Retrofittable
 interface GitHubClient {
+
+    // https://developer.github.com/v3/users/#get-a-single-user
     @GET("user/{userId}")
     @Headers("${ACCEPT}: ${APPLICATION_JSON}")
-    fun userAsync(
-        @Path("userId") userId: Int
-    ): CompletableFuture<GitHubUser>
+    fun userAsync(@Path("userId") userId: Int): CompletableFuture<GitHubUser>
 
+    // https://developer.github.com/v3/users/#get-the-authenticated-user
     @GET("user")
     @Headers("${ACCEPT}: ${APPLICATION_JSON}")
-    fun userAsync(
-        @Header("Authorization") auth: AuthToken
-    ): CompletableFuture<GitHubUser>
+    fun userAsync(@Header("Authorization") auth: AuthToken): CompletableFuture<GitHubUser>
 
+    // https://developer.github.com/v3/orgs/#list-your-organizations
     @GET("user/orgs")
     @Headers("${ACCEPT}: ${APPLICATION_JSON}")
-    fun organizationsAsync(
-        @Header("Authorization") auth: AuthToken
-    ): CompletableFuture<List<GitHubOrganization>>
+    fun organizationsAsync(@Header("Authorization") auth: AuthToken): CompletableFuture<List<GitHubOrganization>>
+
+    // https://developer.github.com/v3/repos/#list-your-repositories
+    @GET("user/repos")
+    @Headers("${ACCEPT}: ${APPLICATION_JSON}")
+    fun reposAsync(@Header("Authorization") auth: AuthToken): CompletableFuture<List<GitHubRepo>>
 }
 
 data class AuthToken(private val token: String) {
