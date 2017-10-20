@@ -6,7 +6,7 @@ import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetLocator.CloudDatasetLocator
 import io.quartic.catalogue.api.model.DatasetNamespace
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.eval.api.EvalTriggerServiceClient
 import io.quartic.eval.api.model.ApiDag
@@ -38,7 +38,7 @@ class HomeResource(
     @GET
     @Path("/dag")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getLatestDag(@Auth user: User) = evalQuery.getLatestDagAsync(user.customerId!!)
+    fun getLatestDag(@Auth user: FrontendUser) = evalQuery.getLatestDagAsync(user.customerId)
         .wrapNotFound("DAG", "latest")
         .toCytoscape()
 
@@ -46,17 +46,17 @@ class HomeResource(
     @Path("/dag/{build}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getDag(
-        @Auth user: User,
+        @Auth user: FrontendUser,
         @PathParam("build") build: Long
-    ) = evalQuery.getDagAsync(user.customerId!!, build)
+    ) = evalQuery.getDagAsync(user.customerId, build)
         .wrapNotFound("DAG", build)
         .toCytoscape()
 
     @POST
     @Path("/build")
-    fun build(@Auth user: User) = evalTrigger.triggerAsync(BuildTrigger.Manual(
+    fun build(@Auth user: FrontendUser) = evalTrigger.triggerAsync(BuildTrigger.Manual(
         user = user.name,
-        customerId = user.customerId!!,
+        customerId = user.customerId,
         branch = "develop",
         triggerType = BuildTrigger.TriggerType.EXECUTE,
         timestamp = Instant.now()
@@ -65,14 +65,14 @@ class HomeResource(
     @GET
     @Path("/builds")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getBuilds(@Auth user: User) = evalQuery.getBuildsAsync(user.customerId!!)
-        .wrapNotFound("Builds", user.customerId!!)
+    fun getBuilds(@Auth user: FrontendUser) = evalQuery.getBuildsAsync(user.customerId)
+        .wrapNotFound("Builds", user.customerId)
 
     @GET
     @Path("/datasets")
     @Produces(MediaType.APPLICATION_JSON)
     fun getDatasets(
-        @Auth user: User
+        @Auth user: FrontendUser
     ): Map<DatasetNamespace, Map<DatasetId, DatasetConfig>> {
         val namespace = lookupNamespace(user)
         return catalogue.getDatasetsAsync().get().filterKeys { namespace.namespace == it.namespace }
@@ -82,7 +82,7 @@ class HomeResource(
     @Path("/datasets/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun deleteDataset(
-        @Auth user: User,
+        @Auth user: FrontendUser,
         @PathParam("id") id: DatasetId
     ) {
         // Note there's a potential race-condition here - another catalogue client could have manipulated the
@@ -100,7 +100,7 @@ class HomeResource(
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun createDataset(
-        @Auth user: User,
+        @Auth user: FrontendUser,
         request: CreateDatasetRequest
     ): DatasetId {
         val namespace = lookupNamespace(user)
@@ -119,7 +119,7 @@ class HomeResource(
     @Path("/file")
     @Produces(MediaType.APPLICATION_JSON)
     fun uploadFile(
-        @Auth user: User,
+        @Auth user: FrontendUser,
         @Context request: HttpServletRequest
     ): HowlStorageId {
         val namespace = lookupNamespace(user)
@@ -145,9 +145,9 @@ class HomeResource(
 
     private fun notFoundException(type: String, name: Any) = NotFoundException("$type '$name' not found")
 
-    private fun lookupNamespace(user: User): DatasetNamespace {
+    private fun lookupNamespace(user: FrontendUser): DatasetNamespace {
         // TODO - handle failure
-        val customer = registry.getCustomerByIdAsync(user.customerId!!).get()
+        val customer = registry.getCustomerByIdAsync(user.customerId).get()
         return DatasetNamespace(customer.namespace)
     }
 

@@ -5,7 +5,7 @@ import io.quartic.catalogue.api.CatalogueClient
 import io.quartic.catalogue.api.model.DatasetConfig
 import io.quartic.catalogue.api.model.DatasetId
 import io.quartic.catalogue.api.model.DatasetNamespace
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.api.EvalQueryServiceClient
@@ -25,7 +25,7 @@ import javax.ws.rs.NotFoundException
 
 class HomeResourceShould {
 
-    private val arlo = User(1234, 5678)
+    private val arlo = FrontendUser(1234, 5678)
     private val quartic = Customer(
         CustomerId(5678),
         githubOrgId = 1,
@@ -93,7 +93,7 @@ class HomeResourceShould {
 
     @Test
     fun get_dag_in_cytoscape_format() {
-        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+        whenever(evalQuery.getDagAsync(arlo.customerId, 69)).thenReturn(completedFuture(
             ApiDag(
                 listOf(
                     ApiDag.Node("test", "A", emptyList()),
@@ -127,7 +127,7 @@ class HomeResourceShould {
 
     @Test
     fun show_nothing_for_null_namespace_in_dag() {
-        whenever(evalQuery.getDagAsync(arlo.customerId!!, 69)).thenReturn(completedFuture(
+        whenever(evalQuery.getDagAsync(arlo.customerId, 69)).thenReturn(completedFuture(
             ApiDag(
                 listOf(
                     ApiDag.Node(null, "A", emptyList())     // Null!

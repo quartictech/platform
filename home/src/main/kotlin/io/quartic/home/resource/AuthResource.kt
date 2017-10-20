@@ -1,10 +1,10 @@
 package io.quartic.home.resource
 
 import com.google.common.hash.Hashing
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenGenerator
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
@@ -33,7 +33,7 @@ class AuthResource(
     private val gitHubConfig: GithubConfiguration,
     private val cookiesConfig: CookiesConfiguration,
     private val secretsCodec: SecretsCodec,
-    private val tokenGenerator: TokenGenerator,
+    private val tokenGenerator: FrontendTokenGenerator,
     private val registry: RegistryServiceClient,
     private val gitHubOAuth: GitHubOAuthClient,
     private val gitHubApi: GitHubClient
@@ -108,7 +108,7 @@ class AuthResource(
         val customer = callServerOrThrow { registry.getCustomerAsync(subdomain, null).get()!! } // Should never be null
 
         if (ghOrgs.any { it.id == customer.githubOrgId }) {
-            val user = User(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run
+            val user = FrontendUser(ghUser.id, customer.id) // TODO - using the GH ID as user ID is wrong in the long run
             val tokens = tokenGenerator.generate(user, subdomain)
             return Response.ok()
                 .header(XSRF_TOKEN_HEADER, tokens.xsrf)

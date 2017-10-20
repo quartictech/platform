@@ -1,4 +1,4 @@
-package io.quartic.common.auth
+package io.quartic.common.auth.frontend
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.any
@@ -8,13 +8,13 @@ import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
-import io.quartic.common.application.TokenAuthConfiguration
-import io.quartic.common.auth.TokenAuthStrategy.Companion.ALGORITHM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.CUSTOMER_ID_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenAuthStrategy.Tokens
+import io.quartic.common.application.FrontendAuthConfiguration
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.ALGORITHM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.CUSTOMER_ID_CLAIM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HASH_CLAIM
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Tokens
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
@@ -30,7 +30,7 @@ import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.Cookie
 import javax.ws.rs.core.HttpHeaders
 
-class TokenAuthStrategyShould {
+class FrontendAuthStrategyShould {
     private val now = Instant.now()
     private val timeToLive = Duration.ofMinutes(69)
     private val past = now - timeToLive
@@ -45,12 +45,11 @@ class TokenAuthStrategyShould {
         on { getHeaderString(XSRF_TOKEN_HEADER) } doReturn "def"
         on { getHeaderString(HttpHeaders.HOST) } doReturn "noob.quartic.io"
     }
-    private val strategy = TokenAuthStrategy(TokenAuthConfiguration(mock()), codec, clock)
-    private val tokens = Tokens("abc", "def", "noob")
+    private val strategy = FrontendAuthStrategy(FrontendAuthConfiguration(mock()), codec, clock)
 
     @Test
     fun extract_tokens_when_present() {
-        assertThat(strategy.extractCredentials(requestContext), equalTo(tokens))
+        assertThat(strategy.extractCredentials(requestContext), equalTo(Tokens("abc", "def", "noob")))
     }
 
     @Test
@@ -71,7 +70,7 @@ class TokenAuthStrategyShould {
     fun accept_valid_tokens() {
         val tokens = tokens { this }
 
-        assertThat(strategy.authenticate(tokens), equalTo(User(1234, 5678)))
+        assertThat(strategy.authenticate(tokens), equalTo(FrontendUser(1234, 5678)))
     }
 
     @Test
@@ -100,7 +99,7 @@ class TokenAuthStrategyShould {
     }
 
     @Test
-    fun reject_unparseable_token() {
+    fun reject_unparsable_token() {
         assertAuthenticationFails(Tokens("def", "noob.quartic.io", "gibberish"))
     }
 

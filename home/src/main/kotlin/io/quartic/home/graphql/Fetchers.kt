@@ -15,13 +15,13 @@ abstract class Fetcher<T> : DataFetcher<T> {
 
 class BuildsFetcher: Fetcher<List<Build>>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): List<Build> =
-        context.eval.getBuildsAsync(context.user.customerId!!).get()
+        context.eval.getBuildsAsync(context.user.customerId).get()
             .map { it.toGraphQL() }
 }
 
 class BuildFetcher: Fetcher<Build>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment) =
-        context.eval.getBuildAsync(context.user.customerId!!, env.getArgument<Long>("number"))
+        context.eval.getBuildAsync(context.user.customerId, env.getArgument<Long>("number"))
             .get()
             .let { it.toGraphQL() }
 }
@@ -45,7 +45,7 @@ fun BuildTrigger.toGraphQL() = when (this) {
 class EventsFetcher: Fetcher<List<BuildEvent>>() {
     override fun get(context: GraphQLContext, env: DataFetchingEnvironment): List<BuildEvent> {
         val build = env.getSource<Build>()
-        return context.eval.getBuildEventsAsync(context.user.customerId!!, build.number).get()
+        return context.eval.getBuildEventsAsync(context.user.customerId, build.number).get()
             .map { it.toGraphQL() }
     }
 }

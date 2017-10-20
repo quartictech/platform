@@ -2,11 +2,11 @@ package io.quartic.home
 
 import com.google.common.hash.Hashing
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.common.auth.TokenAuthStrategy.Companion.TOKEN_COOKIE
-import io.quartic.common.auth.TokenAuthStrategy.Companion.XSRF_TOKEN_HEADER
-import io.quartic.common.auth.TokenGenerator
-import io.quartic.common.auth.TokenGenerator.Tokens
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
+import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
+import io.quartic.common.auth.frontend.FrontendTokenGenerator
+import io.quartic.common.auth.frontend.FrontendTokenGenerator.Tokens
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
@@ -33,7 +33,7 @@ import javax.ws.rs.core.NewCookie.DEFAULT_MAX_AGE
 import javax.ws.rs.core.Response.Status.TEMPORARY_REDIRECT
 
 class AuthResourceShould {
-    private val tokenGenerator = mock<TokenGenerator>()
+    private val tokenGenerator = mock<FrontendTokenGenerator>()
     private val registry = mock<RegistryServiceClient>()
     private val gitHubOAuth = mock<GitHubOAuthClient>()
     private val gitHub = mock<GitHubClient>()
@@ -71,7 +71,7 @@ class AuthResourceShould {
             .thenReturn(completedFuture(GitHubUser(1234, "arlo", "Arlo Bryer", URI("http://noob"))))
         whenever(gitHub.organizationsAsync(AuthToken("sweet")))
             .thenReturn(completedFuture(listOf(GitHubOrganization(5678, "quartictech"))))
-        whenever(tokenGenerator.generate(User(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
+        whenever(tokenGenerator.generate(FrontendUser(1234, 6666), "localhost")).thenReturn(Tokens("jwt", "xsrf"))
     }
 
     @Test

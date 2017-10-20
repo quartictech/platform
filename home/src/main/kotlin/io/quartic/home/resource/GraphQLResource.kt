@@ -8,7 +8,7 @@ import graphql.GraphQLError
 import graphql.annotations.GraphQLAnnotations
 import graphql.schema.GraphQLSchema
 import io.dropwizard.auth.Auth
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.logging.logger
 import io.quartic.eval.api.EvalQueryServiceClient
 import io.quartic.github.GitHubClient
@@ -51,7 +51,7 @@ class GraphQLResource(val eval: EvalQueryServiceClient, val github: GitHubClient
     @Path("/gql")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun execute(@Auth user: User, request: Request): Result {
+    fun execute(@Auth user: FrontendUser, request: Request): Result {
         val context = GraphQLContext(user, eval, github)
         val executionResult = gql.execute(request.query, context, request.variables)
         if (executionResult.errors.size > 0) {

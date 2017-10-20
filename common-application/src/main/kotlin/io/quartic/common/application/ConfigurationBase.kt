@@ -23,18 +23,15 @@ abstract class ConfigurationBase : Configuration() {
         }
     }
 
-    val auth: AuthConfiguration = DummyAuthConfiguration()  // TODO - remove this default eventually
+    val auth: AuthConfiguration = LegacyAuthConfiguration()  // TODO - remove this default eventually
 
-    // Opinionated port selection
     var url: ServerDetails = ServerDetails()
         set(value) = configureServer(value)
 
     var logLevel: String = "INFO"
         set(value) = configureLogging(value)
 
-    val secretsCodec by lazy {
-        SecretsCodec(masterKeyBase64)
-    }
+    val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 
     init {
         configureLogging(logLevel)
@@ -70,19 +67,17 @@ data class ServerDetails(
     val randomPort: Boolean = false
 )
 
+// TODO - this is kind of a mess, it doesn't make sense for the config file to dictate the type of auth in use
 @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
 @JsonSubTypes(
-    JsonSubTypes.Type(value = TokenAuthConfiguration::class, name = "token"),
-    JsonSubTypes.Type(value = DummyAuthConfiguration::class, name = "dummy")
+    JsonSubTypes.Type(value = FrontendAuthConfiguration::class, name = "frontend"),
+    JsonSubTypes.Type(value = InternalAuthConfiguration::class, name = "internal"),
+    JsonSubTypes.Type(value = LegacyAuthConfiguration::class, name = "legacy")
 )
 sealed class AuthConfiguration
 
-data class TokenAuthConfiguration(
-    val keyEncryptedBase64: EncryptedSecret
-) : AuthConfiguration()
-
-data class DummyAuthConfiguration(
-    val _dummy: Int = 0
-) : AuthConfiguration()
+data class FrontendAuthConfiguration(val keyEncryptedBase64: EncryptedSecret) : AuthConfiguration()
+data class InternalAuthConfiguration(val keyEncryptedBase64: EncryptedSecret) : AuthConfiguration()
+data class LegacyAuthConfiguration(val _dummy: Int = 0) : AuthConfiguration()
 
 val DEV_MASTER_KEY_BASE64 = UnsafeSecret("TyHTfhBcy/QT8W7iNaktCSz32qGfxVctboTZfOnfMZE=")

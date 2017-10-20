@@ -1,7 +1,7 @@
 package io.quartic.home
 
 import com.nhaarman.mockito_kotlin.*
-import io.quartic.common.auth.User
+import io.quartic.common.auth.frontend.FrontendUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.api.EvalQueryServiceClient
@@ -79,7 +79,7 @@ class GraphQLResourceShould {
     }
 
     private val resource = GraphQLResource(eval, github)
-    private val user = User("111", CustomerId(100))
+    private val user = FrontendUser("111", CustomerId(100))
 
     @Test
     fun list_builds() {

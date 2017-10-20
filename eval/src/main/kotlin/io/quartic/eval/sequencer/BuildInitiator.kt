@@ -4,8 +4,8 @@ import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.model.CustomerId
 import io.quartic.eval.api.model.BuildTrigger
-import io.quartic.eval.database.Database
 import io.quartic.eval.api.model.BuildTrigger.*
+import io.quartic.eval.database.Database
 import io.quartic.registry.api.RegistryServiceClient
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.future.await
@@ -49,21 +49,17 @@ class BuildInitiator(
     private suspend fun getCustomer(trigger: BuildTrigger) = cancellable(
         block = {
             when (trigger) {
-                is GithubWebhook ->
-                    registry.getCustomerAsync(null, trigger.repoId)
-                is Manual ->
-                    registry.getCustomerByIdAsync(trigger.customerId)
-                is Automated ->
-                    registry.getCustomerByIdAsync(trigger.customerId)
+                is GithubWebhook -> registry.getCustomerAsync(null, trigger.repoId)
+                is Manual -> registry.getCustomerByIdAsync(trigger.customerId)
+                is Automated -> registry.getCustomerByIdAsync(trigger.customerId)
             }.await()
         },
         onThrow = { t ->
             if (t is HttpException && t.code() == 404) {
                 when (trigger) {
-                    is GithubWebhook ->
-                        LOG.warn("No customer found for webhook (repoId = ${trigger.repoId})")
-                    is Manual ->
-                        LOG.warn("No customer found for manual trigger (customerId = ${trigger.customerId})")
+                    is GithubWebhook -> LOG.warn("No customer found for webhook (repoId = ${trigger.repoId})")
+                    is Manual -> LOG.warn("No customer found for manual trigger (customerId = ${trigger.customerId})")
+                    is Automated -> LOG.warn("No customer found for automated trigger (customerId = ${trigger.customerId})")
                 }
             } else {
                 LOG.error("Error while communicating with Registry", t)
