@@ -1,6 +1,5 @@
 package io.quartic.common.application
 
-import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -29,7 +28,7 @@ abstract class ConfigurationBase : Configuration() {
     var url: ServerDetails = ServerDetails()
         set(value) = configureServer(value)
 
-    var logLevel: Level = Level.INFO
+    var logLevel: String = "INFO"
         set(value) = configureLogging(value)
 
     val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
@@ -52,7 +51,7 @@ abstract class ConfigurationBase : Configuration() {
     }
 
     // Opinionated logging configuration
-    private fun configureLogging(level: Level) {
+    private fun configureLogging(level: String) {
         super.setLoggingFactory(DefaultLoggingFactory().apply {
             this.level = level
             setAppenders(listOf(ConsoleAppenderFactory<ILoggingEvent>().apply {
