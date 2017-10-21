@@ -66,7 +66,7 @@ async def execute(config, build_path, step, namespace, ws):
 
 async def decode_message(raw_msg):
     if raw_msg.type == aiohttp.WSMsgType.TEXT:
-        return json.loads(raw_msg.data)
+        return json.loads(raw_msg.data)["payload"]  # TODO - extract token and do something with it
     else:
         raise QuartyException("Error")
 

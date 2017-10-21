@@ -279,8 +279,8 @@ class EvaluatorShould {
         on { runBlocking { request(isA<Execute>(), any()) } } doReturn Result(null)
     }
 
-    private val quartyBuilder = mock<(String) -> QuartyProxy> {
-        on { invoke(containerHostname) } doReturn quarty
+    private val quartyBuilder = mock<(Customer, String) -> QuartyProxy> {
+        on { invoke(customer, containerHostname) } doReturn quarty
     }
 
     private val extractDag = mock<(List<Node>) -> DagResult>()

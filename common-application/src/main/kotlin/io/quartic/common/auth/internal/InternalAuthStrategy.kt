@@ -2,10 +2,9 @@ package io.quartic.common.auth.internal
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import io.quartic.common.application.InternalAuthConfiguration
 import io.quartic.common.auth.AuthStrategy
 import io.quartic.common.logging.logger
-import io.quartic.common.secrets.SecretsCodec
+import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.secrets.decodeAsBase64
 import java.time.Clock
 import java.util.*
@@ -14,18 +13,14 @@ import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.HttpHeaders.AUTHORIZATION
 
 class InternalAuthStrategy(
-    config: InternalAuthConfiguration,
-    codec: SecretsCodec,
+    signingKeyBase64: UnsafeSecret,
     clock: Clock = Clock.systemUTC()
 ) : AuthStrategy<String, InternalUser> {
     private val LOG by logger()
 
     private val parser = Jwts.parser()
         .setClock({ Date.from(clock.instant()) })
-        .setSigningKey(SecretKeySpec(
-            codec.decrypt(config.keyEncryptedBase64).veryUnsafe.decodeAsBase64(),
-            ALGORITHM.toString()
-        ))
+        .setSigningKey(SecretKeySpec(signingKeyBase64.veryUnsafe.decodeAsBase64(), ALGORITHM.toString()))
 
     override val principalClass = InternalUser::class.java
     override val scheme = "Cookie"      // TODO - what makes sense for internal stuff?

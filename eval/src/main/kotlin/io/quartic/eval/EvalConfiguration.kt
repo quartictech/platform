@@ -14,7 +14,8 @@ data class EvalConfiguration(
     val homeUrlFormat: String,
     val qube: QubeConfiguration,
     val github: GitHubConfiguration,
-    val database: DatabaseConfiguration
+    val database: DatabaseConfiguration,
+    val auth: AuthConfiguration
 ) : ConfigurationBase() {
     data class GitHubConfiguration(
         val appId: String,
@@ -25,6 +26,11 @@ data class EvalConfiguration(
     data class QubeConfiguration(
         val url: URI,
         val pod: PodSpec
+    )
+
+    data class AuthConfiguration(
+        val timeToLiveSeconds: Int,
+        val signingKeyEncryptedBase64: EncryptedSecret
     )
 }
 

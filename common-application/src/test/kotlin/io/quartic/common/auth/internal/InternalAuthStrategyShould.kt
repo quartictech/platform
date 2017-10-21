@@ -1,16 +1,13 @@
 package io.quartic.common.auth.internal
 
-import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwtBuilder
-import io.quartic.common.application.InternalAuthConfiguration
 import io.quartic.common.auth.internal.InternalAuthStrategy.Companion.ALGORITHM
 import io.quartic.common.auth.internal.InternalAuthStrategy.Companion.NAMESPACES_CLAIM
-import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -30,14 +27,10 @@ class InternalAuthStrategyShould {
     private val past = now - timeToLive
     private val future = now + timeToLive
     private val clock = Clock.fixed(now, ZoneId.systemDefault())
-    private val codec = mock<SecretsCodec> {
-        on { decrypt(any()) } doReturn TOKEN_KEY_BASE64
-    }
-
     private val requestContext = mock<ContainerRequestContext> {
         on { getHeaderString(HttpHeaders.AUTHORIZATION) } doReturn "Bearer 912746912764"
     }
-    private val strategy = InternalAuthStrategy(InternalAuthConfiguration(mock()), codec, clock)
+    private val strategy = InternalAuthStrategy(TOKEN_KEY_BASE64, clock)
 
     @Test
     fun extract_token_when_present() {

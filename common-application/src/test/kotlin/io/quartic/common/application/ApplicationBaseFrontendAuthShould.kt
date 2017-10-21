@@ -2,9 +2,9 @@ package io.quartic.common.application
 
 import io.dropwizard.auth.Auth
 import io.dropwizard.setup.Environment
-import io.dropwizard.testing.ConfigOverride.config
 import io.dropwizard.testing.ResourceHelpers.resourceFilePath
 import io.dropwizard.testing.junit.DropwizardAppRule
+import io.quartic.common.auth.frontend.FrontendAuthStrategy
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.frontend.FrontendTokenGenerator
@@ -36,11 +36,7 @@ class ApplicationBaseFrontendAuthShould {
 
     @Test
     fun respond_with_200_if_valid_token_supplied() {
-        val tokenGenerator = FrontendTokenGenerator(
-            RULE.configuration.auth as FrontendAuthConfiguration,
-            CODEC,
-            Duration.ofMinutes(10)
-        )
+        val tokenGenerator = FrontendTokenGenerator(TOKEN_KEY_BASE64, Duration.ofMinutes(10))
 
         val tokens = tokenGenerator.generate(FrontendUser(666, 777), "localhost")
 
@@ -67,6 +63,8 @@ class ApplicationBaseFrontendAuthShould {
         override fun runApplication(configuration: TestConfiguration, environment: Environment) {
             environment.jersey().register(TestResource())
         }
+
+        override fun authStrategy(configuration: TestConfiguration) = FrontendAuthStrategy(TOKEN_KEY_BASE64)
     }
 
     companion object {
@@ -76,9 +74,7 @@ class ApplicationBaseFrontendAuthShould {
         @JvmField
         val RULE = DropwizardAppRule<TestConfiguration>(
             TestApplication::class.java,
-            resourceFilePath("test.yml"),
-            config("auth.type", "frontend"),
-            config("auth.key_encrypted_base64", CODEC.encrypt(TOKEN_KEY_BASE64).somewhatUnsafe)
+            resourceFilePath("test.yml")
         )
     }
 }
