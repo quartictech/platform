@@ -5,7 +5,6 @@ import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
 import io.quartic.common.model.CustomerId
 import io.quartic.common.test.assertThrows
-import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
@@ -50,16 +49,21 @@ class DatabaseShould {
     private val eventId = uuidGen()
     private val phaseId = uuidGen()
 
+    private val handle = DBI.open()
+
     @After
     fun after() {
-        DBI.open().createUpdate("DELETE FROM build").execute()
-        DBI.open().createUpdate("DELETE FROM event").execute()
+        with(handle) {
+            createUpdate("DELETE FROM build").execute()
+            createUpdate("DELETE FROM event").execute()
+            close()
+        }
     }
 
     @Test
     fun insert_build() {
         insertBuild(buildId)
-        val build = DBI.open().createQuery("SELECT * FROM build WHERE id = :build_id")
+        val build = handle.createQuery("SELECT * FROM build WHERE id = :build_id")
             .bind("build_id", buildId)
             .mapToMap()
             .findOnly()

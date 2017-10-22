@@ -18,9 +18,14 @@ import org.junit.Test
 import java.time.Instant
 
 class DatabaseShould {
+    private val handle = DBI.open()
+
     @After
     fun after() {
-        DBI.open().createUpdate("DELETE FROM dataset").execute()
+        with(handle) {
+            createUpdate("DELETE FROM dataset").execute()
+            close()
+        }
     }
 
     private val namespace = "myNamespace"
