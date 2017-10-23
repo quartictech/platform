@@ -3,6 +3,7 @@ package io.quartic.eval
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.google.common.base.Throwables.getRootCause
 import io.quartic.common.auth.internal.InternalTokenGenerator
+import io.quartic.common.auth.internal.InternalUser
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
@@ -42,8 +43,9 @@ class Evaluator(
     private val sequencer: Sequencer,
     private val github: GitHubInstallationClient,
     private val rawPopulator: RawPopulator,
+    private val tokenGenerator: InternalTokenGenerator,
     private val extractDag: (List<Node>) -> DagResult,
-    private val quartyBuilder: (Customer, String) -> QuartyProxy
+    private val quartyBuilder: (String) -> QuartyProxy
 ) {
     constructor(
         sequencer: Sequencer,
@@ -54,8 +56,9 @@ class Evaluator(
         sequencer,
         github,
         rawPopulator,
+        tokenGenerator,
         { nodes -> Dag.fromRawValidating(nodes) },
-        { c, h -> QuartyProxy(c, tokenGenerator, h) }
+        { h -> QuartyProxy(h) }
     )
 
     private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
@@ -80,7 +83,7 @@ class Evaluator(
                     .awaitWrapped("fetching repository details from GitHub"))
             }
 
-            quartyBuilder(build.customer, container.hostname).use { quarty ->
+            quartyBuilder(container.hostname).use { quarty ->
                 phase<Unit>("Cloning and preparing repository") {
                     extractResultFrom(quarty, Initialise(cloneUrl(repo.cloneUrl, token), commit(build.trigger))) {
                         success(Unit)
@@ -105,7 +108,7 @@ class Evaluator(
         dag.forEach { node ->
             when (node) {
                 is Node.Step -> phase<Unit>("Executing step for dataset [${node.output.fullyQualifiedName}]") {
-                    extractResultFrom(quarty, Execute(node.id, customer.namespace)) {
+                    extractResultFrom(quarty, Execute(node.id, customer.namespace, generateToken(customer))) {
                         successWithArtifact(NodeExecution(skipped = false), Unit)
                     }
                 }
@@ -134,6 +137,10 @@ class Evaluator(
         is Automated -> trigger.branch
         is Manual -> trigger.branch
     }
+
+    // TODO - this is obviously fairly strange.  Longer term, the namespace list is probably more than just the "self" namespace.
+    private fun generateToken(customer: Customer) =
+        tokenGenerator.generate(InternalUser(customer.namespace, listOf(customer.namespace)))
 
     private fun cloneUrl(cloneUrl: URI, token: GitHubInstallationAccessToken) =
         URIBuilder(cloneUrl).apply { userInfo = token.urlCredentials() }.build()
