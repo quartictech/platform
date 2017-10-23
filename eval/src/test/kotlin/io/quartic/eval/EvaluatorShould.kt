@@ -179,11 +179,11 @@ class EvaluatorShould {
     }
 
     @Test
-    fun execute_when_customer_configured() {
-        webhookExecute()
+    fun execute_when_execute_on_push_configured() {
+        whenever(customer.executeOnPush).thenReturn(true)
+        evaluate()
 
         runBlocking {
-            sequencer.throwables.forEach { it.printStackTrace() }
             verify(quarty).request(eq(Execute("def", customerNamespace)), any())
         }
     }
@@ -194,10 +194,6 @@ class EvaluatorShould {
 
     private fun evaluate() = runBlocking {
         evaluator.evaluateAsync(webhookBuild).join()
-    }
-
-    private fun webhookExecute() = runBlocking {
-        evaluator.evaluateAsync(webhookExecuteBuild).join()
     }
 
     private val customerNamespace = "raging"
@@ -274,7 +270,6 @@ class EvaluatorShould {
         Instant.MIN, TriggerReceived(webhookTrigger.toDatabaseModel()))
     val webhookBuild = BuildContext(webhookTrigger, customer, buildRow)
     val executeBuild = BuildContext(manualTrigger, customer, buildRow)
-    val webhookExecuteBuild = BuildContext(webhookTrigger, customerExecute, buildRow)
 
     private val nodes = listOf(rawX, stepY)
     private val pipeline = Pipeline(nodes)
@@ -303,7 +298,7 @@ class EvaluatorShould {
     }
 
     private val quartyBuilder = mock<(Customer, String) -> QuartyProxy> {
-        on { invoke(any(), eq(containerHostname)) } doReturn quarty
+        on { invoke(customer, containerHostname) } doReturn quarty
     }
 
     private val extractDag = mock<(List<Node>) -> DagResult>()
