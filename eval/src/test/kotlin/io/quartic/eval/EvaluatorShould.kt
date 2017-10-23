@@ -178,12 +178,22 @@ class EvaluatorShould {
         }
     }
 
+    @Test
+    fun execute_when_execute_on_push_configured() {
+        whenever(customer.executeOnPush).thenReturn(true)
+        evaluate()
+
+        runBlocking {
+            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+        }
+    }
+
     private fun execute() = runBlocking {
         evaluator.evaluateAsync(executeBuild).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(evaluateBuild).join()
+        evaluator.evaluateAsync(webhookBuild).join()
     }
 
     private val customerNamespace = "raging"
@@ -247,10 +257,18 @@ class EvaluatorShould {
         on { githubInstallationId } doReturn githubInstallationId
     }
 
+    private val customerExecute = mock<Customer> {
+        on { id } doReturn customerId
+        on { namespace } doReturn customerNamespace
+        on { githubRepoId } doReturn githubRepoId
+        on { githubInstallationId } doReturn githubInstallationId
+        on { executeOnPush } doReturn true
+    }
+
 
     val buildRow = Database.BuildRow(UUID.randomUUID(), 100, "develop", customer.id, "running",
         Instant.MIN, TriggerReceived(webhookTrigger.toDatabaseModel()))
-    val evaluateBuild = BuildContext(webhookTrigger, customer, buildRow)
+    val webhookBuild = BuildContext(webhookTrigger, customer, buildRow)
     val executeBuild = BuildContext(manualTrigger, customer, buildRow)
 
     private val nodes = listOf(rawX, stepY)
