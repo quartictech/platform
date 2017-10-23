@@ -28,8 +28,11 @@ class DatabaseMigrationsShould {
 
     @After
     fun after() {
-        DBI.open().createUpdate("DELETE FROM build").execute()
-        DBI.open().createUpdate("DELETE FROM event").execute()
+        with(handle) {
+            createUpdate("DELETE FROM build").execute()
+            createUpdate("DELETE FROM event").execute()
+            close()
+        }
     }
 
     @Test
