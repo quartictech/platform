@@ -54,7 +54,7 @@ async def evaluate(config, build_path, ws):
                                      lambda l: log_message(ws, "stderr", l))
     result_message(ws, result)
 
-async def execute(config, build_path, step, namespace, api_token, ws):
+async def execute(config, build_path, step, namespace, api_token, ws):  # pylint: disable=too-many-arguments
     await execute_pipeline(config["pipeline_directory"],
                            build_path,
                            step,
