@@ -162,7 +162,7 @@ class FrontendAuthStrategyShould {
             .setSubject("1234")
             .setIssuer("noob")
             .setExpiration(Date.from(future))
-            .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString("def", Charsets.UTF_8).toString())
+            .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha256().hashString("def", Charsets.UTF_8).toString())
             .claim(CUSTOMER_ID_CLAIM, "5678")
             .builderMods()
             .compact(),

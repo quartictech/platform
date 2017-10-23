@@ -29,7 +29,7 @@ class FrontendTokenGeneratorShould {
         val tokens = generator.generate(FrontendUser(12345, 67890), "hello")
 
         val claims = parse(tokens.jwt)
-        val xsrfHash = Hashing.sha1().hashString(tokens.xsrf, Charsets.UTF_8).toString()
+        val xsrfHash = Hashing.sha256().hashString(tokens.xsrf, Charsets.UTF_8).toString()
 
         assertThat(claims.header.getAlgorithm(), equalTo(ALGORITHM.value))
         assertThat(claims.body.subject, equalTo("12345"))

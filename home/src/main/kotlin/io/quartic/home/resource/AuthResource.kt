@@ -1,11 +1,11 @@
 package io.quartic.home.resource
 
 import com.google.common.hash.Hashing
+import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOKIE
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendUser
-import io.quartic.common.auth.extractSubdomain
 import io.quartic.common.logging.logger
 import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.uid.Uid
@@ -17,9 +17,7 @@ import io.quartic.github.oauthUrl
 import io.quartic.home.CookiesConfiguration
 import io.quartic.home.GithubConfiguration
 import io.quartic.registry.api.RegistryServiceClient
-import java.net.URI
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets.UTF_8
+import org.apache.http.client.utils.URIBuilder
 import javax.ws.rs.*
 import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.NewCookie
@@ -69,16 +67,13 @@ class AuthResource(
         @QueryParam("code") code: String?,
         @QueryParam("state") state: String?
     ): Response {
-        fun String.urlEncode() = URLEncoder.encode(this, UTF_8.name())
-
-        // We're not an open redirector (due to formatted target), so it's fine to do no validation here
-        // We can't use UriBuilder or the like, because these aren't real query params, they're for react-router
-        val uri = URI.create(
-            "${gitHubConfig.redirectHost.format(issuer)}/login?" +
-            "provider=gh&" +
-            "code=${code.nonNull("code").urlEncode()}&" +
-            "state=${state.nonNull("state").urlEncode()}"
-        )
+        // We're not an open redirector (due to formatted target), so it's fine to do no validation here.
+        val uri = URIBuilder(gitHubConfig.redirectHost.format(issuer))
+            .setPath("/login")
+            .setParameter("provider", "gh")
+            .setParameter("code", code.nonNull("code"))
+            .setParameter("state", state.nonNull("state"))
+            .build()
         return Response.temporaryRedirect(uri).build()
     }
 
