@@ -276,7 +276,11 @@ Also needs to be stored in our GitHub (non-OAuth) app settings.
 
 ## Services
 
-Service        | Port (backend) | Port (frontend dev)  | Description
+The ports listed here are for a **local** (non-K8S) stack.  Under K8S, everything runs on port 80.  DropWizard admin
+resources are always 10000 ports higher.
+ 
+
+Service        | Port (backend) | Port (frontend)      | Description
 ---------------|----------------|----------------------|-----------------
 ~~Weyl~~       | ~~8080~~       | ~~3000~~             | ~~Map UI~~
 Catalogue      | 8090           |                      | Dataset catalogue

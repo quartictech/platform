@@ -27,6 +27,7 @@ abstract class ConfigurationBase : Configuration() {
     val secretsCodec by lazy { SecretsCodec(masterKeyBase64) }
 
     init {
+        configureServer(url)
         configureLogging(logLevel)
     }
 
@@ -38,7 +39,7 @@ abstract class ConfigurationBase : Configuration() {
                 port = if (details.randomPort) 0 else details.port
             })
             adminConnectors = listOf(HttpConnectorFactory().apply {
-                port = if (details.randomPort) 0 else (details.port + 1)
+                port = if (details.randomPort) 0 else (details.port + 10000)
             })
         })
     }
