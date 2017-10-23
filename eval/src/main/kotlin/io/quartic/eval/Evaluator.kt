@@ -58,14 +58,14 @@ class Evaluator(
         { c, h -> QuartyProxy(c, tokenGenerator, h) }
     )
 
-    private suspend fun getTriggerType(trigger: BuildTrigger) = when(trigger) {
-        is Manual -> trigger.triggerType
-        is Automated -> trigger.triggerType
-        is GithubWebhook -> TriggerType.EVALUATE
+    private suspend fun getTriggerType(buildContext: BuildContext) = when(buildContext.trigger) {
+        is Manual -> buildContext.trigger.triggerType
+        is Automated -> buildContext.trigger.triggerType
+        is GithubWebhook -> if (buildContext.customer.executeOnPush) TriggerType.EXECUTE else TriggerType.EVALUATE
     }
 
     suspend fun evaluateAsync(build: BuildContext) = async(CommonPool) {
-        val triggerType = getTriggerType(build.trigger)
+        val triggerType = getTriggerType(build)
 
         sequencer.sequence(build) {
             val token: GitHubInstallationAccessToken = phase("Acquiring Git credentials") {
