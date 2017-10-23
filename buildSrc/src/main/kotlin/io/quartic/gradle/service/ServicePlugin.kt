@@ -16,6 +16,7 @@ import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.bundling.Tar
 import org.gradle.jvm.tasks.Jar
 
 @Suppress("unused")
@@ -46,6 +47,7 @@ class ServicePlugin : Plugin<Project> {
         afterEvaluate {
             convention.getPlugin(ApplicationPluginConvention::class.java).apply {
                 mainClassName = ext.mainClassName
+                applicationName = "service"
                 applicationDefaultJvmArgs = listOf("-Xms${ext.memory}", "-Xmx${ext.memory}")
             }
 
@@ -56,10 +58,13 @@ class ServicePlugin : Plugin<Project> {
                     it.contents {
                         it.from(".") {
                             it.include("${name}.yml")
+                            it.rename { "config.yml" }
                         }
                     }
                 }
             }
+
+            (tasks.getByName(TASK_DIST_TAR_NAME) as Tar).archiveName = "service.tar"
         }
     }
 
