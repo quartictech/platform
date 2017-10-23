@@ -40,7 +40,7 @@ class FrontendTokenGenerator(
                 .setIssuer(issuer)
                 .setExpiration(Date.from(expiration()))
                 .claim(CUSTOMER_ID_CLAIM, user.customerId.uid)
-                .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha1().hashString(xsrf, Charsets.UTF_8).toString())
+                .claim(XSRF_TOKEN_HASH_CLAIM, Hashing.sha256().hashString(xsrf, Charsets.UTF_8).toString())
                 .compact(),
             xsrf
         )
