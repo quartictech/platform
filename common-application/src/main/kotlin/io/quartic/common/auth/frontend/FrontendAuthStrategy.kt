@@ -76,7 +76,7 @@ class FrontendAuthStrategy(
         return FrontendUser(subject, customerId)
     }
 
-    private fun hashToken(token: String) = Hashing.sha1().hashString(token, Charsets.UTF_8).toString()
+    private fun hashToken(token: String) = Hashing.sha256().hashString(token, Charsets.UTF_8).toString()
 
     companion object {
         // We can use HMAC for now as client-side verification of tokens is not an issue
