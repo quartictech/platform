@@ -20,12 +20,16 @@ data class Pipeline(
     )
     sealed class Node {
         abstract val id: String
+        abstract val name: String
+        abstract val metadata: Map<String, Any>
         abstract val info: LexicalInfo
         abstract val inputs: List<Dataset>
         abstract val output: Dataset
 
         data class Step(
             override val id: String,
+            override val name: String,
+            override val metadata: Map<String, Any>,
             override val info: LexicalInfo,
             override val inputs: List<Dataset>,
             override val output: Dataset
@@ -33,6 +37,8 @@ data class Pipeline(
 
         data class Raw(
             override val id: String,
+            override val name: String,
+            override val metadata: Map<String, Any>,
             override val info: LexicalInfo,
             val source: Source,
             override val output: Dataset

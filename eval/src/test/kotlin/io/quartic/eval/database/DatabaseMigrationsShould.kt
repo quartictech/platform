@@ -8,9 +8,9 @@ import io.quartic.common.db.setupDbi
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.*
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
-import io.quartic.eval.database.model.PhaseCompletedV6.Result
-import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Artifact.NodeExecution
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Result
+import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Result.Success
 import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.isA
@@ -213,7 +213,7 @@ class DatabaseMigrationsShould {
 
         databaseVersion("6")
 
-        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success(NodeExecution(skipped = false)) as Result))
+        assertThat(readPayloadAs<V6>(eventIdComplete).result, equalTo(Success(NodeExecution(skipped = false)) as Result))
         // Check we didn't modify any other events
         assertThat(readPayloadAs<PhaseStarted>(eventIdStart), equalTo(eventStart))
         assertThat(readPayloadAs<LogMessageReceived>(eventIdLog), equalTo(eventLog))
@@ -243,7 +243,7 @@ class DatabaseMigrationsShould {
 
         databaseVersion("6")
 
-        assertThat(readPayloadAs<PhaseCompletedV6>(eventIdComplete).result, equalTo(Success() as Result))
+        assertThat(readPayloadAs<V6>(eventIdComplete).result, equalTo(Success() as Result))
     }
 
 
@@ -254,9 +254,9 @@ class DatabaseMigrationsShould {
         val phaseId = uuid(108)
         val badEventId = uuid(109)
         insertEvent(badEventId, buildId, Instant.now(),
-            PhaseCompletedV6(
+            V6(
                 phaseId = phaseId,
-                result = PhaseCompletedV6.Result.UserError(
+                result = V6.Result.UserError(
                     V5.UserErrorInfo.OtherException(V5.UserErrorInfo.OtherException("noob"))
                 )
             )
@@ -264,18 +264,18 @@ class DatabaseMigrationsShould {
 
         val goodEventId = uuid(110)
         val goodEvent =
-            PhaseCompletedV6(
+            V6(
                 phaseId = phaseId,
-                result = PhaseCompletedV6.Result.UserError(
+                result = V6.Result.UserError(
                     V5.UserErrorInfo.OtherException("noob")
                 )
             )
         insertEvent(goodEventId, UUID.randomUUID(), Instant.now(), goodEvent)
 
         val goodEventId2 = uuid(111)
-        val goodEvent2 = PhaseCompletedV6(
+        val goodEvent2 = V6(
             phaseId = UUID.randomUUID(),
-            result = PhaseCompletedV6.Result.UserError(
+            result = V6.Result.UserError(
                 V5.UserErrorInfo.InvalidDag("noob dag", listOf())
             )
         )
@@ -285,9 +285,9 @@ class DatabaseMigrationsShould {
         databaseVersion("7")
         val expected = Result.UserError(V5.UserErrorInfo.OtherException("noob"))
 
-        assertThat(readPayloadAs<PhaseCompletedV6>(badEventId).result, equalTo(expected as PhaseCompletedV6.Result))
-        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId).result, equalTo(goodEvent.result))
-        assertThat(readPayloadAs<PhaseCompletedV6>(goodEventId2).result, equalTo(goodEvent2.result))
+        assertThat(readPayloadAs<V6>(badEventId).result, equalTo(expected as V6.Result))
+        assertThat(readPayloadAs<V6>(goodEventId).result, equalTo(goodEvent.result))
+        assertThat(readPayloadAs<V6>(goodEventId2).result, equalTo(goodEvent2.result))
     }
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {

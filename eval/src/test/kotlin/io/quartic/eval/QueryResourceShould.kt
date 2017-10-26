@@ -10,11 +10,11 @@ import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.EventRow
 import io.quartic.eval.database.model.BuildEvent
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
+import io.quartic.eval.database.model.PhaseCompletedV7.Node.Raw
+import io.quartic.eval.database.model.PhaseCompletedV7.Node.Step
 import io.quartic.eval.database.model.PhaseCompleted
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV7.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV7.Result.Success
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -55,20 +55,20 @@ class QueryResourceShould {
 
     @Test
     fun get_dag_for_build() {
-        val a = Raw("111", mock(), mock(),
+        val a = Raw("111", "noob", mapOf(), mock(), mock(),
             dataset("A")
         )
-        val b = Raw("222", mock(), mock(),
+        val b = Raw("222", "noob2", mapOf(), mock(), mock(),
             dataset("B")
         )
-        val c = Raw("333", mock(), mock(),
+        val c = Raw("333", "noob3", mapOf(), mock(), mock(),
             dataset("C")
         )
-        val d = Step("444", mock(),
+        val d = Step("444", "noob4", mapOf(), mock(),
             listOf(dataset("A"), dataset("B")),
             dataset("D")
         )
-        val e = Step("555", mock(),
+        val e = Step("555", "noob5", mapOf(), mock(),
             listOf(dataset("B"), dataset("C"), dataset("D")),
             dataset("E")
         )

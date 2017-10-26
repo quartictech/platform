@@ -9,9 +9,9 @@ import io.quartic.eval.api.model.Build
 import io.quartic.eval.database.Database
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV7.Node
+import io.quartic.eval.database.model.PhaseCompletedV7.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV7.Result.Success
 import java.util.*
 import javax.ws.rs.NotFoundException
 
@@ -54,11 +54,11 @@ class QueryResource(private val database: Database) : EvalQueryService {
         is PhaseCompleted -> ApiBuildEvent.PhaseCompleted(
             this.payload.phaseId,
             when (this.payload.result) {
-                is PhaseCompletedV6.Result.Success ->
+                is PhaseCompletedV7.Result.Success ->
                     ApiPhaseCompletedResult.Success()
-                is PhaseCompletedV6.Result.UserError ->
+                is PhaseCompletedV7.Result.UserError ->
                     ApiPhaseCompletedResult.UserError(this.payload.result.info.toApi())
-                is PhaseCompletedV6.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
+                is PhaseCompletedV7.Result.InternalError -> ApiPhaseCompletedResult.InternalError()
             },
             this.time,
             this.id
@@ -84,10 +84,10 @@ class QueryResource(private val database: Database) : EvalQueryService {
         else -> ApiBuildEvent.Other(this.time, this.id)
     }
 
-    private fun LegacyPhaseCompleted.V5.UserErrorInfo.toApi() =  when(this) {
-        is LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag ->
+    private fun PhaseCompletedV7.UserErrorInfo.toApi() =  when(this) {
+        is PhaseCompletedV7.UserErrorInfo.InvalidDag ->
             this.error
-        is LegacyPhaseCompleted.V5.UserErrorInfo.OtherException ->
+        is PhaseCompletedV7.UserErrorInfo.OtherException ->
             this.detail.toString()
     }
 

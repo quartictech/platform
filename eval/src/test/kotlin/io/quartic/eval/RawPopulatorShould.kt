@@ -14,7 +14,7 @@ import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.RawPopulator.Companion.HOWL_METADATA_FIELD
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.LexicalInfo
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Raw
+import io.quartic.eval.database.model.PhaseCompletedV7.Node.Raw
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.HowlClient.Companion.locatorPath
@@ -42,9 +42,11 @@ class RawPopulatorShould {
     }
 
     private val node = mock<Raw> {
+        on { name } doReturn "foo"
+        on { metadata } doReturn mapOf("description" to "bar")
         on { info } doReturn LexicalInfo(
-            name = "foo",
-            description = "bar",
+            name = "func_name",
+            description = "func_doc",
             file = "whatever",
             lineRange = emptyList()
         )

@@ -2,7 +2,7 @@ package io.quartic.eval
 
 import com.google.common.base.Preconditions.checkArgument
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
+import io.quartic.eval.database.model.PhaseCompletedV7.Node
 import org.jgrapht.DirectedGraph
 import org.jgrapht.alg.CycleDetector
 import org.jgrapht.graph.DefaultDirectedGraph

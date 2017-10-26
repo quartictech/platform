@@ -1,7 +1,7 @@
 package io.quartic.eval.sequencer
 
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
+import io.quartic.eval.database.model.PhaseCompletedV7.UserErrorInfo
+import io.quartic.eval.database.model.PhaseCompletedV7.Artifact
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.Sequencer.PhaseResult.*
 
