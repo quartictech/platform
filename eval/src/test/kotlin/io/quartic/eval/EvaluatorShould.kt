@@ -1,6 +1,8 @@
 package io.quartic.eval
 
 import com.nhaarman.mockito_kotlin.*
+import io.quartic.common.auth.internal.InternalTokenGenerator
+import io.quartic.common.auth.internal.InternalUser
 import io.quartic.common.model.CustomerId
 import io.quartic.common.secrets.UnsafeSecret
 import io.quartic.common.test.exceptionalFuture
@@ -61,7 +63,8 @@ class EvaluatorShould {
             "Cloning and preparing repository",
             "Evaluating DAG",
             "Acquiring raw data for dataset [::X]",
-            "Executing step for dataset [::Y]"
+            "Executing step for dataset [::Y]",
+            "Executing step for dataset [::Z]"
         ))
     }
 
@@ -158,13 +161,14 @@ class EvaluatorShould {
     }
 
     @Test
-    fun execute_dag_nodes_in_order() {
+    fun execute_dag_nodes_in_order_with_unique_token_per_step() {
         execute()
 
         inOrder(populator, quarty) {
             runBlocking {
                 verify(populator).populate(customer, rawX.toDatabaseModel() as Node.Raw)
-                verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+                verify(quarty).request(eq(Execute("def", customerNamespace, "t1")), any())
+                verify(quarty).request(eq(Execute("ghi", customerNamespace, "t2")), any())
             }
         }
     }
@@ -184,16 +188,16 @@ class EvaluatorShould {
         evaluate()
 
         runBlocking {
-            verify(quarty).request(eq(Execute("def", customerNamespace)), any())
+            verify(quarty).request(eq(Execute("def", customerNamespace, "t1")), any())
         }
     }
 
     private fun execute() = runBlocking {
-        evaluator.evaluateAsync(executeBuild).join()
+        evaluator.evaluateAsync(BuildContext(manualTrigger, customer, buildRow)).join()
     }
 
     private fun evaluate() = runBlocking {
-        evaluator.evaluateAsync(webhookBuild).join()
+        evaluator.evaluateAsync(BuildContext(webhookTrigger, customer, buildRow)).join()
     }
 
     private val customerNamespace = "raging"
@@ -205,17 +209,24 @@ class EvaluatorShould {
     private val githubCloneUrl = URI("https://noob.com/foo/bar")
     private val githubCloneUrlWithCreds = URI("https://${githubToken.urlCredentials()}@noob.com/foo/bar")
 
+    private val lexicalInfo = LexicalInfo("whatever", "whatever", "whatever", emptyList())
     private val rawX = Raw(
         id = "abc",
-        info = LexicalInfo("whatever", "whatever", "whatever", emptyList()),
+        info = lexicalInfo,
         output = Dataset(null, "X"),
         source = Bucket("whatever", "whatever")
     )
     private val stepY = Step(
         id = "def",
-        info = LexicalInfo("whatever", "whatever", "whatever", emptyList()),
+        info = lexicalInfo,
         inputs = emptyList(),
         output = Dataset(null, "Y")
+    )
+    private val stepZ = Step(
+        id = "ghi",
+        info = lexicalInfo,
+        inputs = emptyList(),
+        output = Dataset(null, "Z")
     )
 
     private val githubRepoId: Long = 5678
@@ -257,21 +268,17 @@ class EvaluatorShould {
         on { githubInstallationId } doReturn githubInstallationId
     }
 
-    private val customerExecute = mock<Customer> {
-        on { id } doReturn customerId
-        on { namespace } doReturn customerNamespace
-        on { githubRepoId } doReturn githubRepoId
-        on { githubInstallationId } doReturn githubInstallationId
-        on { executeOnPush } doReturn true
-    }
+    private val buildRow = Database.BuildRow(
+        UUID.randomUUID(),
+        100,
+        "develop",
+        customer.id,
+        "running",
+        Instant.MIN,
+        TriggerReceived(webhookTrigger.toDatabaseModel())
+    )
 
-
-    val buildRow = Database.BuildRow(UUID.randomUUID(), 100, "develop", customer.id, "running",
-        Instant.MIN, TriggerReceived(webhookTrigger.toDatabaseModel()))
-    val webhookBuild = BuildContext(webhookTrigger, customer, buildRow)
-    val executeBuild = BuildContext(manualTrigger, customer, buildRow)
-
-    private val nodes = listOf(rawX, stepY)
+    private val nodes = listOf(rawX, stepY, stepZ)
     private val pipeline = Pipeline(nodes)
     private val dag = mock<Dag> {
         on { iterator() } doReturn nodes.map{ it.toDatabaseModel() }.iterator()
@@ -297,8 +304,8 @@ class EvaluatorShould {
         on { runBlocking { request(isA<Execute>(), any()) } } doReturn Result(null)
     }
 
-    private val quartyBuilder = mock<(Customer, String) -> QuartyProxy> {
-        on { invoke(customer, containerHostname) } doReturn quarty
+    private val quartyBuilder = mock<(String) -> QuartyProxy> {
+        on { invoke(containerHostname) } doReturn quarty
     }
 
     private val extractDag = mock<(List<Node>) -> DagResult>()
@@ -307,12 +314,17 @@ class EvaluatorShould {
         onGeneric { runBlocking { populate(any(), any()) } } doReturn true
     }
 
+    private val tokenGen = mock<InternalTokenGenerator> {
+        on { generate(InternalUser(customerNamespace, listOf(customerNamespace))) } doReturn "t1" doReturn "t2"
+    }
+
     private val sequencer = spy(MySequencer())
 
     private val evaluator = Evaluator(
         sequencer,
         github,
         populator,
+        tokenGen,
         extractDag,
         quartyBuilder
     )

@@ -54,11 +54,12 @@ async def evaluate(config, build_path, ws):
                                      lambda l: log_message(ws, "stderr", l))
     result_message(ws, result)
 
-async def execute(config, build_path, step, namespace, ws):
+async def execute(config, build_path, step, namespace, api_token, ws):  # pylint: disable=too-many-arguments
     await execute_pipeline(config["pipeline_directory"],
                            build_path,
                            step,
                            namespace,
+                           api_token,
                            lambda l: log_message(ws, "stdout", l),
                            lambda l: log_message(ws, "stderr", l))
 
@@ -66,7 +67,7 @@ async def execute(config, build_path, step, namespace, ws):
 
 async def decode_message(raw_msg):
     if raw_msg.type == aiohttp.WSMsgType.TEXT:
-        return json.loads(raw_msg.data)["payload"]  # TODO - extract token and do something with it
+        return json.loads(raw_msg.data)
     else:
         raise QuartyException("Error")
 
@@ -99,7 +100,8 @@ async def websocket_handler(request):
                 assert_state(state, States.EVALUATE, States.EXECUTE)
                 step = msg["step"]
                 namespace = msg["namespace"]
-                await execute(config, build_path, step, namespace, ws)
+                api_token = msg["api_token"]
+                await execute(config, build_path, step, namespace, api_token, ws)
                 state = States.EXECUTE
     except PipelineException as e:
         log.exception("Exception while running pipeline")

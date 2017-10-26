@@ -76,18 +76,21 @@ async def run_wrapped(cmd, stdout_cb, stderr_cb, cwd, exception_file, action):  
 async def evaluate_pipeline(pipeline_dir, root_path, stdout_cb, stderr_cb):
     steps_file = tempfile.mkstemp()[1]
     exception_file = tempfile.mkstemp()[1]
-    cmd = ["python", "-u", "-m", "quartic.pipeline.runner", "--evaluate",
-           steps_file, "--exception", exception_file, pipeline_dir]
+    cmd = ["python", "-u", "-m", "quartic.pipeline.runner",
+           "--evaluate", steps_file,
+           "--exception", exception_file,
+           pipeline_dir]
     log.info("Executing: %s", cmd)
     await run_wrapped(cmd, stdout_cb, stderr_cb, root_path, exception_file, "evaluating pipeline")
     return json.load(open(steps_file))
 
-async def execute_pipeline(pipeline_dir, root_path, step_id, namespace, stdout_cb, stderr_cb):  # pylint: disable=too-many-arguments
+async def execute_pipeline(pipeline_dir, root_path, step_id, namespace, api_token, stdout_cb, stderr_cb):  # pylint: disable=too-many-arguments
     exception_file = tempfile.mkstemp()[1]
     cmd = ["python", "-u", "-m", "quartic.pipeline.runner",
            "--execute", step_id,
            "--exception", exception_file,
            "--namespace", namespace,
+           "--api-token", api_token,
            pipeline_dir]
     log.info("Executing: %s", cmd)
     await run_wrapped(cmd, stdout_cb, stderr_cb, root_path, exception_file, "executing pipeline")

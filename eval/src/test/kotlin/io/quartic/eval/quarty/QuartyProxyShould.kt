@@ -4,8 +4,6 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import io.quartic.common.auth.internal.InternalTokenGenerator
-import io.quartic.common.auth.internal.InternalUser
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.EvaluatorException
 import io.quartic.eval.utils.runAndExpectToTimeout
@@ -13,11 +11,9 @@ import io.quartic.eval.utils.runOrTimeout
 import io.quartic.eval.websocket.WebsocketClient
 import io.quartic.eval.websocket.WebsocketClient.Event
 import io.quartic.eval.websocket.WebsocketClient.Event.*
-import io.quartic.quarty.api.model.QuartyAuthenticatedRequest
 import io.quartic.quarty.api.model.QuartyRequest
 import io.quartic.quarty.api.model.QuartyResponse
 import io.quartic.quarty.api.model.QuartyResponse.*
-import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.experimental.runBlocking
@@ -27,22 +23,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QuartyProxyShould {
-    private val namespace = "my-namespace"
-    private val token = "super-secret"
-
-    private val outbound = Channel<QuartyAuthenticatedRequest>(UNLIMITED)
+    private val outbound = Channel<QuartyRequest>(UNLIMITED)
     private val events = Channel<Event<QuartyResponse>>(UNLIMITED)
-    private val client = mock<WebsocketClient<QuartyAuthenticatedRequest, QuartyResponse>> {
+    private val client = mock<WebsocketClient<QuartyRequest, QuartyResponse>> {
         on { outbound } doReturn outbound
         on { events } doReturn events
     }
-    private val customer = mock<Customer> {
-        on { namespace } doReturn namespace
-    }
-    private val tokenGen = mock<InternalTokenGenerator> {
-        on { generate(InternalUser(namespace, listOf(namespace))) } doReturn token
-    }
-    private val quarty = QuartyProxy(customer, tokenGen, client)
+    private val quarty = QuartyProxy(client)
     private val log = mock<(String, String) -> Unit>()
 
     @Test
@@ -52,21 +39,6 @@ class QuartyProxyShould {
         }
 
         assertTrue(outbound.isEmpty)    // Because we haven't got as far as sending the request
-    }
-
-    @Test
-    fun send_authenticated_request_to_quarty() {
-        runOrTimeout {
-            val expected = mock<QuartyRequest>()
-            quartyIsConnected()
-            quartyWillRespondWith(listOf(
-                mock<Complete>()
-            ))
-
-            quarty.request(expected, log)
-
-            assertThat(outbound.receive(), equalTo(QuartyAuthenticatedRequest(token, expected)))
-        }
     }
 
     @Test
