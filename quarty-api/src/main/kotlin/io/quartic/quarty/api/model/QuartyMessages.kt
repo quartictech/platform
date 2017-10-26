@@ -12,11 +12,6 @@ import io.quartic.quarty.api.model.QuartyResponse.Log
 import io.quartic.quarty.api.model.QuartyResponse.Progress
 import java.net.URI
 
-data class QuartyAuthenticatedRequest(
-    val internalAuthToken: String,      // TODO - maybe we should invent a type to make it clear what kind of token we need
-    val payload: QuartyRequest
-)
-
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")
 @JsonSubTypes(
     Type(Initialise::class, name = "initialise"),
@@ -26,7 +21,7 @@ data class QuartyAuthenticatedRequest(
 sealed class QuartyRequest {
     data class Initialise(val repoURL: URI, val repoCommit: String) : QuartyRequest()
     class Evaluate : QuartyRequest()
-    data class Execute(val step: String, val namespace: String) : QuartyRequest()
+    data class Execute(val step: String, val namespace: String, val apiToken: String) : QuartyRequest()
 }
 
 @JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "type")

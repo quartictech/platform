@@ -1,6 +1,5 @@
 package io.quartic.eval.quarty
 
-import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.quarty.api.model.Pipeline
 import io.quartic.quarty.api.model.QuartyRequest
@@ -15,7 +14,7 @@ import java.net.URI
 
 @Ignore
 class QuartyProxyIntegration {
-    private val quartyProxy = QuartyProxy(mock(), mock(), "localhost")  // TODO - what do the mocks need to be?
+    private val quartyProxy = QuartyProxy("localhost")
     private val devNull = { _:String, _:String ->  }
 
     @Test
@@ -33,7 +32,7 @@ class QuartyProxyIntegration {
             assertThat(pipeline.nodes.size, equalTo(2))
 
             // This is expected to error due to no access to Howl
-            val execute = quartyProxy.request(QuartyRequest.Execute(pipeline.nodes[0].id, "noob"), devNull)
+            val execute = quartyProxy.request(QuartyRequest.Execute(pipeline.nodes[0].id, "noob", "secret-token"), devNull)
                 as? QuartyResponse.Complete.Error
             assertThat(execute, notNullValue())
         }
