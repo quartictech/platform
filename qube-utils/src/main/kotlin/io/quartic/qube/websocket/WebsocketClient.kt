@@ -1,4 +1,4 @@
-package io.quartic.eval.websocket
+package io.quartic.qube.websocket
 
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel

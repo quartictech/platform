@@ -35,8 +35,11 @@ include "integration"
 include "quarty"
 include "quarty-api"
 
+include "quartzic"
+
 include "qube"
 include "qube-api"
+include "qube-utils"
 
 include "registry"
 include "registry-api"

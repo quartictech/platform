@@ -1,7 +1,7 @@
-package io.quartic.eval.qube
+package io.quartic.qube
 
 import io.quartic.common.coroutines.SuspendedAutoCloseable
-import io.quartic.eval.websocket.WebsocketClient
+import io.quartic.qube.websocket.WebsocketClient
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.model.PodSpec
@@ -12,6 +12,11 @@ import java.util.*
 interface QubeProxy {
     class QubeException(message: String?) : RuntimeException(message)
 
+    sealed class QubeCompletion {
+        data class Exception(val exception: QubeException): QubeCompletion()
+        data class Terminated(val terminated: QubeResponse.Terminated): QubeCompletion()
+    }
+
     class QubeContainerProxy(
         val id: UUID,
         val hostname: String,
@@ -21,12 +26,10 @@ interface QubeProxy {
         override suspend fun close() = close.invoke()
     }
 
-    suspend fun createContainer(): QubeContainerProxy
+    suspend fun createContainer(pod: PodSpec): QubeContainerProxy
 
     companion object {
-        fun create(
-            client: WebsocketClient<QubeRequest, QubeResponse>,
-            pod: PodSpec
-        ) = QubeProxyImpl(client, pod)
+        fun create(client: WebsocketClient<QubeRequest, QubeResponse>) =
+            QubeProxyImpl(client)
     }
 }

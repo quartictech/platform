@@ -12,9 +12,11 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Artifact
 import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
-import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy
+import io.quartic.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy.QubeCompletion
+import io.quartic.qube.api.model.PodSpec
 import io.quartic.registry.api.model.Customer
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.channels.Channel
@@ -181,13 +183,13 @@ class SequencerImplShould {
     }
 
     @Test
-    fun send_start_notifications_before_any_real_workon_success() = runBlocking {
+    fun send_start_notifications_before_any_real_work() = runBlocking {
         sequencer.sequence(buildContext) {}    // Do nothing
 
         inOrder(notifier, qube) {
             runBlocking {
                 verify(notifier).notifyQueue(details)
-                verify(qube).createContainer()
+                verify(qube).createContainer(podSpec)
                 verify(notifier).notifyStart(details)
             }
         }
@@ -254,7 +256,7 @@ class SequencerImplShould {
     }
 
     private val qube = mock<QubeProxy> {
-        on { runBlocking { createContainer() } } doReturn qubeContainer
+        on { runBlocking { createContainer(any()) } } doReturn qubeContainer
     }
 
     private val database = mock<Database> {
@@ -265,5 +267,6 @@ class SequencerImplShould {
 
     private val clock = Clock.fixed(Instant.EPOCH, ZoneId.systemDefault())
 
-    private val sequencer = SequencerImpl(qube, database, notifier, clock) { uuid(uuid++) }
+    private val podSpec = mock<PodSpec>()
+    private val sequencer = SequencerImpl(qube, database, notifier, podSpec, clock) { uuid(uuid++) }
 }

@@ -11,10 +11,13 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
 import io.quartic.eval.database.model.PhaseCompletedV6.Result
-import io.quartic.eval.qube.QubeProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy
+import io.quartic.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeCompletion
+import io.quartic.qube.QubeProxy.QubeException
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer.*
+import io.quartic.qube.api.model.PodSpec
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.newFixedThreadPoolContext
@@ -28,6 +31,7 @@ class SequencerImpl(
     private val qube: QubeProxy,
     private val database: Database,
     private val notifier: Notifier,
+    private val pod: PodSpec,
     private val clock: Clock = Clock.systemUTC(),
     private val uuidGen: () -> UUID = { UUID.randomUUID() }
 ) : Sequencer {
@@ -48,7 +52,7 @@ class SequencerImpl(
         }
 
         private suspend fun executeInContainer(block: suspend SequenceBuilder.() -> Unit) = try {
-            qube.createContainer().use { container ->
+            qube.createContainer(pod).use { container ->
                 insert(ContainerAcquired(container.id, container.hostname))
                 notifier.notifyStart(context.trigger)
                 block(SequenceBuilderImpl(container))

@@ -21,7 +21,7 @@ dependencies {
     compile project(":github")
     compile project(":quarty")
 
-    compile "io.fabric8:kubernetes-client:2.6.1"
+    compile "io.fabric8:kubernetes-client:2.6.3"
 
     compile libraries.vertx.web
 

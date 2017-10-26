@@ -1,0 +1,15 @@
+eval_url: http://localhost:8210/api
+qube_url: ws://localhost:8202
+
+jobs:
+  - type: eval
+    name: eval-test
+    cron_schedule: "* * * ? * *"
+    trigger:
+      customer_id: 222
+      branch: develop
+      trigger_type: EVALUATE
+
+
+url:
+  port: 8230

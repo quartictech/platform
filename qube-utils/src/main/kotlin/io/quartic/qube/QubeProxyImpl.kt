@@ -1,13 +1,14 @@
-package io.quartic.eval.qube
+package io.quartic.qube
 
 import com.google.common.base.Preconditions.checkState
 import io.quartic.common.logging.logger
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
-import io.quartic.eval.qube.QubeProxy.QubeException
-import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Create
-import io.quartic.eval.qube.QubeProxyImpl.ClientRequest.Destroy
-import io.quartic.eval.websocket.WebsocketClient
-import io.quartic.eval.websocket.WebsocketClient.Event.*
+import io.quartic.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeException
+import io.quartic.qube.QubeProxy.QubeCompletion
+import io.quartic.qube.QubeProxyImpl.ClientRequest.Create
+import io.quartic.qube.QubeProxyImpl.ClientRequest.Destroy
+import io.quartic.qube.websocket.WebsocketClient
+import io.quartic.qube.websocket.WebsocketClient.Event.*
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.QubeResponse
 import io.quartic.qube.api.QubeResponse.Running
@@ -24,11 +25,10 @@ import java.util.*
 
 class QubeProxyImpl(
     private val qube: WebsocketClient<QubeRequest, QubeResponse>,
-    private val pod: PodSpec,
     private val nextUuid: () -> QubeId = { UUID.randomUUID().toString() }
 ) : QubeProxy {
     private sealed class ClientRequest {
-        data class Create(val response: CompletableDeferred<QubeContainerProxy> = CompletableDeferred()) : ClientRequest()
+        data class Create(val pod: PodSpec, val response: CompletableDeferred<QubeContainerProxy> = CompletableDeferred()) : ClientRequest()
         data class Destroy(val uuid: QubeId) : ClientRequest()
     }
 
@@ -45,7 +45,7 @@ class QubeProxyImpl(
         }
     }
 
-    override suspend fun createContainer() = with (Create()) {
+    override suspend fun createContainer(pod: PodSpec) = with (Create(pod)) {
         fromClients.send(this)
         response.await()
     }
@@ -78,7 +78,7 @@ class QubeProxyImpl(
         LOG.info("[$uuid] -> CREATE")
 
         pending[uuid] = request
-        qube.outbound.send(QubeRequest.Create(uuid, pod))
+        qube.outbound.send(QubeRequest.Create(uuid, request.pod))
     }
 
     private suspend fun handleDestroyRequest(request: Destroy) {

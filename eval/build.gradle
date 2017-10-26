@@ -21,11 +21,10 @@ dependencies {
     compile project(":howl-api")
     compile project(":registry-api")
     compile project(":hey-api")
-    compile project(":qube-api")
     compile project(":github")
     compile project(":quarty-api")
+    compile project(":qube-utils")
 
-    compile libraries.vertx.core
     compile "org.jgrapht:jgrapht-core:1.0.1"
 
     testCompile project(":common-test")

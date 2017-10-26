@@ -19,7 +19,7 @@ import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
 import io.quartic.eval.database.model.TriggerReceived
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
-import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
+import io.quartic.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext
 import io.quartic.eval.sequencer.Sequencer
 import io.quartic.eval.sequencer.Sequencer.*

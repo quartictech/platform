@@ -1,4 +1,4 @@
-package io.quartic.eval.websocket
+package io.quartic.qube.websocket
 
 import io.vertx.core.Vertx
 import io.vertx.core.http.WebSocket
