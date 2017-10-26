@@ -9,7 +9,6 @@ import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.TOKEN_COOK
 import io.quartic.common.auth.frontend.FrontendAuthStrategy.Companion.XSRF_TOKEN_HEADER
 import io.quartic.common.auth.frontend.FrontendTokenGenerator
 import io.quartic.common.auth.frontend.FrontendUser
-import io.quartic.common.secrets.SecretsCodec
 import io.quartic.common.test.TOKEN_KEY_BASE64
 import org.glassfish.jersey.client.JerseyClientBuilder
 import org.hamcrest.Matchers.equalTo
@@ -68,8 +67,6 @@ class ApplicationBaseFrontendAuthShould {
     }
 
     companion object {
-        private val CODEC = SecretsCodec(DEV_MASTER_KEY_BASE64)
-
         @ClassRule
         @JvmField
         val RULE = DropwizardAppRule<TestConfiguration>(

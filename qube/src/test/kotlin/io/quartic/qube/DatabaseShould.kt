@@ -2,20 +2,22 @@ package io.quartic.qube
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.opentable.db.postgres.junit.EmbeddedPostgresRules
-import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.common.db.DatabaseBuilder
 import io.quartic.common.db.setupDbi
+import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.qube.api.QubeRequest
 import io.quartic.qube.api.model.ContainerSpec
 import io.quartic.qube.api.model.ContainerState
 import io.quartic.qube.api.model.PodSpec
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.equalTo
+import org.jdbi.v3.core.Handle
+import org.jdbi.v3.core.Jdbi
+import org.jdbi.v3.core.result.ResultProducers
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.hamcrest.MatcherAssert.*
-import org.hamcrest.Matchers.*
-import org.jdbi.v3.core.Jdbi
-import org.jdbi.v3.core.result.ResultProducers
 import org.postgresql.util.PGobject
 import java.time.Instant
 import java.util.*
@@ -28,11 +30,18 @@ class DatabaseShould {
 
     private lateinit var database: Database
     private lateinit var dbi: Jdbi
+    private lateinit var handle: Handle
 
     @Before
-    fun setUp() {
+    fun before() {
         dbi = setupDbi(Jdbi.create(pg.embeddedPostgres.postgresDatabase))
         database = DatabaseBuilder.testDao(javaClass, pg.embeddedPostgres.postgresDatabase)
+        handle = dbi.open()
+    }
+
+    @After
+    fun after() {
+        handle.close()
     }
 
     @Test

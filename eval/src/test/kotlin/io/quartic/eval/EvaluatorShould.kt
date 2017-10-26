@@ -182,6 +182,16 @@ class EvaluatorShould {
         }
     }
 
+    @Test
+    fun execute_when_execute_on_push_configured() {
+        whenever(customer.executeOnPush).thenReturn(true)
+        evaluate()
+
+        runBlocking {
+            verify(quarty).request(eq(Execute("def", customerNamespace, "t1")), any())
+        }
+    }
+
     private fun execute() = runBlocking {
         evaluator.evaluateAsync(BuildContext(manualTrigger, customer, buildRow)).join()
     }

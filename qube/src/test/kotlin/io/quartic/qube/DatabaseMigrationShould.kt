@@ -14,6 +14,7 @@ import org.flywaydb.core.api.MigrationVersion
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jdbi.v3.core.Jdbi
+import org.junit.After
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test
@@ -21,12 +22,21 @@ import java.time.Instant
 import java.util.*
 
 class DatabaseMigrationShould {
+    private val handle = DBI.open()
+
+    @After
+    fun after() {
+        with(handle) {
+            close()
+        }
+    }
+
     @Test
     fun migrate_to_v2() {
         databaseVersion("1")
         val id = UUID.randomUUID()
         val clientId = UUID.randomUUID()
-        DBI.open().createUpdate("""
+        handle.createUpdate("""
             INSERT INTO job(id, client, name, create_spec, log, start_time, end_time, reason, message, exit_code)
             VALUES (:id, :client, :name, :create_spec, :log, :start_time, :end_time, :reason, :message, :exit_code)
         """)
@@ -49,7 +59,7 @@ class DatabaseMigrationShould {
             .execute()
         databaseVersion("2")
 
-        val row = DBI.open().createQuery("SELECT containers FROM job")
+        val row = handle.createQuery("SELECT containers FROM job")
             .map { rs, _ -> rs.getString("containers")}
             .findOnly()
         val expected = mapOf("default" to ContainerState(1, "thing", "mess", "logs"))

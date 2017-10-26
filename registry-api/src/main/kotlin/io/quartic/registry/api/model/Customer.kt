@@ -10,5 +10,6 @@ data class Customer(
     val name: String,
     val subdomain: String,
     val namespace: String,
-    val slackChannel: String? = null
+    val slackChannel: String? = null,
+    val executeOnPush: Boolean = false
 )
