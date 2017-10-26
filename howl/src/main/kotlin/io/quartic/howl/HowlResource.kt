@@ -1,5 +1,6 @@
 package io.quartic.howl
 
+import io.quartic.common.logging.logger
 import io.quartic.common.uid.UidGenerator
 import io.quartic.common.uid.randomGenerator
 import io.quartic.howl.api.HowlClient.Companion.UNMANAGED_SOURCE_KEY_HEADER
@@ -25,6 +26,8 @@ class HowlResource(
     private val storageFactory: StorageFactory,
     private val howlStorageIdGenerator: UidGenerator<HowlStorageId> = randomGenerator { HowlStorageId(it) }
 ) {
+    private val LOG by logger()
+
     @Path("/{target-namespace}")
     fun namespaceResource(@PathParam("target-namespace") targetNamespace: String) = object : Any() {
         private val storage = storageFactory.createFor(targetNamespace)
@@ -99,7 +102,9 @@ class HowlResource(
 
     private fun <T> doOr500(block: () -> T) =
         try { block() }
-        catch (e: Exception) { throw ServerErrorException(INTERNAL_SERVER_ERROR) }
+        catch (e: Exception) {
+            LOG.error("An exception occurred", e)
+            throw ServerErrorException(INTERNAL_SERVER_ERROR) }
 
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
