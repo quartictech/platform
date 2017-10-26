@@ -104,7 +104,8 @@ class HowlResource(
         try { block() }
         catch (e: Exception) {
             LOG.error("Error occurred in storage layer", e)
-            throw ServerErrorException(INTERNAL_SERVER_ERROR) }
+            throw ServerErrorException(INTERNAL_SERVER_ERROR)
+        }
 
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
         responseBuilder
