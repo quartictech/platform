@@ -103,7 +103,7 @@ class HowlResource(
     private fun <T> doOr500(block: () -> T) =
         try { block() }
         catch (e: Exception) {
-            LOG.error("An exception occurred", e)
+            LOG.error("Error occurred in storage layer", e)
             throw ServerErrorException(INTERNAL_SERVER_ERROR) }
 
     private fun metadataHeaders(metadata: StorageMetadata, responseBuilder: Response.ResponseBuilder) =
