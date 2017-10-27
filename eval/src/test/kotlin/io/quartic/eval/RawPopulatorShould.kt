@@ -14,7 +14,7 @@ import io.quartic.common.test.exceptionalFuture
 import io.quartic.eval.RawPopulator.Companion.HOWL_METADATA_FIELD
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.LexicalInfo
-import io.quartic.eval.database.model.PhaseCompletedV7.Node.Raw
+import io.quartic.eval.database.model.PhaseCompletedV8.Node.Raw
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.HowlClient.Companion.locatorPath

@@ -14,8 +14,8 @@ import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Automa
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
 import io.quartic.eval.database.model.LegacyPhaseCompleted.*
-import io.quartic.eval.database.model.PhaseCompletedV7.Node
-import io.quartic.eval.database.model.PhaseCompletedV7.Result.*
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.Result.*
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -85,7 +85,7 @@ data class CurrentBuildFailed(val description: String) : BuildCompleted()
 data class CurrentContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 data class CurrentPhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
 
-data class PhaseCompletedV7(val phaseId: UUID, val result: Result): BuildEvent() {
+data class PhaseCompletedV8(val phaseId: UUID, val result: Result): BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
         Type(Result.Success::class, name = "success"),
@@ -167,7 +167,7 @@ typealias BuildSucceeded = CurrentBuildSucceeded
 typealias BuildFailed = CurrentBuildFailed
 typealias ContainerAcquired = CurrentContainerAcquired
 typealias PhaseStarted = CurrentPhaseStarted
-typealias PhaseCompleted = PhaseCompletedV7
+typealias PhaseCompleted = PhaseCompletedV8
 typealias LogMessageReceived = CurrentLogMessageReceived
 
 

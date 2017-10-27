@@ -12,7 +12,7 @@ import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
-import io.quartic.eval.database.model.PhaseCompletedV7.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.registry.api.model.Customer

@@ -281,7 +281,6 @@ class DatabaseMigrationsShould {
         )
         insertEvent(goodEventId2, UUID.randomUUID(), Instant.now(), goodEvent2)
 
-        println(getEventFields(badEventId)["payload"].toString())
         databaseVersion("7")
         val expected = Result.UserError(V5.UserErrorInfo.OtherException("noob"))
 
@@ -292,7 +291,55 @@ class DatabaseMigrationsShould {
 
     @Test
     fun v8_migrate_node_structure() {
+        val buildId = uuid(112)
+        val phaseId = uuid(113)
+        val eventId = uuid(114)
+        insertEvent(eventId, buildId, Instant.now(),
+            V2(
+                phaseId = phaseId,
+                result = V2.Result.Success(
+                    V2.Artifact.EvaluationOutput(listOf(
+                        V2.Node.Raw(
+                            id = "0",
+                            info = V2.LexicalInfo(
+                                name = "missing",
+                                description = "missing",
+                                file = "missing",
+                                lineRange = emptyList()
+                            ),
+                            output = V1.Dataset("y", "b"),
+                            source = V2.Source.Bucket("b")
+                        ),
+                        V2.Node.Step(
+                            id = "123",
+                            info = V2.LexicalInfo(
+                                name = "alice",
+                                description = "foo",
+                                file = "foo.py",
+                                lineRange = listOf(10, 20)
+                            ),
+                            inputs = emptyList(),
+                            output = V1.Dataset("x", "a")
+                        ),
+                        V2.Node.Step(
+                            id = "456",
+                            info = V2.LexicalInfo(
+                                name = "bob",
+                                description = "bar",
+                                file = "bar.py",
+                                lineRange = listOf(30, 40)
+                            ),
+                            inputs = listOf(V1.Dataset("x", "a"), V1.Dataset("y", "b")),
+                            output = V1.Dataset("z", "c")
+                        )
+                    ))
+                )
+            )
+        )
+
         databaseVersion("8")
+
+        val payload = readPayloadAs<PhaseCompletedV8>(eventId)
     }
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {

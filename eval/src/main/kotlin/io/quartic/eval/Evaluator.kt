@@ -10,11 +10,11 @@ import io.quartic.common.serdes.OBJECT_MAPPER
 import io.quartic.eval.Dag.DagResult
 import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.*
-import io.quartic.eval.database.model.PhaseCompletedV7.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.PhaseCompletedV7.UserErrorInfo.OtherException
-import io.quartic.eval.database.model.PhaseCompletedV7.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV7.Artifact.NodeExecution
-import io.quartic.eval.database.model.PhaseCompletedV7.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.NodeExecution
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext

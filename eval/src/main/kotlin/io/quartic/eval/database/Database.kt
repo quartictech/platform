@@ -9,8 +9,8 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.database.Database.*
 import io.quartic.eval.database.model.BuildEvent
 import io.quartic.eval.database.model.PhaseCompleted
-import io.quartic.eval.database.model.PhaseCompletedV7.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV7.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV8.Result.Success
 import io.quartic.eval.database.model.TriggerReceived
 import io.quartic.eval.database.model.toDatabaseModel
 import org.jdbi.v3.core.mapper.ColumnMapper

@@ -9,9 +9,9 @@ import io.quartic.eval.database.Database
 import io.quartic.eval.database.Database.BuildRow
 import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.PhaseCompleted
-import io.quartic.eval.database.model.PhaseCompletedV7.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.PhaseCompletedV7.UserErrorInfo.OtherException
-import io.quartic.eval.database.model.PhaseCompletedV7.Result
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV8.Result
 import io.quartic.eval.qube.QubeProxy
 import io.quartic.eval.qube.QubeProxy.QubeContainerProxy
 import io.quartic.eval.sequencer.BuildInitiator.BuildContext

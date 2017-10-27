@@ -3,9 +3,9 @@ package io.quartic.eval
 import com.nhaarman.mockito_kotlin.mock
 import io.quartic.common.test.assertThrows
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
-import io.quartic.eval.database.model.PhaseCompletedV7.Node
-import io.quartic.eval.database.model.PhaseCompletedV7.Node.Raw
-import io.quartic.eval.database.model.PhaseCompletedV7.Node.Step
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.Node.Raw
+import io.quartic.eval.database.model.PhaseCompletedV8.Node.Step
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.Assert.assertThat
 import org.junit.Test
