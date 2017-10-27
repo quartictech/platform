@@ -290,6 +290,11 @@ class DatabaseMigrationsShould {
         assertThat(readPayloadAs<V6>(goodEventId2).result, equalTo(goodEvent2.result))
     }
 
+    @Test
+    fun v8_migrate_node_structure() {
+        databaseVersion("8")
+    }
+
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {
         assertThat(OBJECT_MAPPER.readValue(getEventFields(otherEventId)["payload"].toString()), isA(BuildSucceeded::class.java))
     }
