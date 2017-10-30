@@ -12,6 +12,7 @@ import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Artifact.NodeExecu
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Result
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V6.Result.Success
 import org.flywaydb.core.api.MigrationVersion
+import org.hamcrest.Matcher
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.isA
 import org.jdbi.v3.core.Jdbi
@@ -290,49 +291,65 @@ class DatabaseMigrationsShould {
     }
 
     @Test
+    @Suppress("unchecked")
     fun v8_migrate_node_structure() {
+        databaseVersion("7")
         val buildId = uuid(112)
         val phaseId = uuid(113)
         val eventId = uuid(114)
+        val nodes = listOf(
+            V2.Node.Raw(
+                id = "0",
+                info = V2.LexicalInfo(
+                    name = "missing",
+                    description = "missing",
+                    file = "missing",
+                    lineRange = emptyList()
+                ),
+                output = V1.Dataset("y", "b"),
+                source = V2.Source.Bucket("b")
+            ),
+            V2.Node.Step(
+                id = "123",
+                info = V2.LexicalInfo(
+                    name = "alice",
+                    description = "foo",
+                    file = "foo.py",
+                    lineRange = listOf(10, 20)
+                ),
+                inputs = emptyList(),
+                output = V1.Dataset("x", "a")
+            ),
+            V2.Node.Step(
+                id = "456",
+                info = V2.LexicalInfo(
+                    name = "bob",
+                    description = "bar",
+                    file = "bar.py",
+                    lineRange = listOf(30, 40)
+                ),
+                inputs = listOf(V1.Dataset("x", "a"), V1.Dataset("y", "b")),
+                output = V1.Dataset("z", "c")
+            )
+        )
         insertEvent(eventId, buildId, Instant.now(),
-            V2(
+            V6(
                 phaseId = phaseId,
-                result = V2.Result.Success(
-                    V2.Artifact.EvaluationOutput(listOf(
-                        V2.Node.Raw(
-                            id = "0",
-                            info = V2.LexicalInfo(
-                                name = "missing",
-                                description = "missing",
-                                file = "missing",
-                                lineRange = emptyList()
-                            ),
-                            output = V1.Dataset("y", "b"),
-                            source = V2.Source.Bucket("b")
-                        ),
-                        V2.Node.Step(
-                            id = "123",
-                            info = V2.LexicalInfo(
-                                name = "alice",
-                                description = "foo",
-                                file = "foo.py",
-                                lineRange = listOf(10, 20)
-                            ),
-                            inputs = emptyList(),
-                            output = V1.Dataset("x", "a")
-                        ),
-                        V2.Node.Step(
-                            id = "456",
-                            info = V2.LexicalInfo(
-                                name = "bob",
-                                description = "bar",
-                                file = "bar.py",
-                                lineRange = listOf(30, 40)
-                            ),
-                            inputs = listOf(V1.Dataset("x", "a"), V1.Dataset("y", "b")),
-                            output = V1.Dataset("z", "c")
-                        )
-                    ))
+                result = V6.Result.Success(
+                    V6.Artifact.EvaluationOutput(nodes)
+                )
+            )
+        )
+
+        val errorEventId = uuid(115)
+        insertEvent(errorEventId, buildId, Instant.now(),
+            V6(
+                phaseId = phaseId,
+                result = V6.Result.UserError(
+                    V5.UserErrorInfo.InvalidDag(
+                        "noob dag",
+                        nodes
+                    )
                 )
             )
         )
@@ -340,6 +357,22 @@ class DatabaseMigrationsShould {
         databaseVersion("8")
 
         val payload = readPayloadAs<PhaseCompletedV8>(eventId)
+
+        assertThat(payload.result, isA(PhaseCompletedV8.Result.Success::class.java) as Matcher<in PhaseCompletedV8.Result>)
+        val result = payload.result as PhaseCompletedV8.Result.Success
+        assertThat(result.artifact, isA(PhaseCompletedV8.Artifact.EvaluationOutput::class.java) as Matcher<in PhaseCompletedV8.Artifact?>)
+        val artifact = result.artifact as PhaseCompletedV8.Artifact.EvaluationOutput
+        assertThat(artifact.nodes.size, equalTo(3))
+
+        artifact.nodes.forEach { node ->
+            assertThat(node.name, equalTo(node.id))
+        }
+
+        val payloadError = readPayloadAs<PhaseCompletedV8>(errorEventId)
+
+        assertThat(payloadError.result, isA(PhaseCompletedV8.Result.UserError::class.java) as Matcher<in PhaseCompletedV8.Result>)
+        val resultError = payloadError.result as PhaseCompletedV8.Result.UserError
+        assertThat(resultError.info, isA(PhaseCompletedV8.UserErrorInfo.InvalidDag::class.java) as Matcher<in PhaseCompletedV8.UserErrorInfo>)
     }
 
     private fun assertThatOtherEventsArentNuked(otherEventId: UUID) {

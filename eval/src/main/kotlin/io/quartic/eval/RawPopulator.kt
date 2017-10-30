@@ -77,13 +77,6 @@ class RawPopulator(
             oldETag = oldETag
         ).awaitOrThrowOnError("Howl", PRECONDITION_FAILED.statusCode)
 
-    private fun getDescription(node: Node.Raw): String =
-        node.metadata[DESCRIPTION].let { maybeDescription ->
-            when (maybeDescription) {
-                is String -> maybeDescription
-                else -> node.name
-            }
-        }
 
     private suspend fun updateCatalogue(
         namespace: String,
@@ -108,6 +101,9 @@ class RawPopulator(
             )
         ).awaitOrThrowOnError("Catalogue")
 
+    private fun getDescription(node: Node.Raw): String =
+        node.metadata[DATASET_DESCRIPTION] as? String ?: node.name
+
     /**
      * Either the result, or null in the case of 404, else throw.
      */
@@ -130,6 +126,6 @@ class RawPopulator(
 
     companion object {
         val HOWL_METADATA_FIELD = "howl"
-        val DESCRIPTION = "description"
+        val DATASET_DESCRIPTION = "description"
     }
 }
