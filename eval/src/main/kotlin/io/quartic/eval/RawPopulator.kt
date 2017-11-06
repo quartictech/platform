@@ -11,8 +11,8 @@ import io.quartic.catalogue.api.model.DatasetNamespace
 import io.quartic.common.coroutines.cancellable
 import io.quartic.common.logging.logger
 import io.quartic.common.serdes.OBJECT_MAPPER
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Source.Bucket
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
 import io.quartic.howl.api.HowlClient
 import io.quartic.howl.api.model.StorageMetadata
 import io.quartic.registry.api.model.Customer
@@ -77,6 +77,7 @@ class RawPopulator(
             oldETag = oldETag
         ).awaitOrThrowOnError("Howl", PRECONDITION_FAILED.statusCode)
 
+
     private suspend fun updateCatalogue(
         namespace: String,
         datasetId: String,
@@ -88,8 +89,8 @@ class RawPopulator(
             DatasetId(datasetId),
             DatasetConfig(
                 DatasetMetadata(
-                    name = rawNode.info.name,
-                    description = rawNode.info.description ?: rawNode.info.name,
+                    name = rawNode.name,
+                    description = getDescription(rawNode),
                     attribution = "quartic" // TODO - this is silly
                 ),
                 CloudDatasetLocator(
@@ -99,6 +100,9 @@ class RawPopulator(
                 mapOf(HOWL_METADATA_FIELD to metadata)
             )
         ).awaitOrThrowOnError("Catalogue")
+
+    private fun getDescription(node: Node.Raw): String =
+        node.metadata[DATASET_DESCRIPTION] as? String ?: node.name
 
     /**
      * Either the result, or null in the case of 404, else throw.
@@ -122,5 +126,6 @@ class RawPopulator(
 
     companion object {
         val HOWL_METADATA_FIELD = "howl"
+        val DATASET_DESCRIPTION = "description"
     }
 }

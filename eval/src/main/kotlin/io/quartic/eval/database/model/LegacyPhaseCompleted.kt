@@ -10,6 +10,32 @@ import java.util.*
 
 class LegacyPhaseCompleted private constructor() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(Type(V6::class, name = "phase_completed"))
+    data class V6(val phaseId: UUID, val result: Result) {
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+        @JsonSubTypes(
+            Type(Result.Success::class, name = "success"),
+            Type(Result.InternalError::class, name = "internal_error"),
+            Type(Result.UserError::class, name = "user_error")
+        )
+        sealed class Result {
+            data class Success(val artifact: Artifact? = null) : Result()
+            class InternalError : Result()
+            data class UserError(val info: V5.UserErrorInfo): Result()
+        }
+
+        @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+        @JsonSubTypes(
+            Type(Artifact.EvaluationOutput::class, name = "evaluation_output"),
+            Type(Artifact.NodeExecution::class, name = "node_execution")
+        )
+        sealed class Artifact {
+            data class EvaluationOutput(val nodes: List<V2.Node>) : Artifact()
+            data class NodeExecution(val skipped: Boolean) : Artifact()
+        }
+    }
+
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(Type(V5::class, name = "phase_completed"))
     data class V5(val phaseId: UUID, val result: Result) {
         @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")

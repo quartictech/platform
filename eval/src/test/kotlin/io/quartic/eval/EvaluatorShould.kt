@@ -11,11 +11,11 @@ import io.quartic.eval.api.model.BuildTrigger
 import io.quartic.eval.api.model.BuildTrigger.Manual
 import io.quartic.eval.api.model.BuildTrigger.TriggerType.EXECUTE
 import io.quartic.eval.database.Database
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.InvalidDag
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V5.UserErrorInfo.OtherException
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.NodeExecution
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.InvalidDag
+import io.quartic.eval.database.model.PhaseCompletedV8.UserErrorInfo.OtherException
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.NodeExecution
 import io.quartic.eval.database.model.TriggerReceived
 import io.quartic.eval.database.model.toDatabaseModel
 import io.quartic.eval.quarty.QuartyProxy
@@ -212,18 +212,24 @@ class EvaluatorShould {
     private val lexicalInfo = LexicalInfo("whatever", "whatever", "whatever", emptyList())
     private val rawX = Raw(
         id = "abc",
+        name = "abc",
+        metadata = mapOf(),
         info = lexicalInfo,
         output = Dataset(null, "X"),
         source = Bucket("whatever", "whatever")
     )
     private val stepY = Step(
         id = "def",
+        name = "def",
+        metadata = mapOf(),
         info = lexicalInfo,
         inputs = emptyList(),
         output = Dataset(null, "Y")
     )
     private val stepZ = Step(
         id = "ghi",
+        name = "ghi",
+        metadata = mapOf(),
         info = lexicalInfo,
         inputs = emptyList(),
         output = Dataset(null, "Z")

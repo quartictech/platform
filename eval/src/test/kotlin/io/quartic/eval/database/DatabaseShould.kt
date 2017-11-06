@@ -9,9 +9,9 @@ import io.quartic.eval.database.model.*
 import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.GithubWebhook
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V1.Dataset
 import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.LexicalInfo
-import io.quartic.eval.database.model.LegacyPhaseCompleted.V2.Node.Step
-import io.quartic.eval.database.model.PhaseCompletedV6.Artifact.EvaluationOutput
-import io.quartic.eval.database.model.PhaseCompletedV6.Result.Success
+import io.quartic.eval.database.model.PhaseCompletedV8.Node.Step
+import io.quartic.eval.database.model.PhaseCompletedV8.Artifact.EvaluationOutput
+import io.quartic.eval.database.model.PhaseCompletedV8.Result.Success
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
@@ -282,6 +282,8 @@ class DatabaseShould {
     private val nodes = listOf(
         Step(
             "something",
+            "something",
+            mapOf(),
             LexicalInfo(
                 "name",
                 "a step",

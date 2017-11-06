@@ -1,5 +1,6 @@
 package io.quartic.eval.database.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -13,7 +14,8 @@ import io.quartic.eval.database.model.CurrentTriggerReceived.BuildTrigger.Automa
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EVALUATE
 import io.quartic.eval.database.model.CurrentTriggerReceived.TriggerType.EXECUTE
 import io.quartic.eval.database.model.LegacyPhaseCompleted.*
-import io.quartic.eval.database.model.PhaseCompletedV6.Result.InternalError
+import io.quartic.eval.database.model.PhaseCompletedV8.Node
+import io.quartic.eval.database.model.PhaseCompletedV8.Result.*
 import io.quartic.quarty.api.model.Pipeline
 import java.time.Instant
 import java.util.*
@@ -82,7 +84,8 @@ class CurrentBuildSucceeded : BuildCompleted()
 data class CurrentBuildFailed(val description: String) : BuildCompleted()
 data class CurrentContainerAcquired(val containerId: UUID, val hostname: String) : BuildEvent()
 data class CurrentPhaseStarted(val phaseId: UUID, val description: String) : BuildEvent()
-data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent() {
+
+data class PhaseCompletedV8(val phaseId: UUID, val result: Result): BuildEvent() {
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
     @JsonSubTypes(
         Type(Result.Success::class, name = "success"),
@@ -92,7 +95,17 @@ data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent(
     sealed class Result {
         data class Success(val artifact: Artifact? = null) : Result()
         class InternalError : Result()
-        data class UserError(val info: V5.UserErrorInfo): Result()
+        data class UserError(val info: UserErrorInfo): Result()
+    }
+
+    @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(UserErrorInfo.InvalidDag::class, name = "invalid_dag"),
+        Type(UserErrorInfo.OtherException::class, name = "other_exception")
+    )
+    sealed class UserErrorInfo {
+        data class InvalidDag(val error: String, val nodes: List<Node>) : UserErrorInfo()
+        data class OtherException(val detail: Any?): UserErrorInfo()
     }
 
     @JsonTypeInfo(use = NAME, include = PROPERTY, property = "type")
@@ -101,9 +114,45 @@ data class PhaseCompletedV6(val phaseId: UUID, val result: Result) : BuildEvent(
         Type(Artifact.NodeExecution::class, name = "node_execution")
     )
     sealed class Artifact {
-        data class EvaluationOutput(val nodes: List<V2.Node>) : Artifact()
+        data class EvaluationOutput(val nodes: List<Node>) : Artifact()
         data class NodeExecution(val skipped: Boolean) : Artifact()
     }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes(
+        Type(Node.Step::class, name = "step"),
+        Type(Node.Raw::class, name = "raw")
+    )
+    sealed class Node {
+        abstract val id: String
+        abstract val name: String
+        abstract val metadata: Map<String, Any>
+        abstract val info: V2.LexicalInfo
+        abstract val inputs: List<V1.Dataset>
+        abstract val output: V1.Dataset
+
+        data class Step(
+            override val id: String,
+            override val name: String,
+            override val metadata: Map<String, Any>,
+            override val info: V2.LexicalInfo,
+            override val inputs: List<V1.Dataset>,
+            override val output: V1.Dataset
+        ) : Node()
+
+        data class Raw(
+            override val id: String,
+            override val name: String,
+            override val metadata: Map<String, Any>,
+            override val info: V2.LexicalInfo,
+            val source: V2.Source,
+            override val output: V1.Dataset
+        ) : Node() {
+            @JsonIgnore
+            override val inputs = emptyList<V1.Dataset>()
+        }
+    }
+
 }
 
 data class CurrentLogMessageReceived(val phaseId: UUID, val stream: String, val message: String) : BuildEvent()
@@ -118,7 +167,7 @@ typealias BuildSucceeded = CurrentBuildSucceeded
 typealias BuildFailed = CurrentBuildFailed
 typealias ContainerAcquired = CurrentContainerAcquired
 typealias PhaseStarted = CurrentPhaseStarted
-typealias PhaseCompleted = PhaseCompletedV6
+typealias PhaseCompleted = PhaseCompletedV8
 typealias LogMessageReceived = CurrentLogMessageReceived
 
 
@@ -132,14 +181,18 @@ val BUILD_SUCCEEDED = BuildSucceeded()
 val INTERNAL_ERROR = InternalError()
 
 fun Pipeline.Node.toDatabaseModel() = when (this) {
-    is Pipeline.Node.Step -> V2.Node.Step(
+    is Pipeline.Node.Step -> Node.Step(
         id = id,
+        name = name,
+        metadata = metadata,
         info = info.toDatabaseModel(),
         inputs = inputs.map { it.toDatabaseModel() },
         output = output.toDatabaseModel()
     )
-    is Pipeline.Node.Raw -> V2.Node.Raw(
+    is Pipeline.Node.Raw -> Node.Raw(
         id = id,
+        name = name,
+        metadata = metadata,
         info = info.toDatabaseModel(),
         source = source.toDatabaseModel(),
         output = output.toDatabaseModel()
