@@ -19,7 +19,7 @@ setup(name="quarty",
       packages=find_packages("src"),
       package_dir={"":"src"},
       install_requires=[
-          "aiohttp==2.2.5",
+          "aiohttp==3.8.1",
           "PyYAML==3.12",
           "requests==2.18.4",
           "datadiff==2.0.0",
